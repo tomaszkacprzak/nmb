@@ -1,6 +1,4 @@
 settings:
-    # file name of the ring_test.cat
-    filename_ring : &filename_ring ring_test.test.cat
     # number of galaxies in the cosmos sample
     n_gals : 2
     # n_repeat_gal = n_shears * n_angles
@@ -35,7 +33,7 @@ input :
     # input catalog fields: # id g1 g2 rotation_angle
     catalog:
         dir: .
-        file_name : *filename_ring
+        file_name : truth.test.cat
 
 output :
     type : MultiFits

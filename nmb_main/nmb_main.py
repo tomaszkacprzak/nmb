@@ -43,7 +43,7 @@ def saveRingTestCatalog():
     n_angles = 8
     # set shears magnitutes, 8 shear for each mag will be created
     shears = [0.05, 0.1]
-    filename_cat = 'ring_test.cat'
+    filename_cat = 'truth.cat'
     _writeShears(n_angles,shears,filename_cat)
     logger.info('wrote file %s' % filename_cat)
 
@@ -51,7 +51,7 @@ def saveRingTestCatalog():
     # this is the test config
     n_angles = 4
     shears = [0.05]
-    filename_cat = 'ring_test.test.cat'
+    filename_cat = 'truth.test.cat'
     _writeShears(n_angles,shears,filename_cat)
     logger.info('wrote file %s' % filename_cat)
 

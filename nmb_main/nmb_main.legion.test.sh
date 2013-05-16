@@ -58,9 +58,11 @@ echo $TASK_ID `date` "running command"
 $CMD
 echo `date` "copying"
 cp $TMPDIR/results.* $WDIR/$DIR_RESULTS/
+cp $TMPDIR/truth.* $WDIR/$DIR_RESULTS/
 
 # Edit and uncomment to copy results to home.
 scp $TMPDIR/results.* $SCP_OUT/
+scp $TMPDIR/truth.* $SCP_OUT/
 
 echo `date` "exiting submission script"
 
