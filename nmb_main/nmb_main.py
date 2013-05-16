@@ -42,7 +42,7 @@ def saveRingTestCatalog():
     # set number of angles in ring test
     n_angles = 8
     # set shears magnitutes, 8 shear for each mag will be created
-    shears = [0.05, 0.1]
+    shears = [0.1]
     filename_cat = 'truth.cat'
     _writeShears(n_angles,shears,filename_cat)
     logger.info('wrote file %s' % filename_cat)
@@ -115,9 +115,10 @@ def runIm3shape():
 
     # get options
     n_pix = config['image']['size']
-    i3o = im3shape.I3_options()
-    i3o.read_ini_file(config['args'].filepath_ini)
-    i3o.stamp_size = n_pix
+    i3_options = im3shape.I3_options()
+    i3_options.read_ini_file(config['args'].filepath_ini)
+    logger.info('loaded im3shape ini file %s' % config['args'].filepath_ini)  
+    i3_options.stamp_size = n_pix
 
     # get the file 
     filename_results = 'results.%s.%05d.cat' % (config['args'].filename_config,config['args'].obj_num)
@@ -130,7 +131,7 @@ def runIm3shape():
     psf_fwhm = config['psf']['fwhm']
     psf_e1 = config['psf']['ellip']['g1']
     psf_e2 = config['psf']['ellip']['g2']
-    i3_psf = i3_galaxy.make_great10_psf(psf_beta, psf_fwhm, psf_e1, psf_e2, i3o)
+    i3_psf = i3_galaxy.make_great10_psf(psf_beta, psf_fwhm, psf_e1, psf_e2, i3_options)
 
     # loop over all created images
     for ig,img_gal in enumerate(img_gals):
@@ -144,7 +145,7 @@ def runIm3shape():
         id_object = int(rgc.data['IDENT'][ig / config['settings']['n_repeat_gal']])
         unique_id = getUniqueID2(id_object,id_ring)
 
-        i3_result, i3_best_fit = im3shape.i3_analyze(i3_galaxy, i3_psf, i3o, ID=unique_id)
+        i3_result, i3_best_fit = im3shape.i3_analyze(i3_galaxy, i3_psf, i3_options, ID=unique_id)
 
         saveResult(file_results,i3_result)
         printResult(i3_result)
@@ -180,7 +181,7 @@ def saveResult(file_results,i3_result):
 
 def printResult(i3_result):
 
-    fmt = '%d\t% e\t% 2.2f\t' + '% e\t'*6 
+    fmt = '%d\t% e\t% 2.2f\t' + '% e\t'*5 + '%2.2f' 
     line = fmt % (
                  i3_result.identifier,
                  i3_result.likelihood,

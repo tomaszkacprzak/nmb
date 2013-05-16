@@ -15,7 +15,7 @@ gal :
 
 psf : 
     type : Moffat
-    fwhm : 0.9
+    fwhm :  0.7695
     beta : 3.
     ellip : { type : G1G2,  g1 : 0.05, g2 : 0.05 }
 
