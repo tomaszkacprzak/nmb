@@ -1,0 +1,78 @@
+#!/bin/bash -l
+#$ -S /bin/bash
+#$ -l h_rt=04:00:00
+#$ -l mem=1G
+#$ -t 1-3600
+#$ -N nmb_toy
+#$ -P CosmicShear
+#$ -wd /scratch/scratch/ucabtok/130322_nmb_toy/
+#$ -o  /scratch/scratch/ucabtok/130322_nmb_toy/output/
+#$ -e  /scratch/scratch/ucabtok/130322_nmb_toy/output/
+
+WDIR=~/Scratch/130322_nmb_toy/
+IM3SHAPE=~/ucl_des_shear/im3shape/bin/im3shape
+FILE_RUNLIST=runlist.nmb_toy.txt
+FILE_GALS_CAT=gals.cat
+FILE_PSFS_CAT=psfs.cat
+DIR_IMG=images/
+DIR_OUT=results/
+DIR_INI=ini/
+SCP_OUT=kacprzak@star.ucl.ac.uk:/import/zupcx32/kacprzak/projects/130322_nmb_toy/results/
+
+# -------------- do not modify beyond this point ---------------
+
+mkdir $WDIR/$DIR_OUT
+
+cd $TMPDIR
+TASK_ID=$((SGE_TASK_ID))
+N_TASKS=$((SGE_TASK_LAST-SGE_TASK_FIRST+1))
+
+echo WDIR is $WDIR
+echo $TASK_ID `date` "hpc is alive"
+echo SGE_TASK_LAST $SGE_TASK_LAST
+echo SGE_TASK_FIRST $SGE_TASK_FIRST
+echo TASK_ID $TASK_ID
+echo JOB_NAME  $JOB_NAME 
+
+
+#########################################
+
+
+echo $TASK_ID `date` "loading modules"
+module load default-modules
+module unload compilers
+module load compilers/gnu/4.4.0
+module load python/2.6.6/gnu.4.4.0
+module unload compilers/gnu/4.4.0
+module load compilers/intel/11.1
+module load gsl/1.14/intel
+module load cfitsio/3260/intel
+module load fftw/3.3.1/double/intel
+
+
+# unpack runlist
+FILE_IMG=`sed -n ${TASK_ID}p $WDIR/$FILE_RUNLIST | awk {'{print $1}'}`
+FILE_INI=`sed -n ${TASK_ID}p $WDIR/$FILE_RUNLIST | awk {'{print $2}'}`
+
+echo $TASK_ID `date` "creating im3shape command"
+
+FILE_OUT="$FILE_IMG.$FILE_INI.nbc.$TASK_ID" 
+
+#Usage: /home/kacprzak/im3shape/bin/im3shape parameter_filename image_file object_catalogue_file psf_file output_filename [first_image_to_process] [last_image_to_process] [additional ini file options]
+
+CMD="$IM3SHAPE $WDIR/$DIR_INI/$FILE_INI $WDIR/$DIR_IMG/$FILE_IMG $WDIR/$FILE_GALS_CAT $WDIR/$FILE_PSFS_CAT $FILE_OUT"
+
+# run 
+echo $CMD
+echo $TASK_ID `date` "running command"
+$CMD
+echo `date` "copying"
+cp $TMPDIR/*.nbc.* $WDIR/$DIR_OUT/
+
+# Edit and uncomment to copy results to home.
+scp $TMPDIR/*.nbc.* $SCP_OUT/
+
+
+echo `date` "exiting submission script"
+
+#########################################

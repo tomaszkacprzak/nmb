@@ -1,0 +1,61 @@
+# Define the PSF profile
+psf : 
+    type : Moffat
+    beta : 3
+    fwhm : 2.85
+
+    # The Great08 images used a truncated Moffat profile
+    # trunc : 5.70  # = 2 * FWHM
+
+    ellip :
+        type : E1E2 
+        e1 : 0.
+        e2 : 0.
+
+
+# Define the galaxy profile
+gal :
+
+    type : Sersic
+    n: %2.2f
+    half_light_radius : %2.8e  
+    flux : 1.        
+
+    shear : 
+        type : G1G2
+        g1 : %2.8e
+        g2 : %2.8e
+
+
+    # positions are shifted randomly inside a circle of radius 1 arcsec
+    shift :
+        type : RandomCircle
+        radius : 1 # arcsec
+
+
+# Define some other information about the images 
+image :
+
+    type : Tiled
+    nx_tiles : %d
+    ny_tiles : %d
+
+    # This is the size of the postage stamps.
+    stamp_xsize : %d
+    stamp_ysize : %d
+
+    # Put a 1 pixel border between tiles
+    border : 0  
+
+    pixel_scale : 1.0  # arcsec / pixel
+
+    random_seed : 6424512
+
+
+# Define the names and format of the output files
+output :
+    type : Fits
+
+    dir : .
+    file_name : %s
+    
