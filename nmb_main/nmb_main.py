@@ -222,7 +222,7 @@ if __name__ == "__main__":
     global logger , logger_config , columns , config
     logger = logging.getLogger("nmb_main") 
     config_logging_level = logging_levels[args.verbosity - 1]
-    logger_config = logging.getLogger("nmb_main") 
+    logger_config = logging.getLogger("galsim_config") 
     logger_config.setLevel(config_logging_level)
 
     if args.verbosity == 3: 
