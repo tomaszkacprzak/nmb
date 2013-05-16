@@ -6,7 +6,6 @@ import sys
 import numpy
 import sys
 import math
-import pylab
 import argparse
 import yaml
 import galsim
