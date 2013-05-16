@@ -51,7 +51,7 @@ module load fftw/3.3.1/double/intel
 
 # create command
 echo $SGE_TASK_ID `date` "creating command"
-$CMD="python nmb_main run $FILENAME_CONFIG -v 0 --obj_num $OBJ_NUM --nimages $N_OBJ"
+$CMD="python ~/nmb/nmb_main/nmb_main.py run $FILENAME_CONFIG -v 0 --obj_num $OBJ_NUM --nimages $N_OBJ"
 echo $SGE_TASK_ID `date` "running command"
 # $CMD
 echo `date` "copying"
