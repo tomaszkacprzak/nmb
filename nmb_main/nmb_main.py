@@ -203,11 +203,11 @@ if __name__ == "__main__":
     parser.add_argument('command', type=str, help='command to run, available commands: {makering,run}')
     parser.add_argument('filepath_config', type=str, help='yaml config file, see reconvolution_validation.yaml for example.')
     parser.add_argument('--filepath_ini', type=str, default='nmb.ini', help='ini im3shape config file')
+    parser.add_argument('--filepath_columns',  type=str, action='store', default='columns.yaml', help= 'columns file')
     parser.add_argument('-v', '--verbosity', type=int, action='store', default=2, choices=(0, 1, 2, 3 ), help='integer verbosity level: min=0, max=3 [default=2]')
     parser.add_argument('-snr', '--signal_to_noise', type=float, action='store', default=1e20, help='signal to noise at which to run the test')
     parser.add_argument('--obj_num',  type=int, action='store', default= 0, help= 'first obj_num in config to process (starts from 1)') 
     parser.add_argument('--nimages',  type=int, action='store', default=-1, help= 'number of images to process, starting with obj_num')
-    parser.add_argument('--filepath_columns',  type=str, action='store', default='columns.yaml', help= 'columns file')
     
     args = parser.parse_args()
     args.filename_config = os.path.basename(args.filepath_config)
