@@ -1,15 +1,13 @@
 settings:
+    # file name of the ring_test.cat
+    filename_ring : &filename_ring ring_test.test.cat
     # number of galaxies in the cosmos sample
-    n_gals : &n_gals 2
+    n_gals : 2
     # n_repeat_gal = n_shears * n_angles
     n_repeat_gal : &n_repeat_gal 32
     # n_images = n_gals * n_repeat_gal
     n_images: &n_images 64    
-    # im3shape path
-    path_im3shape : &path_im3shape /home/tomek/Work/code/im3shape/python/
-    # im3shape options
-    im3shape_options : &im3shape_options nmb.ini
-
+    
 gal :
     type : RealGalaxy
     signal_to_noise : 2e200
@@ -31,13 +29,13 @@ image :
     
 input :
     real_catalog :
-        dir : /home/tomek/Work/code/GalSim/examples/data/
+        dir : .
         file_name : real_galaxy_catalog_example.fits
         preload : True   
     # input catalog fields: # id g1 g2 rotation_angle
     catalog:
         dir: .
-        file_name : ring_test.test.cat
+        file_name : *filename_ring
 
 output :
     type : MultiFits
