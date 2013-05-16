@@ -105,7 +105,7 @@ def runIm3shape():
     ring_test_cat = numpy.loadtxt(filename_cat)
 
     # get im3shape
-    dirpath_im3shape = os.path.join(os.environ['DIRPATH_IM3SHAPE'],'python')
+    dirpath_im3shape = os.path.join(os.environ['IM3SHAPE'],'python')
     sys.path.append(dirpath_im3shape)
     import im3shape
 
@@ -196,7 +196,7 @@ def printResult(i3_result):
 
 if __name__ == "__main__":
 
-    description = 'Noise and model bias driver. Requires DIRPATH_IM3SHAPE and DIRPATH_GALSIM to be set.'
+    description = 'Noise and model bias driver. Requires $IM3SHAPE and $GALSIM to be set.'
 
     # parse arguments
     parser = argparse.ArgumentParser(description=description, add_help=True)
@@ -237,7 +237,7 @@ if __name__ == "__main__":
     config['gal']['signal_to_noise'] = args.signal_to_noise
 
     # load site config
-    config['input']['real_catalog']['dir'] = os.path.join(os.environ['DIRPATH_GALSIM'],'rgc')
+    config['input']['real_catalog']['dir'] = os.path.join(os.environ['GALSIM'],'rgc')
 
     # load the columns file
     columns = yaml.load(open(args.filepath_columns,'r')) 

@@ -27,7 +27,7 @@ image :
     
 input :
     real_catalog :
-        dir : .
+        # dir and image_dir will be taken from $GALSIM/rgc
         file_name : real_galaxy_catalog_example.fits
         preload : True   
     # input catalog fields: # id g1 g2 rotation_angle
