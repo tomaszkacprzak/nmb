@@ -66,8 +66,9 @@ def getGalaxyImages():
 
     # make sure that we are using correct obj_num and nimages
     if config1['args'].obj_num < 0: raise ValueError('start_id should be non-negative')
-    else: obj_num = config1['args'].obj_num 
+    else: obj_num = config1['args'].obj_num   
     if config1['args'].nimages <= 0: nimages = n_obj
+    else: nimages = config1['args'].nimages
 
     logger.info('starting with obj_num=%6d and processing %6d objects' % (obj_num,nimages))    
     

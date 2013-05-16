@@ -10,7 +10,7 @@
 #$ -e  /scratch/scratch/ucabtok/130515_nmb_main/000/output/
 
 WDIR=~/Scratch/130515_nmb_main/000/
-SCP_OUT=kacprzak@star.ucl.ac.uk:/import/zupcx32/kacprzak/projects/$WDIR/results/
+SCP_OUT=kacprzak@star.ucl.ac.uk:/import/zupcx32/kacprzak/projects/130515_nmb_main/000/results/
 FILENAME_CONFIG=nmb_main.real.test.yaml
 DIR_RESULTS=results
 DIR_OUTPUT=output
