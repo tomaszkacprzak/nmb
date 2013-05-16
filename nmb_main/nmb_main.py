@@ -207,7 +207,8 @@ if __name__ == "__main__":
     parser.add_argument( '-snr', '--signal_to_noise', type=float, action='store', default=1e20, help='signal to noise at which to run the test')
     parser.add_argument( '--obj_num',  type=int, action='store', default= 0, help= 'first obj_num in config to process (starts from 1)') 
     parser.add_argument( '--nimages',  type=int, action='store', default=-1, help= 'number of images to process, starting with obj_num')
-    parser.add_argument( '--filename_columns',  type=str, action='store', default='columns.yaml', help= 'filename with the columns description for tables used here')
+    parser.add_argument( '--filepath_columns',  type=str, action='store', default='columns.yaml', help= 'filename with the columns description for tables used here')
+    parser.add_argument( '--filepath_im3ini',  type=str, action='store', default='nmb.ini', help= 'filepath to im3shape options file')
     
     args = parser.parse_args()
     args.filename_config = os.path.basename(args.filepath_config)
@@ -230,13 +231,13 @@ if __name__ == "__main__":
             os.makedirs('./debug')
 
     # load the configuration file
-    config = yaml.load(open(args.filename_config,'r')) 
+    config = yaml.load(open(args.filepath_config,'r')) 
     # store the args in config so it's easier to use them
     config['args'] = args
     # change config to match signal to noise
     config['gal']['signal_to_noise'] = args.signal_to_noise
     # load the columns file
-    columns = yaml.load(open(args.filename_columns,'r')) 
+    columns = yaml.load(open(args.filepath_columns,'r')) 
 
     # decide which command to run
     if args.command == 'makering':
