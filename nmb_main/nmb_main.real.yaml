@@ -1,0 +1,40 @@
+settings:
+    # number of galaxies in the cosmos sample
+    n_gals : &n_gals 26000
+    # n_repeat_gal = n_shears * n_angles
+    n_repeat_gal : &n_repeat_gal 128
+    # n_images = n_gals * n_repeat_gal
+    n_images: &n_images 3328000    
+
+gal :
+    type : RealGalaxy
+    signal_to_noise : 2e200
+    index :  { type : Sequence , repeat : *n_repeat_gal }
+    rotate : { type : Deg,  theta : {type : InputCatalog , col : 3 } }
+    shear:   { type : G1G2, g1 :    {type : InputCatalog , col : 1 } , g2 : {type : InputCatalog , col : 2 } }
+
+psf : 
+    type : Moffat
+    fwhm : 0.7695
+    beta : 3.
+    ellip : { type : G1G2,  g1 : 0.05, g2 : 0.05 }
+
+image :
+    type : Single
+    size : 39
+    noise : { type : Gaussian, sigma : 1e-3 }
+    pixel_scale : 0.27  
+    
+input :
+    real_catalog :
+        dir : /home/tomek/Work/code/GalSim/Public/
+        file_name : real_galaxy_catalog.fits
+        preload : True   
+    # input catalog fields: # g1 g2 rotation_angle
+    catalog:
+        dir: .
+        file_name : ring_test.debug.cat
+
+output :
+    type : MultiFits
+    nimages : *n_images 

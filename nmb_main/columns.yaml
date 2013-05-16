@@ -1,0 +1,30 @@
+ring_test:
+    id_ring   : 0
+    g1        : 1
+    g2        : 2
+    angle     : 3
+    id_angle  : 4
+    id_shear  : 5
+
+i3s:
+    identifier                          : 0      
+    likelihood                          : 1      
+    time_taken                          : 2      
+    x0                                  : 3
+    y0                                  : 4
+    e1                                  : 5
+    e2                                  : 6
+    radius                              : 7   
+    bulge_flux                          : 8       
+    disc_flux                           : 9       
+    flux_ratio                          : 10       
+    signal_to_noise                     : 11           
+    min_residuals                       : 12          
+    max_residuals                       : 13           
+    model_min                           : 14       
+    model_max                           : 15       
+    number_of_likelihood_evaluations    : 16                               
+    number_of_iterations                : 17                   
+    reason_of_termination               : 18                   
+    residual_error_at_start             : 19                   
+    residual_error_at_end               : 20                               
