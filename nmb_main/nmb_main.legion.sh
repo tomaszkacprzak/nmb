@@ -1,9 +1,9 @@
 #!/bin/bash -l
 #$ -S /bin/bash
-#$ -l h_rt=04:00:00
+#$ -l h_rt=0:10:0
 #$ -l mem=1G
-#$ -t 1-3600
-#$ -N nmb_toy
+#$ -t 0-3
+#$ -N nmb_main
 #$ -P CosmicShear
 #$ -wd /scratch/scratch/ucabtok/130516_nmb_main/
 #$ -o  /scratch/scratch/ucabtok/130516_nmb_main/output/
@@ -11,9 +11,10 @@
 
 WDIR=~/Scratch/130516_nmb_main/
 SCP_OUT=kacprzak@star.ucl.ac.uk:/import/zupcx32/kacprzak/projects/130516_nmb_main/results/
-FILENAME_CONFIG=nmb_main.real.yaml
+FILENAME_CONFIG="nmb_main.real.test.yaml"
 DIR_RESULTS=results
-N_OBJ=1000
+DIR_OUTPUT=output
+N_OBJ=8
 
 # -------------- do not modify beyond this point ---------------
 
@@ -23,6 +24,7 @@ OBJ_NUM=$((SGE_TASK_ID*N_OBJ))
 
 # make results dicts
 mkdir $WDIR/$DIR_RESULTS
+mkdir $WDIR/$DIR_OUTPUT
 
 # we always work in tempdir
 cd $TMPDIR
@@ -51,7 +53,7 @@ module load fftw/3.3.1/double/intel
 
 # create command
 echo $SGE_TASK_ID `date` "creating command"
-$CMD="python ~/nmb/nmb_main/nmb_main.py run $FILENAME_CONFIG -v 0 --obj_num $OBJ_NUM --nimages $N_OBJ"
+$CMD="python ~/nmb/nmb_main/nmb_main.py run $WDIR/$FILENAME_CONFIG -v 0 --obj_num $OBJ_NUM --nimages $N_OBJ"
 echo $SGE_TASK_ID `date` "running command"
 # $CMD
 echo `date` "copying"
