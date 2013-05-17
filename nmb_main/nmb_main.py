@@ -130,7 +130,7 @@ def runIm3shape():
     i3_options.stamp_size = n_pix
 
     # get the file 
-    filename_results = 'results.%s.%05d.cat' % (config['args'].filename_config,config['args'].obj_num)
+    filename_results = 'results.%s.%05d.cat' % (config['args'].name_config,config['args'].obj_num)
     file_results = open(filename_results,'w')
 
     # create PSF from Moffat parameters
@@ -246,15 +246,16 @@ if __name__ == "__main__":
 
     # parse arguments
     parser = argparse.ArgumentParser(description=description, add_help=True)
-    parser.add_argument('filepath_config', type=str, help='yaml config file, see reconvolution_validation.yaml for example.')
-    parser.add_argument('--filepath_ini', type=str, default='nmb.ini', help='ini im3shape config file')
+    parser.add_argument('filepath_config', type=str, help='yaml config file, see nmb_main.real.test.yaml for example.')
+    parser.add_argument('--filepath_ini', type=str, default='nmb.ini', help='ini im3shape config file (default: nmb.ini)')
+    parser.add_argument('--filepath_truth', type=str, default=None, help='truth file for the run, overrides the config file (by default is taken from yaml file)')
     parser.add_argument('-v', '--verbosity', type=int, action='store', default=2, choices=(0, 1, 2, 3 ), help='integer verbosity level: min=0, max=3 [default=2]')
     parser.add_argument('-snr', '--signal_to_noise', type=float, action='store', default=1e20, help='signal to noise at which to run the test')
     parser.add_argument('--obj_num',  type=int, action='store', default= 0, help= 'first obj_num in config to process (starts from 1)') 
     parser.add_argument('--nimages',  type=int, action='store', default=-1, help= 'number of images to process, starting with obj_num')
     
     args = parser.parse_args()
-    args.filename_config = os.path.basename(args.filepath_config)
+    args.name_config = os.path.basename(args.filepath_config).replace('.yaml','')
 
     # Parse the integer verbosity level from the command line args into a logging_level string
     logging_levels = { 0: logging.CRITICAL, 
@@ -282,6 +283,13 @@ if __name__ == "__main__":
            
     # load site config
     config['input']['real_catalog']['dir'] = os.path.join(os.environ['GALSIM'],'rgc')
+    logger.info('rgc set to be in %s' % config['input']['real_catalog']['dir'])
+
+    # set the truth file path
+    if args.filepath_truth != None:
+            config['input']['catalog']['dir'] = os.path.dirname(args.filepath_truth)
+            config['input']['catalog']['file_name'] = os.path.basename(args.filepath_truth)
+            logger.info('truth catalog set to be in %s %s' % (config['input']['catalog']['dir'],config['input']['catalog']['file_name']))
 
     # run the main driver
     runIm3shape()

@@ -1,4 +1,5 @@
 settings:
+    # total number of images to run - if more than in catalog, the same one will be run with different noise
     n_images: &n_images 128    
     
 gal :
@@ -25,7 +26,6 @@ input :
         # dir and image_dir will be taken from $GALSIM/rgc
         file_name : real_galaxy_catalog_example.fits
         preload : True   
-    # input catalog fields: # id g1 g2 rotation_angle
     catalog:
         dir: .
         file_name : truth.test.cat

@@ -52,7 +52,7 @@ source ~/source_all.sh
 
 # create command
 echo $TASK_ID `date` "creating command"
-CMD="python $DIR_BIN/nmb_main.py $WDIR/$FILENAME_CONFIG --filepath_ini $WDIR/nmb.ini -v 1 --obj_num $OBJ_NUM --nimages $N_OBJ"
+CMD="python $DIR_BIN/nmb_main.py $WDIR/$FILENAME_CONFIG --filepath_ini $WDIR/nmb.ini -v 1 --obj_num $OBJ_NUM --nimages $N_OBJ --filepath_truth $WDIR/truth.26000.cat"
 echo $CMD
 echo $TASK_ID `date` "running command"
 $CMD
