@@ -8,7 +8,7 @@ settings:
     
 gal :
     type : RealGalaxy
-    signal_to_noise : 2e200
+    signal_to_noise : 2e20
     index :  { type : Sequence , repeat : *n_repeat_gal }
     rotate : { type : Deg,  theta : {type : InputCatalog , col : 3 } }
     shear:   { type : G1G2, g1 :    {type : InputCatalog , col : 1 } , g2 : {type : InputCatalog , col : 2 } } 
@@ -22,7 +22,7 @@ psf :
 image :
     type : Single
     size : 39
-    noise : { type : Gaussian, sigma : 1e-3 }
+    noise : { type : Gaussian, sigma : 1e-5 }
     pixel_scale : 0.27
     
 input :

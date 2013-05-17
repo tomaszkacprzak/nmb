@@ -138,18 +138,6 @@ def getGalaxyImages():
     img_gal,img_psf,_,_ = galsim.config.BuildImages(config=config1,obj_num=obj_num,nimages=nimages,make_psf_image=True,logger=logger_config)
     logger.info('got %d images' % len(img_gal))
 
-    if config['args'].verbosity > 2:
-
-        import pylab
-        # plot the all shear and all angles for 2 first galaxies
-        for i in range(n_obj):
-            pylab.subplot(1,2,1)
-            pylab.imshow(img_gal[i].array,interpolation='nearest')
-            pylab.subplot(1,2,2)
-            pylab.imshow(img_psf[i].array,interpolation='nearest')
-            filename_fig = 'debug/fig.buildimages.%03d.png' % i
-            pylab.savefig(filename_fig)
-
     return img_gal
 
 def runIm3shape():
@@ -172,6 +160,7 @@ def runIm3shape():
 
     # get options
     n_pix = config['image']['size']
+    pixel_scale = config['image']['pixel_scale']
     i3_options = im3shape.I3_options()
     i3_options.read_ini_file(config['args'].filepath_ini)
     logger.info('loaded im3shape ini file %s' % config['args'].filepath_ini)  
@@ -184,10 +173,10 @@ def runIm3shape():
     # create PSF from Moffat parameters
     # get i3 images - get first i3_galaxy to initialise the PSF - kind of strange, but hey..
     i3_galaxy = im3shape.I3_image(n_pix, n_pix)
-    psf_beta = config['psf']['beta']
-    psf_fwhm = config['psf']['fwhm']
-    psf_e1 = config['psf']['ellip']['g1']
-    psf_e2 = config['psf']['ellip']['g2']
+    psf_beta = float(config['psf']['beta'])
+    psf_fwhm = float(config['psf']['fwhm'])/float(pixel_scale)
+    psf_e1 = float(config['psf']['ellip']['g1'])
+    psf_e2 = float(config['psf']['ellip']['g2'])
     i3_psf = i3_galaxy.make_great10_psf(psf_beta, psf_fwhm, psf_e1, psf_e2, i3_options)
 
     # loop over all created images
@@ -207,12 +196,40 @@ def runIm3shape():
         saveResult(file_results,i3_result)
         printResult(i3_result)
 
+        # save residual plots
+        if config['args'].verbosity > 2:
+
+            i1 = i3_best_fit.array/sum(i3_best_fit.array.flatten())
+            i2 = img_gal.array/sum(img_gal.array.flatten())
+
+            import pylab
+            pylab.subplot(1,4,1)
+            pylab.imshow(i1,interpolation='nearest')
+            pylab.title('best fit')
+
+            pylab.subplot(1,4,2)
+            pylab.imshow(i2,interpolation='nearest')
+            pylab.title('galaxy')
+
+            pylab.subplot(1,4,3)
+            pylab.imshow(i1-i2,interpolation='nearest')
+            pylab.title('residuals')
+
+            pylab.subplot(1,4,4)
+            pylab.imshow(i3_psf.array,interpolation='nearest')
+            pylab.title('PSF')
+
+            filename_fig = 'debug/fig.residual.%09d.png' % unique_id
+            pylab.savefig(filename_fig)
+            pylab.close()
+
+
 def saveResult(file_results,i3_result):
 
     pixel_scale = config['image']['pixel_scale']
     n_pix = config['image']['size']
 
-    fmt = '%d\t% e\t% 2.2f\t' + '% e\t'*5 + '%2.2f\t' + '% e\t'*8 + '%3d'*3 + '\n'
+    fmt = '%d\t% e\t% 2.2f\t' + '% e\t'*5 + '%2.2f\t' + '% e\t'*8 + '% 5d'*3 + '\n'
     line = fmt % (
                  i3_result.identifier,
                  i3_result.likelihood,
