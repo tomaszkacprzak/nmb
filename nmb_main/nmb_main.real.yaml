@@ -33,7 +33,7 @@ input :
     # input catalog fields: # id g1 g2 rotation_angle
     catalog:
         dir: .
-        file_name : truth.cat
+        file_name : truth.26000.cat
 
 output :
     type : MultiFits
