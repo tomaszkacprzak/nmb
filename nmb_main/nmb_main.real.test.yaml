@@ -23,7 +23,7 @@ image :
     type : Single
     size : 39
     noise : { type : Gaussian, sigma : 1e-3 }
-    pixel_scale : 0.1  
+    pixel_scale : 0.27
     
 input :
     real_catalog :

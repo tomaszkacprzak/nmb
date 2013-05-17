@@ -15,16 +15,17 @@ i3s:
     e1                                  : 5
     e2                                  : 6
     radius                              : 7   
-    bulge_flux                          : 8       
-    disc_flux                           : 9       
-    flux_ratio                          : 10       
-    signal_to_noise                     : 11           
-    min_residuals                       : 12          
-    max_residuals                       : 13           
-    model_min                           : 14       
-    model_max                           : 15       
-    number_of_likelihood_evaluations    : 16                               
-    number_of_iterations                : 17                   
-    reason_of_termination               : 18                   
-    residual_error_at_start             : 19                   
-    residual_error_at_end               : 20                               
+    fwhm                                : 8
+    bulge_flux                          : 9       
+    disc_flux                           : 10       
+    flux_ratio                          : 11       
+    signal_to_noise                     : 12           
+    min_residuals                       : 13          
+    max_residuals                       : 14           
+    model_min                           : 15       
+    model_max                           : 16       
+    number_of_likelihood_evaluations    : 17                               
+    number_of_iterations                : 18                   
+    reason_of_termination               : 19                   
+    residual_error_at_start             : 20                   
+    residual_error_at_end               : 21                              

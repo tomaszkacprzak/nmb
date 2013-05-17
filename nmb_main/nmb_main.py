@@ -12,6 +12,63 @@ import galsim
 import copy
 import datetime  
 
+
+def getFWHM(i3_result,fwxm=0.5,n_sub=3):
+
+
+        n_pix = config['image']['size']*n_sub
+        pixel_scale           = config['image']['pixel_scale']
+        pixel_scale_upsampled = config['image']['pixel_scale']/float(n_sub)
+        gal1 = galsim.Sersic(n=4,half_light_radius=i3_result.sersic_parameter_radius*pixel_scale)
+        gal2 = galsim.Sersic(n=1,half_light_radius=i3_result.sersic_parameter_radius*pixel_scale)
+        gal = i3_result.sersic_disc_flux*gal2 + i3_result.sersic_bulge_flux*gal1
+        psf_beta = config['psf']['beta']
+        psf_fwhm = config['psf']['fwhm']
+        psf = galsim.Moffat(beta=psf_beta,fwhm=psf_fwhm)
+        pix = galsim.Pixel(xw=pixel_scale)
+        obj = galsim.Convolve([gal,psf,pix])
+        img = galsim.ImageD(n_pix,n_pix)
+        obj.draw(img,dx=pixel_scale)
+
+        # fhwm code
+
+        image_nx = n_pix
+        # xy0 = n_pix/2 + 0.5 + shift;
+        xy0 = n_pix/2 + 0.5;
+
+        # set the minimum element to 0
+        image_true = img.array
+        image_true = image_true - numpy.amin(image_true.flatten()) 
+                
+        f1 = 0.
+        f2 = 0.
+        x1 = 0
+        x2 = 0 
+                
+        profile = image_true[int(image_nx//2),:]
+                
+        max_ind = int(image_nx//2)
+        max_val = profile[max_ind]
+        f3 = max_val*fwxm
+        
+        diff = abs(profile-f3)
+        
+        x1 = numpy.argmin(diff)
+        f1 = profile[x1]
+        
+        if( f1 < f3 ):  x2 = x1+1
+        else:       x2 = x1-1
+        f2 = profile[x2];
+    
+        a = (f1-f2)/(x1 - x2)
+        b = f1 - a*x1; 
+        x3 = (f3 - b)/a;
+               
+        fwhm = 2.*abs(max_ind-x3) * pixel_scale                         
+        return fwhm
+
+
+
 def getRingID(id_angle,id_shear):
     return id_shear*100 + id_angle
 
@@ -152,16 +209,20 @@ def runIm3shape():
 
 def saveResult(file_results,i3_result):
 
-    fmt = '%d\t% e\t% 2.2f\t' + '% e\t'*13 + '%3d'*5 + '\n'
+    pixel_scale = config['image']['pixel_scale']
+    n_pix = config['image']['size']
+
+    fmt = '%d\t% e\t% 2.2f\t' + '% e\t'*5 + '%2.2f\t' + '% e\t'*8 + '%3d'*5 + '\n'
     line = fmt % (
                  i3_result.identifier,
                  i3_result.likelihood,
                  i3_result.time_taken,
-                 i3_result.sersic_parameter_x0,
-                 i3_result.sersic_parameter_y0,
+                 (i3_result.sersic_parameter_x0 - float(n_pix)/2.)*pixel_scale*(-1.), # wierd flip, see compare_im3shape_galsim
+                 (i3_result.sersic_parameter_y0 - float(n_pix)/2.)*pixel_scale*(-1.),
                  i3_result.sersic_parameter_e1,
                  i3_result.sersic_parameter_e2,
-                 i3_result.sersic_parameter_radius,
+                 i3_result.sersic_parameter_radius*pixel_scale,
+                 getFWHM(i3_result),
                  i3_result.sersic_bulge_flux,
                  i3_result.sersic_disc_flux,
                  i3_result.sersic_flux_ratio,
@@ -181,17 +242,22 @@ def saveResult(file_results,i3_result):
 
 def printResult(i3_result):
 
-    fmt = '%d\t% e\t% 2.2f\t' + '% e\t'*5 + '%2.2f' 
+
+    pixel_scale = config['image']['pixel_scale']
+    n_pix = config['image']['size']
+
+    fmt = '%d\t% e\t% 2.2f\t' + '% e\t'*5 + '%2.2f\t'*2
     line = fmt % (
                  i3_result.identifier,
                  i3_result.likelihood,
                  i3_result.time_taken,
                  i3_result.sersic_parameter_e1,
                  i3_result.sersic_parameter_e2,
-                 i3_result.sersic_parameter_radius,
+                 i3_result.sersic_parameter_radius*pixel_scale,
                  i3_result.sersic_bulge_flux,
                  i3_result.sersic_disc_flux,
                  i3_result.stats_signal_to_noise,
+                 getFWHM(i3_result),
                  )
     
     logger.info(line)
