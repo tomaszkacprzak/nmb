@@ -27,5 +27,4 @@ i3s:
     number_of_likelihood_evaluations    : 17                               
     number_of_iterations                : 18                   
     reason_of_termination               : 19                   
-    residual_error_at_start             : 20                   
-    residual_error_at_end               : 21                              
+    

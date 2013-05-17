@@ -212,7 +212,7 @@ def saveResult(file_results,i3_result):
     pixel_scale = config['image']['pixel_scale']
     n_pix = config['image']['size']
 
-    fmt = '%d\t% e\t% 2.2f\t' + '% e\t'*5 + '%2.2f\t' + '% e\t'*8 + '%3d'*5 + '\n'
+    fmt = '%d\t% e\t% 2.2f\t' + '% e\t'*5 + '%2.2f\t' + '% e\t'*8 + '%3d'*3 + '\n'
     line = fmt % (
                  i3_result.identifier,
                  i3_result.likelihood,
@@ -234,8 +234,6 @@ def saveResult(file_results,i3_result):
                  i3_result.levmar_number_of_likelihood_evaluations,
                  i3_result.levmar_number_of_iterations,
                  i3_result.levmar_reason_of_termination,
-                 i3_result.levmar_residual_error_at_start,
-                 i3_result.levmar_residual_error_at_end
                  )
     
     file_results.write(line)
