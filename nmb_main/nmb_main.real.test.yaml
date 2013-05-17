@@ -1,17 +1,12 @@
 settings:
-    # number of galaxies in the cosmos sample
-    n_gals : 2
-    # n_repeat_gal = n_shears * n_angles
-    n_repeat_gal : &n_repeat_gal 32
-    # n_images = n_gals * n_repeat_gal
-    n_images: &n_images 64    
+    n_images: &n_images 128    
     
 gal :
     type : RealGalaxy
     signal_to_noise : 2e20
-    index :  { type : Sequence , repeat : *n_repeat_gal }
-    rotate : { type : Deg,  theta : {type : InputCatalog , col : 3 } }
-    shear:   { type : G1G2, g1 :    {type : InputCatalog , col : 1 } , g2 : {type : InputCatalog , col : 2 } } 
+    id :     { type : InputCatalog, col: 1 }
+    shear:   { type : G1G2, g1 :    {type : InputCatalog , col : 2 } , g2 : {type : InputCatalog , col : 3 } } 
+    rotate : { type : Deg,  theta : {type : InputCatalog , col : 4 } }
 
 psf : 
     type : Moffat

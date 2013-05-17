@@ -1,12 +1,30 @@
-ring_test:
-    id_ring   : 0
-    g1        : 1
-    g2        : 2
-    angle     : 3
-    id_angle  : 4
-    id_shear  : 5
+truth:
+    names:
+        - id_unique
+        - id_cosmos
+        - g1
+        - g2
+        - angle
+        - id_angle
+        - id_shear
+    formats:
+        - i4
+        - i4
+        - f4
+        - f4
+        - f4
+        - i4
+        - i4
 
-i3s:
+    # id_unique : 0
+    # id_cosmos : 1
+    # g1        : 2
+    # g2        : 3
+    # angle     : 4
+    # id_angle  : 5
+    # id_shear  : 6
+
+results:
     identifier                          : 0      
     likelihood                          : 1      
     time_taken                          : 2      

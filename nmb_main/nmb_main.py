@@ -13,6 +13,13 @@ import copy
 import datetime  
 
 
+dtype_table_truth   = { 'names'  : ['id_unique','id_cosmos','g1','g2','angle','id_angle','id_shear'],
+                        'formats': ['i4']*2 + ['f4']*3 + ['i4']*3 }
+
+dtype_table_results = { 'names'   : ['identifier','likelihood','time_taken','x0','y0','e1','e2','radius','fwhm','bulge_flux','disc_flux','flux_ratio','signal_to_noise','min_residuals','max_residuals','model_min','model_max','number_of_likelihood_evaluations','number_of_iterations','reason_of_termination'],
+                        'formats' : ['i4'] + ['f4']*16 + ['i4']*3 }
+
+
 def getFWHM(i3_result,fwxm=0.5,n_sub=3):
 
 
@@ -78,40 +85,6 @@ def getUniqueID(id_object,id_angle,id_shear):
 def getUniqueID2(id_object,id_ring):
     return id_object*10000 + id_ring
 
-def saveRingTestCatalog():
-
-    def _writeShears(n_angles,shears,filename_cat):
-
-        file_cat = open(filename_cat,'w')
-        file_cat.write('# g1 g2 rotation_angle\n')
-        fmt = '%04d\t% 2.4e\t% 2.4e\t% 2.10e\t%2d\t%2d\n' 
-        d_angle = 180./n_angles    
-        for ig,g in enumerate(shears):
-            shears_g12 = [ [ 0.0, +g ] , [ 0.0, -g ] , [ +g,   0.0 ] , [ -g,   0.0 ] , [ +g,  +g ] , [-g,  -g ] , [ +g,  -g ] , [ -g,  +g ]]
-            for ig12,g12 in enumerate(shears_g12):
-                for ia in range(n_angles):
-                    angle = ia*d_angle
-                    id_ring = getRingID(ia,8*ig+ig12) 
-                    line = fmt % (id_ring, g12[0], g12[1],   angle, ia, ig12); file_cat.write(line)
-        file_cat.close()
-
-    # this is for the main run
-    # set number of angles in ring test
-    n_angles = 8
-    # set shears magnitutes, 8 shear for each mag will be created
-    shears = [0.1]
-    filename_cat = 'truth.cat'
-    _writeShears(n_angles,shears,filename_cat)
-    logger.info('wrote file %s' % filename_cat)
-
-
-    # this is the test config
-    n_angles = 4
-    shears = [0.05]
-    filename_cat = 'truth.test.cat'
-    _writeShears(n_angles,shears,filename_cat)
-    logger.info('wrote file %s' % filename_cat)
-
 def getGalaxyImages():
 
     config1 = copy.deepcopy(config)
@@ -148,7 +121,8 @@ def runIm3shape():
 
     # open the ring test catalog
     filename_cat = os.path.join(config['input']['catalog']['dir'],config['input']['catalog']['file_name'])
-    ring_test_cat = numpy.loadtxt(filename_cat)
+    truth_cat = numpy.loadtxt(filename_cat,dtype=dtype_table_truth)
+    n_objects = truth_cat.shape[0]
 
     # get im3shape
     dirpath_im3shape = os.path.join(os.environ['IM3SHAPE'],'python')
@@ -179,6 +153,8 @@ def runIm3shape():
     psf_e2 = float(config['psf']['ellip']['g2'])
     i3_psf = i3_galaxy.make_great10_psf(psf_beta, psf_fwhm, psf_e1, psf_e2, i3_options)
 
+    obj_num = config['args'].obj_num
+
     # loop over all created images
     for ig,img_gal in enumerate(img_gals):
 
@@ -186,11 +162,9 @@ def runIm3shape():
         i3_galaxy = im3shape.I3_image(n_pix, n_pix)
         i3_galaxy.from_array(img_gal.array)  
 
-        # get the galaxy id in the RGC
-        id_ring = int(ring_test_cat[ig % config['settings']['n_repeat_gal'],columns['ring_test']['id_ring']])
-        id_object = int(rgc.data['IDENT'][ig / config['settings']['n_repeat_gal']])
-        unique_id = getUniqueID2(id_object,id_ring)
-
+        # get the unique_id
+        unique_id = int(truth_cat['id_unique'][ (obj_num+ig) % n_objects ])
+        
         i3_result, i3_best_fit = im3shape.i3_analyze(i3_galaxy, i3_psf, i3_options, ID=unique_id)
 
         saveResult(file_results,i3_result)
@@ -283,10 +257,8 @@ if __name__ == "__main__":
 
     # parse arguments
     parser = argparse.ArgumentParser(description=description, add_help=True)
-    parser.add_argument('command', type=str, help='command to run, available commands: {makering,run}')
     parser.add_argument('filepath_config', type=str, help='yaml config file, see reconvolution_validation.yaml for example.')
     parser.add_argument('--filepath_ini', type=str, default='nmb.ini', help='ini im3shape config file')
-    parser.add_argument('--filepath_columns',  type=str, action='store', default='columns.yaml', help= 'columns file')
     parser.add_argument('-v', '--verbosity', type=int, action='store', default=2, choices=(0, 1, 2, 3 ), help='integer verbosity level: min=0, max=3 [default=2]')
     parser.add_argument('-snr', '--signal_to_noise', type=float, action='store', default=1e20, help='signal to noise at which to run the test')
     parser.add_argument('--obj_num',  type=int, action='store', default= 0, help= 'first obj_num in config to process (starts from 1)') 
@@ -302,7 +274,7 @@ if __name__ == "__main__":
                        3: logging.DEBUG }
     logging_level = logging_levels[args.verbosity]
     logging.basicConfig(format="%(message)s", level=logging_level, stream=sys.stdout)
-    global logger , logger_config , columns , config
+    global logger , logger_config , config
     logger = logging.getLogger("nmb_main") 
     config_logging_level = logging_levels[args.verbosity - 1]
     logger_config = logging.getLogger("galsim_config") 
@@ -318,20 +290,12 @@ if __name__ == "__main__":
     config['args'] = args
     # change config to match signal to noise
     config['gal']['signal_to_noise'] = args.signal_to_noise
-
+           
     # load site config
     config['input']['real_catalog']['dir'] = os.path.join(os.environ['GALSIM'],'rgc')
 
-    # load the columns file
-    columns = yaml.load(open(args.filepath_columns,'r')) 
-
-    # decide which command to run
-    if args.command == 'makering':
-        saveRingTestCatalog()
-    elif args.command == 'run':
-        saveRingTestCatalog()
-        runIm3shape()
-    else: raise ValueError('command %s not recognised')
+    # run the main driver
+    runIm3shape()
 
 
 
