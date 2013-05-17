@@ -74,17 +74,6 @@ def getFWHM(i3_result,fwxm=0.5,n_sub=3):
         fwhm = 2.*abs(max_ind-x3) * pixel_scale                         
         return fwhm
 
-
-
-def getRingID(id_angle,id_shear):
-    return id_shear*100 + id_angle
-
-def getUniqueID(id_object,id_angle,id_shear):
-    return id_object*10000 + getRingID(id_angle,id_shear)
-
-def getUniqueID2(id_object,id_ring):
-    return id_object*10000 + id_ring
-
 def getGalaxyImages():
 
     config1 = copy.deepcopy(config)
