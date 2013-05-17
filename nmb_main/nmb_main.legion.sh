@@ -5,18 +5,20 @@
 #$ -t 1-2600
 #$ -N nmb_main
 #$ -P CosmicShear
-#$ -wd /scratch/scratch/ucabtok/130515_nmb_main/001/
-#$ -o  /scratch/scratch/ucabtok/130515_nmb_main/001/output/
-#$ -e  /scratch/scratch/ucabtok/130515_nmb_main/001/output/
+#$ -wd /scratch/scratch/ucabtok/130515_nmb_main/101/
+#$ -o  /scratch/scratch/ucabtok/130515_nmb_main/101/output/
+#$ -e  /scratch/scratch/ucabtok/130515_nmb_main/101/output/
 
-WDIR=~/Scratch/130515_nmb_main/001/
-SCP_OUT=kacprzak@star.ucl.ac.uk:/import/zupcx32/kacprzak/projects/130515_nmb_main/001/results/
+WDIR=~/Scratch/130515_nmb_main/101/
+SCP_OUT=kacprzak@star.ucl.ac.uk:/import/zupcx32/kacprzak/projects/130515_nmb_main/101/results/
 FILENAME_CONFIG=nmb_main.real.yaml
+FILENAME_TRUTH=truth.26000.cat
+FILENAME_INI=nmb.ini
+FILENAME_GIT=gitversion.txt
 DIR_RESULTS=results
 DIR_OUTPUT=output
 N_OBJ=640
 DIR_BIN=~/nmb/nmb_main/
-FILENAME_GIT=gitversion.txt
 
 # -------------- do not modify beyond this point ---------------
 
@@ -52,17 +54,15 @@ source ~/source_all.sh
 
 # create command
 echo $TASK_ID `date` "creating command"
-CMD="python $DIR_BIN/nmb_main.py $WDIR/$FILENAME_CONFIG --filepath_ini $WDIR/nmb.ini -v 1 --obj_num $OBJ_NUM --nimages $N_OBJ --filepath_truth $WDIR/truth.26000.cat"
+CMD="python $DIR_BIN/nmb_main.py $WDIR/$FILENAME_CONFIG --filepath_ini $WDIR/$FILENAME_INI -v 1 --obj_num $OBJ_NUM --nimages $N_OBJ --filepath_truth $WDIR/$FILENAME_TRUTH"
 echo $CMD
 echo $TASK_ID `date` "running command"
 $CMD
 echo `date` "copying"
 cp $TMPDIR/results.* $WDIR/$DIR_RESULTS/
-cp $TMPDIR/truth.* $WDIR/$DIR_RESULTS/
 
 # Edit and uncomment to copy results to home.
 scp $TMPDIR/results.* $SCP_OUT/
-scp $TMPDIR/truth.* $SCP_OUT/
 
 echo `date` "exiting submission script"
 

@@ -1,6 +1,6 @@
 settings:
     # total number of images to run - if more than in catalog, the same one will be run with different noise
-    n_images: &n_images 128    
+    n_images: &n_images 64    
     
 gal :
     type : RealGalaxy
