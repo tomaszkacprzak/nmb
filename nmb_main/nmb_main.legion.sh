@@ -51,6 +51,7 @@ echo $N_OBJ
 # load modules
 echo $TASK_ID `date` "loading modules"
 source ~/source_all.sh
+source ~/source_paths.sh
 
 # create command
 echo $TASK_ID `date` "creating command"
