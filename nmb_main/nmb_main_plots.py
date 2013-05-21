@@ -23,10 +23,12 @@ dtype_table_truth   = { 'names'  : ['id_unique','id_cosmos','g1','g2','angle','i
 dtype_table_results = { 'names'   : ['identifier','likelihood','time_taken','x0','y0','e1','e2','radius','fwhm','bulge_flux','disc_flux','flux_ratio','signal_to_noise','min_residuals','max_residuals','model_min','model_max','number_of_likelihood_evals','number_of_iterations','reason_of_termination'],
                         'formats' : ['i4'] + ['f4']*16 + ['i4']*3 }            
 
-dtype_table_stats =  { 'names'   : ['unique_id','gal_num','m1','m2','m1_std','m2_std','c1','c2','c1_std','c2_std'],
-                        'formats' : ['i4']*2 + ['f4']*8 }            
+dtype_table_stats =  { 'names'   : ['index', 'cosmos_id','m1','m2','m1_std','m2_std','c1','c2','c1_std','c2_std' , 'hlr' , 'rgp' , 'snr'],
+                        'formats' : ['i4']*2 + ['f4']*11 }            
 
-filename_pickle = 'results.nmb_main.real.pp'
+filename_results_pickle = 'results.nmb_main.real.pp'
+filename_stats_pickle = 'stats.nmb_main.real.pp'
+
 
 NO_RESULT_FLAG = 666
 
@@ -67,24 +69,24 @@ def _getLineFit(x,y,sig):
 
 def loadResultsArray():
     """
-    Loads the resutls array from file global filename_pickle, unless there is an ipython global with results_array.
+    Loads the resutls array from file global filename_results_pickle, unless there is an ipython global with results_array.
     @return results_array
     """
 
     # this loads the 
     global results_array
     
-    file_pickle = open(filename_pickle)
+    file_pickle = open(filename_results_pickle)
     try:
         results_array
     except:
-        logger.info('loading %s' % filename_pickle)
+        logger.info('loading %s' % filename_results_pickle)
         results_array = pickle.load(file_pickle)
         file_pickle.close()
     else:
         logger.info('using preloaded results_array')
     
-    logger.info('loaded %s correctly, got %d rows' % (filename_pickle,results_array.shape[0]))
+    logger.info('loaded %s correctly, got %d rows' % (filename_results_pickle,results_array.shape[0]))
 
     return results_array
 
@@ -93,13 +95,15 @@ def loadTruthArray():
 
     # this loads the 
     global truth_array
-    
-    file_pickle = open(config['args'].filepath_truth)
+
+    filename_pickle = config['args'].filepath_truth
+    file_pickle = open(filename_pickle)
+ 
     try:
         truth_array
     except:
         logger.info('loading %s' % config['args'].filepath_truth)
-        truth_array = numpy.loadtxt(config['args'].filepath_truth,dtype=dtype_table_truth)
+        truth_array = pickle.load(file_pickle)
     else:
         logger.info('using preloaded truth_array')
     
@@ -123,6 +127,8 @@ def getBiasForEachGal():
 
     results_stats = numpy.zeros(1,dtype=dtype_table_stats)
 
+    n_gals_lost = 0
+
     for i,cid in enumerate(cosmos_ids):
 
         shears_true_g1 = []
@@ -131,6 +137,9 @@ def getBiasForEachGal():
         shears_mean_g2 = []
         shears_stdm_g1 = []
         shears_stdm_g2 = []
+        rgp_list       = []
+        snr_list       = []
+        hlr_list       = []
 
         for gid in range(n_shears):
 
@@ -141,29 +150,32 @@ def getBiasForEachGal():
             results_current = results_array[n_start:n_end]
 
             if any(results_current['e1'] == NO_RESULT_FLAG):
-                logger.error('missing angles for %d %d' % (cid,gid))
+                logger.error('% 8d %10d -- missing angles for shear %d' % (i,cid,gid))
                 continue
 
-            g1_true = truth_current['g1'][0]
-            g2_true = truth_current['g2'][0]
-            g1_mean = numpy.mean(results_current['e1'])
-            g2_mean = numpy.mean(results_current['e2'])
-            g1_stdm = numpy.std(results_current['e1'],ddof=1)
-            g2_stdm = numpy.std(results_current['e2'],ddof=1)            
-
+            mean_g1 = numpy.mean(results_current['e1'])      
+            mean_g2 = numpy.mean(results_current['e2'])      
             
-            shears_true_g1.append( g1_true )
-            shears_true_g2.append( g2_true )
-            shears_mean_g1.append( g1_mean )
-            shears_mean_g2.append( g2_mean )
-            shears_stdm_g1.append( g1_stdm )
-            shears_stdm_g2.append( g2_stdm )
+            if numpy.isnan(mean_g1) or numpy.isnan(mean_g2):
+                logger.error('% 8d %10d -- shear is nan for %d' % (i,cid,gid))
+                continue
 
-        n_valid_shears = len(shears_stdm_g2)
-        logger.info('%d galaxy %d valid shears %d' % (i,cid,n_valid_shears))
-        if n_valid_shears < 2:
+            shears_true_g1.append(      truth_current['g1'][0]                              )
+            shears_true_g2.append(      truth_current['g2'][0]                              )
+            shears_mean_g1.append(      mean_g1                                             )
+            shears_mean_g2.append(      mean_g2                                             )
+            shears_stdm_g1.append(      numpy.std(results_current['e1'],ddof=1)             )
+            shears_stdm_g2.append(      numpy.std(results_current['e2'],ddof=1)             )
+            rgp_list.append(            numpy.mean(results_current['fwhm'])                 )  
+            snr_list.append(            numpy.mean(results_current['signal_to_noise'])      )  
+            hlr_list.append(            numpy.mean(results_current['radius'])               )  
+
+
+        n_valid_shears = len(shears_mean_g1)
+        if n_valid_shears < 5:
+            n_gals_lost+=1
+            logger.error('% 8d %10d -- not enough shears for galaxy : %d , so far lost %d' % (i,cid,n_valid_shears,n_gals_lost))
             continue
-            logger.error('not enough shears for galaxy %d %d : %d' % (i,cid,n_valid_shears))
         else:
             bias_g1 = numpy.array(shears_mean_g1,dtype=numpy.float64) - numpy.array(shears_true_g1,dtype=numpy.float64)
             bias_g2 = numpy.array(shears_mean_g2,dtype=numpy.float64) - numpy.array(shears_true_g2,dtype=numpy.float64)
@@ -172,19 +184,39 @@ def getBiasForEachGal():
             bias_g1_stdm = numpy.ones(bias_g1.shape) 
             bias_g2_stdm = numpy.ones(bias_g2.shape)
 
-            import pdb; pdb.set_trace()
             c1,m1,cov1 = _getLineFit(g1_true,bias_g1,bias_g1_stdm)
             c2,m2,cov2 = _getLineFit(g2_true,bias_g2,bias_g2_stdm)
-
-
-
-
-
-
-
-
+            m1_std = numpy.sqrt(cov1[1,1])
+            m2_std = numpy.sqrt(cov2[1,1])
+            c1_std = numpy.sqrt(cov1[0,0])
+            c2_std = numpy.sqrt(cov2[0,0])
     
+            rgp = numpy.mean(rgp_list)
+            snr = numpy.mean(snr_list)
+            hlr = numpy.mean(hlr_list)
 
+            if any(numpy.isnan([m1, m2, c1, c2])):
+                n_gals_lost+=1
+                logger.error('% 8d %10d -- nans in bias line fit params : %d , so far lost %d' % (i,cid,n_valid_shears,n_gals_lost))
+                continue
+
+            # dtype_table_stats =  { 'names'   : ['index', 'cosmos_id','m1','m2','m1_std','m2_std','c1','c2','c1_std','c2_std' , 'hlr' , 'rgp' , 'snr'],
+            results_stats_row = numpy.array([(i,cid,m1,m2,m1_std,m2_std,c1,c2,c1_std,c2_std,hlr,rgp,snr)],dtype=dtype_table_stats)
+            results_stats = numpy.concatenate((results_stats,results_stats_row))
+
+
+        logger.debug('%8d galaxy %8d valid shears %d, so far got %8d valid gals' % (i,cid,n_valid_shears,results_stats.shape[0]))
+
+    # remove the first zero row
+    results_stats=results_stats[1:]
+    n_stats = len(results_stats)
+    logger.info('results_stats has %d rows' % n_stats)
+
+    file_pickle = open(filename_stats_pickle,'w')
+    pickle.dump(results_stats,file_pickle,protocol=2)
+    file_pickle.close()
+    logger.info('saved %s' % filename_stats_pickle) 
+    
 def mergeResutls():
 
     truth_array   = loadTruthArray()
@@ -246,17 +278,117 @@ def mergeResutls():
      
 
     # save file pickle - use global filename_pickle
-    file_pickle = open(filename_pickle,'w')
+    file_pickle = open(filename_results_pickle,'w')
     logger.info('saving')
-    pickle.dump(results_array,file_pickle)
+    pickle.dump(results_array,file_pickle,protocol=2)
     file_pickle.close()
     # check if OK
-    results_array = pickle.load(open(filename_pickle))
-    logger.info('saved %s correctly, got %d rows' % (filename_pickle,results_array.shape[0]))
+    results_array = pickle.load(open(filename_results_pickle))
+    logger.info('saved %s correctly, got %d rows' % (filename_results_pickle,results_array.shape[0]))
     file_pickle.close()
 
+def plotBiasHistogram():
 
-if __name__ == "__main__":
+    def _binCenters(b):
+          c1 = [ b[i-1] + (b[i] - b[i-1])/2. for i in range(1,len(b)) ] 
+          return c1
+
+
+    file_pickle = open(filename_stats_pickle)
+    results_stats = pickle.load(file_pickle)
+    logger.info('opened stats file %s with %d rows' % (filename_stats_pickle,results_stats.shape[0]))
+
+    n_bins = 32
+    m_cut = 0.1
+    select1 = numpy.logical_and(results_stats['m1'] < m_cut , results_stats['m1'] > -m_cut)
+    select2 = numpy.logical_and(results_stats['m2'] < m_cut , results_stats['m2'] > -m_cut) 
+    select = numpy.logical_and(select1,select2)
+    results_m1 = results_stats[select]['m1']
+    results_m2 = results_stats[select]['m2']
+    results_rgp = results_stats[select]['rgp']
+    results_snr = results_stats[select]['snr']
+
+    pylab.ion()
+    pylab.close('all')
+
+    # m1 m2 hist    
+
+    pylab.figure()
+    pylab.clf()
+    h1,b1 = pylab.histogram(results_m1,n_bins)
+    h2,b2 = pylab.histogram(results_m2,n_bins)
+    pylab.plot(_binCenters(b1),h1,'r+-')
+    pylab.plot(_binCenters(b2),h2,'bx-')
+    pylab.xlabel('m1 , m2')
+    print "mean" , numpy.mean(results_m1)
+    print "mean" , numpy.mean(results_m2)
+    print "std" , numpy.std(results_m1,ddof=1)
+    print "std" , numpy.std(results_m2,ddof=1)
+    print 'nans?' , any(numpy.isnan(results_m1))
+    pylab.show()
+    filename_fig = 'figures/figure.hist.m1m2.real.png'
+    pylab.savefig(filename_fig)
+
+    pylab.figure()
+    bins_snr = numpy.logspace(2,4,n_bins)
+    h,b,p = pylab.hist(results_snr,bins=bins_snr)
+    pylab.xlabel('snr')
+    pylab.xscale('log')
+    pylab.show()    
+    filename_fig = 'figures/figure.hist.snr.real.png'
+    pylab.savefig(filename_fig)
+    
+    pylab.figure()
+
+    psf_size =  0.7695
+    results_size = results_rgp/psf_size
+    bins_size = numpy.linspace(1,4,n_bins)
+    h,b,p = pylab.hist(results_size,bins=bins_size)
+    pylab.xlabel('rgp/rp')
+    pylab.show()    
+    filename_fig = 'figures/figure.hist.size.real.png'
+    pylab.savefig(filename_fig)
+
+    # m1 vs snr
+
+    digitized = numpy.digitize(results_snr, bins_snr)
+    bin_mean1 = [results_m1[digitized == i].mean()      for i in range(0, len(bins_snr))]
+    bin_stdv1 = [results_m1[digitized == i].std(ddof=1) for i in range(0, len(bins_snr))]
+    bin_mean2 = [results_m2[digitized == i].mean()      for i in range(0, len(bins_snr))]
+    bin_stdv2 = [results_m2[digitized == i].std(ddof=1) for i in range(0, len(bins_snr))]
+
+    
+    pylab.figure()
+    pylab.errorbar(bins_snr,bin_mean1,yerr=bin_stdv1)
+    pylab.errorbar(bins_snr,bin_mean2,yerr=bin_stdv2)
+    pylab.xscale('log')
+    pylab.xlabel('snr')
+    pylab.ylabel('m1')
+    filename_fig = 'figures/figure.hist.m1m2vsSNR.real.png'
+    pylab.savefig(filename_fig)
+
+    # m1 vs size
+
+
+    digitized = numpy.digitize(results_size, bins_size)
+    bin_mean1 = [results_m1[digitized == i].mean()      for i in range(0, len(bins_size))]
+    bin_stdv1 = [results_m1[digitized == i].std(ddof=1) for i in range(0, len(bins_size))]
+    bin_mean2 = [results_m2[digitized == i].mean()      for i in range(0, len(bins_size))]
+    bin_stdv2 = [results_m2[digitized == i].std(ddof=1) for i in range(0, len(bins_size))]
+    
+    pylab.figure()
+    pylab.errorbar(bins_size,bin_mean1,yerr=bin_stdv2)
+    pylab.errorbar(bins_size,bin_mean2,yerr=bin_stdv2)
+    pylab.xlabel('size')
+    pylab.ylabel('m1')
+
+    filename_fig = 'figures/figure.hist.m1m2vsSIZE.real.png'
+    pylab.savefig(filename_fig)
+
+    print len(results_size[results_size > 1.2])
+
+
+def main():
 
     description = 'Plots for the results of nmb_main. To use in ipython, create a variable global results_array, global truth_array to speed up loading'
 
@@ -287,4 +419,9 @@ if __name__ == "__main__":
     config['args'] = args    
 
     # mergeResutls()
-    getBiasForEachGal()
+    # getBiasForEachGal()
+    plotBiasHistogram()
+
+if __name__ == "__main__":
+
+    main()
