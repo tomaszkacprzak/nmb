@@ -17,8 +17,8 @@ import cPickle as pickle
 
 # global results_array
 
-dtype_table_truth   = { 'names'  : ['id_unique','id_cosmos','g1','g2','angle','id_angle','id_shear'],
-                        'formats': ['i4']*2 + ['f4']*3 + ['i4']*3 }
+dtype_table_truth   = { 'names'  : ['id_unique','id_cosmos','g1','g2','angle','id_angle','id_shear' , 'zphot'],
+                        'formats': ['i8']*2 + ['f4']*3 + ['i4']*2 + ['f4']*1 }
 
 dtype_table_results = { 'names'   : ['identifier','likelihood','time_taken','x0','y0','e1','e2','radius','fwhm','bulge_flux','disc_flux','flux_ratio','signal_to_noise','min_residuals','max_residuals','model_min','model_max','number_of_likelihood_evals','number_of_iterations','reason_of_termination'],
                         'formats' : ['i4'] + ['f4']*16 + ['i4']*3 }            
