@@ -61,27 +61,24 @@ if __name__ == "__main__":
     # write header
     file_cat.write('# id_unique id_cosmos g1 g2 rotation_angle id_shear id_angle\n')
     # write the shears
-    for i,idc in enumerate(ids_common):
+    for i,idg in enumerate(ids_galsim):
         if (i % 100) == 0: logger.info('writing shears in galaxy %d' % i)
-        redshift = data_cosmos[data_cosmos['IDENT']==idc]['ZPHOT']
+        redshift = data_cosmos[data_cosmos['IDENT']==idg]['ZPHOT']
         if redshift < 0: 
             logger.info('error redshift <0 %2.2f' % redshift)
-        _writeShears(args.n_angles,args.shears,idc,redshift,file_cat) 
+        _writeShears(args.n_angles,args.shears,idg,redshift,file_cat) 
     file_cat.close()
     logger.info('finished writing file')
     truth_cat = numpy.loadtxt(args.filepath_out,dtype=dtype_table_truth) 
     n_obj = truth_cat.shape[0]
     logger.info('wrote file %s with %d objects' % (args.filepath_out,n_obj))
 
-    # sort the truth cat
-    truth_cat_sorted = truth_cat[numpy.argsort(truth_cat['id_unique'])]
     # write the pickled version
     filepath_pickle = args.filepath_out.replace('.cat','.pp')
     file_pickle = open(filepath_pickle,'w')
-    pickle.dump(truth_cat_sorted,file_pickle,protocol=2)
+    pickle.dump(truth_cat,file_pickle,protocol=2)
     file_pickle.close()
     logger.info('wrote file %s with %d objects' % (filepath_pickle,n_obj))
-
-
+    logger.info('first %d last %d' % (truth_cat['id_unique'][0],truth_cat['id_unique'][-1]))
 
 

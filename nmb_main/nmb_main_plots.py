@@ -50,7 +50,7 @@ def plotBiasHistogram():
     results_snr = results_stats[select]['snr']
     results_zphot = results_stats[select]['zphot']
 
-    pylab.ion()
+    # pylab.ion()
     pylab.close('all')
 
     # m1 m2 hist    
@@ -67,7 +67,7 @@ def plotBiasHistogram():
     print "std" , numpy.std(results_m1,ddof=1)
     print "std" , numpy.std(results_m2,ddof=1)
     print 'nans?' , any(numpy.isnan(results_m1))
-    pylab.show()
+    # pylab.show()
     filename_fig = 'figures/figure.hist.m1m2.real.png'
     pylab.savefig(filename_fig)
 
@@ -76,7 +76,7 @@ def plotBiasHistogram():
     h,b,p = pylab.hist(results_snr,bins=bins_snr)
     pylab.xlabel('snr')
     pylab.xscale('log')
-    pylab.show()    
+    # pylab.show()    
     filename_fig = 'figures/figure.hist.snr.real.png'
     pylab.savefig(filename_fig)
     
@@ -86,7 +86,7 @@ def plotBiasHistogram():
     bins_size = numpy.linspace(1,4,n_bins)
     h,b,p = pylab.hist(results_size,bins=bins_size)
     pylab.xlabel('rgp/rp')
-    pylab.show()    
+    # pylab.show()    
     filename_fig = 'figures/figure.hist.size.real.png'
     pylab.savefig(filename_fig)
 
@@ -97,7 +97,7 @@ def plotBiasHistogram():
     h,b,p = pylab.hist(results_zphot,bins=n_bins)
     # h,b,p = pylab.hist(results_zphot,bins=bins_redshift)
     pylab.xlabel('photo-z')
-    pylab.show()    
+    # pylab.show()    
     filename_fig = 'figures/figure.hist.redshift.real.png'
     pylab.savefig(filename_fig)
 
@@ -210,6 +210,7 @@ def plotBiasHistogram():
     pylab.savefig(filename_fig)
     logger.info('saved %s' % filename_fig)
 
+    print len(results_stats)
     print len(results_size[results_size > 1.2])
 
 

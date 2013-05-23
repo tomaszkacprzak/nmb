@@ -84,67 +84,26 @@ def loadTable(table_name,filepath,dtype):
     globals()[table_name] = table
     return table
 
+def saveTable(filepath,table):
 
-
-def loadResultsArray():
-    """
-    Loads the resutls array from file global filename_results_pickle, unless there is a lobal results_array.
-    @return results_array
-    """
-
-    global results_array
-    
-    try:
-        results_array
-    except:
-        logger.info('loading %s' % args.filepath_results)
-        if args.filepath_results.split('.')[-1] == 'pp':
-                file_pickle = open(args.filepath_results)
-                results_array = pickle.load(file_pickle)
-                file_pickle.close()
-        else:
-                results_array = numpy.loadtxt(args.filepath_results,dtype=dtype_table_results)
-        
+    if filepath.split('.')[-1] == 'pp':
+        file_pickle = open(filepath,'w')
+        pickle.dump(table,file_pickle,protocol=2)
+        file_pickle.close()
     else:
-        logger.info('using preloaded results_array')
-    
-    logger.info('loaded %s correctly, got %d rows' % (args.filepath_results,results_array.shape[0]))
+        header = '# ' + ' '.join(table.dtype.names)
+        numpy.savetxt(filepath,table,header=header)
 
-    return results_array
-
-def loadTruthArray():
-    """
-    Loads the truth array from file global filename_truth_pickle, unless there is a global truth_array.
-    @return truth_array
-    """
-
-    global truth_array
-    
-    try:
-        truth_array
-    except:
-        logger.info('loading %s' % args.filepath_truth)
-        if args.filepath_truth.split('.')[-1] == 'pp':
-            file_pickle = open(args.filepath_truth)
-            truth_array = pickle.load(file_pickle)
-            file_pickle.close()
-        else:
-            truth_array = numpy.loadtxt(args.filepath_truth,dtype=dtype_table_truth)
-
-    else:
-        logger.info('using preloaded truth_array')
-    
-    logger.info('loaded %s correctly, got %d rows' % (args.filepath_truth,truth_array.shape[0]))
-
-    return truth_array
+    logger.info('truth saved %s correctly, got %d rows' % (filepath,len(table.shape)))
 
 def getBiasForEachGal():
 
     # get the results and truth
-    results_array = loadResultsArray()
-    truth_array   = loadTruthArray()
+    results_array = loadTable('results_array',args.filepath_results,dtype_table_results)
+    truth_array   = loadTable('truth_array',args.filepath_truth,dtype_table_truth)
 
     cosmos_ids = set(truth_array['id_cosmos'])
+    n_cosmos_ids = len(cosmos_ids)
     n_per_cosmos = sum(truth_array['id_cosmos'] == truth_array[0]['id_cosmos'])
     print "n_per_cosmos" , n_per_cosmos
     n_shears = len(set(truth_array['id_shear']))
@@ -156,7 +115,7 @@ def getBiasForEachGal():
 
     n_gals_lost = 0
 
-    for i,cid in enumerate(cosmos_ids):
+    for cid in range(n_cosmos_ids):
 
         shears_true_g1 = []
         shears_true_g2 = []
@@ -168,29 +127,29 @@ def getBiasForEachGal():
         snr_list       = []
         hlr_list       = []
 
-        n_gal_start  = i*n_per_cosmos
+        n_gal_start  = cid*n_per_cosmos
+        zphot =  truth_array[n_gal_start]['zphot']
+        id_cosmos = truth_array[n_gal_start]['id_cosmos']
 
-        if i % 100 == 0 : logger.info('passing %d %d %d %d' % (i,cid,truth_array[n_gal_start]['id_unique'],results_array[n_gal_start]['identifier']))
+        if cid % 100 == 0 : logger.info('passing %10d %10d %10d' % (cid,truth_array[n_gal_start]['id_unique'],results_array[n_gal_start]['identifier']))
 
         for gid in range(n_shears):
 
-            n_start = i*n_per_cosmos + gid     * n_angles
-            n_end   = i*n_per_cosmos + (gid+1) * n_angles
-
-            zphot =  truth_array[n_start]['zphot']
+            n_start = cid*n_per_cosmos + gid     * n_angles
+            n_end   = cid*n_per_cosmos + (gid+1) * n_angles
 
             truth_current   = truth_array[n_start:n_end]
             results_current = results_array[n_start:n_end]
 
             if any(results_current['e1'] == NO_RESULT_FLAG):
-                logger.error('% 8d %10d -- missing angles for shear %d' % (i,cid,gid))
+                logger.error('% 8d %10d -- missing angles for shear %d' % (cid,id_cosmos,gid))
                 continue
 
             mean_g1 = numpy.mean(results_current['e1'])      
             mean_g2 = numpy.mean(results_current['e2'])      
             
             if numpy.isnan(mean_g1) or numpy.isnan(mean_g2):
-                logger.error('% 8d %10d -- shear is nan for %d' % (i,cid,gid))
+                logger.error('% 8d %10d -- shear is nan for %d' % (cid,id_cosmos,gid))
                 continue
 
             shears_true_g1.append(      truth_current['g1'][0]                              )
@@ -202,12 +161,13 @@ def getBiasForEachGal():
             rgp_list.append(            numpy.mean(results_current['fwhm'])                 )  
             snr_list.append(            numpy.mean(results_current['signal_to_noise'])      )  
             hlr_list.append(            numpy.mean(results_current['radius'])               )  
-
+      
 
         n_valid_shears = len(shears_mean_g1)
+
         if n_valid_shears != n_shears:
             n_gals_lost+=1
-            logger.error('% 8d %10d -- not enough shears for galaxy : %d , so far lost %d' % (i,cid,n_valid_shears,n_gals_lost))
+            logger.error('% 8d %10d -- not enough shears for galaxy : %d , so far lost %d' % (cid,id_cosmos,n_valid_shears,n_gals_lost))
             continue
         else:
             bias_g1 = numpy.array(shears_mean_g1,dtype=numpy.float64) - numpy.array(shears_true_g1,dtype=numpy.float64)
@@ -233,12 +193,11 @@ def getBiasForEachGal():
                 logger.error('% 8d %10d -- nans in bias line fit params : %d , so far lost %d' % (i,cid,n_valid_shears,n_gals_lost))
                 continue
 
-            # dtype_table_stats =  { 'names'   : ['index', 'cosmos_id','zphot','m1','m2','m1_std','m2_std','c1','c2','c1_std','c2_std' , 'hlr' , 'rgp' , 'snr'],
-            results_stats_row = numpy.array([(i,cid,zphot,m1,m2,m1_std,m2_std,c1,c2,c1_std,c2_std,hlr,rgp,snr)],dtype=dtype_table_stats)
+            results_stats_row = numpy.array([(cid,id_cosmos,zphot,m1,m2,m1_std,m2_std,c1,c2,c1_std,c2_std,hlr,rgp,snr)],dtype=dtype_table_stats)
             results_stats = numpy.concatenate((results_stats,results_stats_row))
 
 
-        logger.debug('%8d galaxy %8d valid shears %d, so far got %8d valid gals' % (i,cid,n_valid_shears,results_stats.shape[0]))
+        logger.debug('%8d galaxy %8d valid shears %d, so far got %8d valid gals' % (cid,id_cosmos,n_valid_shears,results_stats.shape[0]))
 
     # remove the first zero row
     results_stats=results_stats[1:]
@@ -254,6 +213,8 @@ def mergeResults():
 
     # truth_array   = loadTruthArray()
     truth_array = loadTable('truth_array',args.filepath_truth,dtype_table_truth)
+    n_gals_total = len(truth_array)
+    n_gals_per_file = 640
 
     # get the wildcard for the files - join all files in a big array
     filecard_resutls = os.path.join(config['args'].dirpath_results,'results.nmb_main.real.*.cat')
@@ -261,8 +222,6 @@ def mergeResults():
     # files = glob.glob(filecard_resutls)
     # files.sort()
     
-    n_gals_total = len(truth_array)
-    n_gals_per_file = 640
     n_files = len(files)
     n_meas = len(dtype_table_results['names'])
     logger.info('got %d file names' % n_files)
@@ -270,132 +229,53 @@ def mergeResults():
     # initialise the empty array
     global results_array
     results_array = numpy.zeros(n_gals_total,dtype=dtype_table_results)
-    results_array['identifier'] = truth_array['id_unique']
     results_array['e1'] = NO_RESULT_FLAG 
     results_array['e2'] = NO_RESULT_FLAG
     results_array['time_taken'] = NO_RESULT_FLAG
 
     for fi,file_results in enumerate(files):
 
-            index_start = fi*n_gals_per_file
-            index_end   = (fi+1)*n_gals_per_file
-            results = numpy.loadtxt(file_results,dtype=dtype_table_results)
-            n_gals_in_file = len(results)
-            logger.info('%d file %s n_gals %d' % (fi,file_results,n_gals_in_file))
-            if n_gals_in_file != n_gals_per_file:
-                continue
+            if os.path.isfile(file_results):
+
+                index_start = fi*n_gals_per_file
+                index_end   = (fi+1)*n_gals_per_file
+                results = numpy.loadtxt(file_results,dtype=dtype_table_results)
+                n_gals_in_file = len(results)
+                logger.info('%d file %s n_gals %d' % (fi,file_results,n_gals_in_file))
+                if n_gals_in_file != n_gals_per_file:
+                    logger.error('skipping file not enough galaxies')
+                    continue
+                else:
+
+                    results_array[range(index_start,index_end)] = results
             else:
-                results_array[index_start,index_end] = results
+                logger.error('skipping file doesnt exist')
+                continue
 
+    logger.info('results  n %10d first %d last %d' % (len(results_array),results_array[0]['identifier'] ,results_array[-1]['identifier']))
+    logger.info('truth    n %10d first %d last %d' % (len(truth_array),truth_array[0]['id_unique']      ,truth_array[-1]['id_unique']))
 
-
-
-
-
-
-
-
-
-
-    # results_all = numpy.zeros(1,dtype=dtype_table_results)
-
-    # filename_results_all = 'results_all.pp'
-    # if not os.path.isfile(filename_results_all):
-
-    #     # loop over files
-    #     for fi,file_results in enumerate(files):
-
-    #         results = numpy.loadtxt(file_results,dtype=dtype_table_results)
-    #         n_gals_in_file = len(results)
-    #         results_all = numpy.append(results_all,results)      
-            
-    #         if fi % 100 == 0 : logger.info('%4d loaded file %50s with %4d lines, results got so far %d' %(fi,file_results,n_gals_in_file,len(results_all)))
-
-    #     pickle.dump(results_all,open('results_all.pp','w'))
-    # else:
-    #     results_all = pickle.load(open(filename_results_all,'r'))
-
-    # # remove the ones that are in the results and not in the truth
-    # sr = set(results_all['identifier'])
-    # st = set(truth_array['id_unique'])
-    # diff_set = sr.difference(st)
-    # logger.info('found %d elements in diff set' % len(diff_set))
-
-    # logger.info('results_all has %d elements' % len(results_all))
-    # for di,ds in enumerate(diff_set):
-
-    #     select = numpy.nonzero(results_all['identifier'] == ds)     
-    #     results_all = numpy.delete(results_all,select)
-    #     logger.info('%d diff set id %d removing %d elements' % (di,ds,len(select)))
-
-    # logger.info('removed diff set - results_all has %d elements' % len(results_all))
-
-    # # remove first empty row
-    # truth_array_sorted = truth_array[numpy.argsort(truth_array['id_unique'])]
-    # results_all_sorted = results_all[numpy.argsort(results_all['identifier'])]
-    # logger.info('results  n %10d first %d last %d' % (len(results_array),results_all_sorted[0]['identifier'],results_all_sorted[-1]['identifier']))
-    # logger.info('truth    n %10d first %d last %d' % (len(truth_array),truth_array_sorted[0]['id_unique'],truth_array_sorted[-1]['id_unique']))
-
-    # n_gals_avail = len(results_all_sorted)
-
-    # n_range = 2000;
-    # for i,idu in enumerate(truth_array_sorted['id_unique']):
-
-    #     n_start = max(0,i-n_range)
-    #     n_end = min(n_gals_avail,i+n_range)
-    #     select = numpy.nonzero(results_all_sorted[range(n_start,n_end)]['identifier'] == idu)
-    #     n_found = sum(select)
-    #     if n_found == 1: 
-    #         row = results_all_sorted[select]
-    #         results_array[i] = row
-    #         print row['identifier'] , len(row)
-    #     elif n_found == 0:
-    #         continue
-    #     else:
-    #         rows_found = results_all_sorted[select]
-    #         raise ValueError('n_found %d value %d' % (n_found,rows_found[0]['identifier']))
-
-    #     if i % 100 == 0:  logger.info('finished %d, found %d' % (i,len(select)))
-
-
-    # logger.info('found %d results' % len(results_all))      
-
-    # j=0
-    # # match the catalogs
-    # for i,idu in enumerate(truth_array_sorted['id_unique']):
-
-    #     if i % 10000 == 0 : logger.info('passing %d %d' % (i,j))
-
-    #     if idu == results_all_sorted[j]['identifier']:
-    #         results_array[i] = results_all_sorted[j]
-    #         j+=1
-    #     else:
-    #         logger.debug('%5d %5d %10d %10d not found' % (i,j,idu,results_all_sorted[j]['identifier']))
-    #         continue
-
-    logger.info('finished %d %d' % (i,j))
+    n_matches = 0
+    for ri in range(len(results_array)):
+        if results_array[ri]['identifier'] == truth_array[ri]['id_unique']: n_matches+=1
+    logger.info('number of matches %s' % n_matches)
+    
+    results_array['identifier'] = truth_array['id_unique']
+    
+    n_matches = 0
+    for ri in range(len(results_array)):
+        if results_array[ri]['identifier'] == truth_array[ri]['id_unique']: n_matches+=1
+    logger.info('number of matches %s' % n_matches)
 
     # save file pickle - use global filename_pickle
     saveTable(args.filepath_results,results_array)
-    logger.info('results saved %s correctly, got %d rows' % (args.filepath_results,len(results_array.shape)))
+    logger.info('results saved %s correctly, got %d rows' % (args.filepath_results,len(results_array)))
     
     saveTable(args.filepath_truth,truth_array)
-    logger.info('truth saved %s correctly, got %d rows' % (filename_truth_pickle,len(truth_array.shape)))
+    logger.info('truth saved %s correctly, got %d rows' % (args.filepath_truth,len(truth_array)))
 
     logger.info('truth   n %10d first %d last %d' % (len(results_array),results_array[0]['identifier'],results_array[-1]['identifier']))
     logger.info('results n %10d first %d last %d' % (len(truth_array),truth_array[0]['id_unique'],truth_array[-1]['id_unique']))
-
-def saveTable(filepath,table):
-
-    if filepath.split('.')[-1] == 'pp':
-        file_pickle = open(filepath,'w')
-        pickle.dump(table,filepath,protocol=2)
-        file_pickle.close()
-    else:
-        header = '# ' + ' '.join(table.dtype.names)
-        numpy.savetxt(filepath,table,header=header)
-
-    logger.info('truth saved %s correctly, got %d rows' % (filepath,len(table.shape)))
 
 
 
@@ -461,7 +341,7 @@ def main():
     parser = argparse.ArgumentParser(description=description, add_help=True)
     parser.add_argument('command', type=str, help='what to do?')
     parser.add_argument('filepath_config', type=str, help='yaml config file, see nmb_main.real.test.yaml for example.')
-    parser.add_argument('--filepath_truth', type=str, default='truth.26000.cat', help='truth file for the run, overrides the config file (by default is taken from yaml file)')
+    parser.add_argument('--filepath_truth', type=str, default='truth.26000.pp', help='truth file for the run, overrides the config file (by default is taken from yaml file)')
     parser.add_argument('--filepath_stats', type=str, default='stats.nmb_main.real.pp', help='stats file')
     parser.add_argument('--filepath_results', type=str, default='results.nmb_main.real.pp', help='results file')
     parser.add_argument('--dirpath_results', type=str, default='results', help='where the results files are')
