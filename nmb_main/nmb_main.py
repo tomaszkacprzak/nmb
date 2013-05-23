@@ -16,8 +16,8 @@ import datetime
 dtype_table_truth   = { 'names'  : ['id_unique','id_cosmos','g1','g2','angle','id_angle','id_shear' , 'zphot'],
                         'formats': ['i8']*2 + ['f4']*3 + ['i4']*2 + ['f4']*1 }
 
-dtype_table_results = { 'names'   : ['identifier','likelihood','time_taken','x0','y0','e1','e2','radius','fwhm','bulge_flux','disc_flux','flux_ratio','signal_to_noise','min_residuals','max_residuals','model_min','model_max','number_of_likelihood_evaluations','number_of_iterations','reason_of_termination'],
-                        'formats' : ['i4'] + ['f4']*16 + ['i4']*3 }
+dtype_table_results = { 'names'   : ['id_global' , 'id_object' , 'id_unique', 'id_cosmos', 'likelihood','time_taken','x0','y0','e1','e2','radius','fwhm','bulge_flux','disc_flux','flux_ratio','signal_to_noise','min_residuals','max_residuals','model_min','model_max','number_of_likelihood_evals','number_of_iterations','reason_of_termination'],
+                        'formats' : ['i8']*4 + ['f4']*16 + ['i4']*3 }           
 
 
 def getFWHM(i3_result,fwxm=0.5,n_sub=3):
@@ -152,11 +152,14 @@ def runIm3shape():
         i3_galaxy.from_array(img_gal.array)  
 
         # get the unique_id
-        unique_id = int(truth_cat['id_unique'][ (obj_num+ig) % n_objects ])
+        id_global = ig
+        id_object = (obj_num+ig) % n_objects
+        id_cosmos = truth_cat['id_cosmos'][ id_object ]
+        id_unique = truth_cat['id_unique'][ id_object ]
         
-        i3_result, i3_best_fit = im3shape.i3_analyze(i3_galaxy, i3_psf, i3_options, ID=unique_id)
+        i3_result, i3_best_fit = im3shape.i3_analyze(i3_galaxy, i3_psf, i3_options, ID=id_unique)
 
-        saveResult(file_results,i3_result)
+        saveResult(file_results,i3_result,id_global,id_object,id_unique,id_cosmos)
         printResult(i3_result)
 
         # save residual plots
@@ -187,14 +190,17 @@ def runIm3shape():
             pylab.close()
 
 
-def saveResult(file_results,i3_result):
+def saveResult(file_results,i3_result,idg,ido,idu,idc):
 
     pixel_scale = config['image']['pixel_scale']
     n_pix = config['image']['size']
 
-    fmt = '%d\t% e\t% 2.2f\t' + '% e\t'*5 + '%2.2f\t' + '% e\t'*8 + '% 5d'*3 + '\n'
+    fmt = '%d\t%d\t%d\t%d\t% e\t% 2.2f\t' + '% e\t'*5 + '%2.2f\t' + '% e\t'*8 + '% 5d'*3 + '\n'
     line = fmt % (
-                 i3_result.identifier,
+                 idg,
+                 ido,
+                 idu,
+                 idc,
                  i3_result.likelihood,
                  i3_result.time_taken,
                  (i3_result.sersic_parameter_x0 - float(n_pix)/2.)*pixel_scale*(-1.), # wierd flip, see compare_im3shape_galsim
