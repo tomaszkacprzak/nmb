@@ -33,12 +33,13 @@ def plotBiasHistogram():
           c1 = [ b[i-1] + (b[i] - b[i-1])/2. for i in range(1,len(b)) ] 
           return c1
 
+    global results_stats
 
     file_pickle = open(args.filepath_stats)
     results_stats = pickle.load(file_pickle)
     logger.info('opened stats file %s with %d rows' % (args.filepath_stats,results_stats.shape[0]))
 
-    n_bins = 32
+    n_bins = 20
     m_cut = 0.1
     select1 = numpy.logical_and(results_stats['m1'] < m_cut , results_stats['m1'] > -m_cut)
     select2 = numpy.logical_and(results_stats['m2'] < m_cut , results_stats['m2'] > -m_cut) 
@@ -50,7 +51,7 @@ def plotBiasHistogram():
     results_snr = results_stats[select]['snr']
     results_zphot = results_stats[select]['zphot']
 
-    # pylab.ion()
+    pylab.ion()
     pylab.close('all')
 
     # m1 m2 hist    
@@ -102,9 +103,6 @@ def plotBiasHistogram():
     pylab.savefig(filename_fig)
 
 
-
-
-
     # m1 vs snr
 
     digitized = numpy.digitize(results_snr, bins_snr)
@@ -147,18 +145,18 @@ def plotBiasHistogram():
     digitized = numpy.digitize(results_zphot, bins_redshift)
     for i in range(1, len(bins_redshift)):
         h,b = pylab.histogram(results_snr[digitized == i],bins=bins_snr,normed=True)
-        pylab.plot(h,'x-',label='redshift bin %2.2f' % bins_redshift[i])
+        pylab.plot(_binCenters(bins_snr),h,'x-',label='redshift bin %2.2f' % bins_redshift[i])
 
     pylab.legend()
     pylab.xlabel('snr')
     pylab.ylabel('normalised hist')
 
 
-
-
     filename_fig = 'figures/figure.hist.SNRvsREDSHIFT.real.png'
     pylab.savefig(filename_fig)
     logger.info('saved %s' % filename_fig)
+
+    # import pdb; pdb.set_trace()
 
     # size vs redshifts
 
@@ -166,7 +164,7 @@ def plotBiasHistogram():
     digitized = numpy.digitize(results_zphot, bins_redshift)
     for i in range(1, len(bins_redshift)):
         h,b = pylab.histogram(results_size[digitized == i],bins=bins_size,normed=True)
-        pylab.plot(h,'x-',label='redshift bin %2.2f' % bins_redshift[i])
+        pylab.plot(_binCenters(bins_size),h,'x-',label='redshift bin %2.2f' % bins_redshift[i])
 
     pylab.legend()
     pylab.xlabel('Rgp/Rp')

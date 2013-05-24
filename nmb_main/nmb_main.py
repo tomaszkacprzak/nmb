@@ -11,7 +11,7 @@ import yaml
 import galsim
 import copy
 import datetime  
-
+import tabletools
 
 dtype_table_truth   = { 'names'  : ['id_unique','id_cosmos','g1','g2','angle','id_angle','id_shear' , 'zphot'],
                         'formats': ['i8']*2 + ['f4']*3 + ['i4']*2 + ['f4']*1 }
@@ -26,8 +26,8 @@ def getFWHM(i3_result,fwxm=0.5,n_sub=3):
         n_pix = config['image']['size']*n_sub
         pixel_scale           = config['image']['pixel_scale']
         pixel_scale_upsampled = config['image']['pixel_scale']/float(n_sub)
-        gal1 = galsim.Sersic(n=4,half_light_radius=i3_result.sersic_parameter_radius*pixel_scale)
-        gal2 = galsim.Sersic(n=1,half_light_radius=i3_result.sersic_parameter_radius*pixel_scale)
+        gal1 = galsim.DeVaucouleurs(half_light_radius=i3_result.sersic_parameter_radius*pixel_scale)
+        gal2 = galsim.Exponential(half_light_radius=i3_result.sersic_parameter_radius*pixel_scale)
         gal = i3_result.sersic_disc_flux*gal2 + i3_result.sersic_bulge_flux*gal1
         psf_beta = config['psf']['beta']
         psf_fwhm = config['psf']['fwhm']
@@ -35,7 +35,7 @@ def getFWHM(i3_result,fwxm=0.5,n_sub=3):
         pix = galsim.Pixel(xw=pixel_scale)
         obj = galsim.Convolve([gal,psf,pix])
         img = galsim.ImageD(n_pix,n_pix)
-        obj.draw(img,dx=pixel_scale)
+        obj.draw(img,dx=pixel_scale_upsampled)
 
         # fhwm code
 
@@ -71,7 +71,7 @@ def getFWHM(i3_result,fwxm=0.5,n_sub=3):
         b = f1 - a*x1; 
         x3 = (f3 - b)/a;
                
-        fwhm = 2.*abs(max_ind-x3) * pixel_scale                         
+        fwhm = 2.*abs(max_ind-x3) * pixel_scale_upsampled                         
         return fwhm
 
 def getGalaxyImages():
@@ -110,7 +110,9 @@ def runIm3shape():
 
     # open the ring test catalog
     filename_cat = os.path.join(config['input']['catalog']['dir'],config['input']['catalog']['file_name'])
-    truth_cat = numpy.loadtxt(filename_cat,dtype=dtype_table_truth)
+    # truth_cat = numpy.loadtxt(filename_cat,dtype=dtype_table_truth)
+    truth_cat = tabletools.loadTable('truth_cat',filename_cat,dtype=dtype_table_truth,logger=logger)
+
     n_objects = truth_cat.shape[0]
 
     # get im3shape
@@ -150,6 +152,7 @@ def runIm3shape():
         # get i3 images
         i3_galaxy = im3shape.I3_image(n_pix, n_pix)
         i3_galaxy.from_array(img_gal.array)  
+
 
         # get the unique_id
         id_global = ig

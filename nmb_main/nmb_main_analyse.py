@@ -12,12 +12,13 @@ import copy
 import datetime  
 import pylab
 import glob
+import tabletools
 import cPickle as pickle
 
 # global results_array
 
 dtype_table_truth   = { 'names'  : ['id_unique','id_cosmos','g1','g2','angle','id_angle','id_shear' , 'zphot'],
-                        'formats': ['i8']*2 + ['f4']*3 + ['i4']*2 + ['f4']*1 }
+                        'formats': ['i8']*2   + ['f4']*3 + ['i4']*2 + ['f4']*1 }
 
 dtype_table_results = { 'names'   : ['identifier','likelihood','time_taken','x0','y0','e1','e2','radius','fwhm','bulge_flux','disc_flux','flux_ratio','signal_to_noise','min_residuals','max_residuals','model_min','model_max','number_of_likelihood_evals','number_of_iterations','reason_of_termination'],
                         'formats' : ['i8'] + ['f4']*16 + ['i4']*3 }           
@@ -62,45 +63,11 @@ def _getLineFit(x,y,sig):
         
         return a,b,Cab
 
-def loadTable(table_name,filepath,dtype):
-
-    try:
-        table = eval(table_name)
-    except:
-
-        logger.info('loading %s' % filepath)
-        if filepath.split('.')[-1] == 'pp':
-                file_pickle = open(filepath)
-                table = pickle.load(file_pickle)
-                file_pickle.close()
-        else:
-                table = numpy.loadtxt(filepath,dtype=dtype)
-        
-    else:
-        logger.info('using preloaded array %s' % table_name)
-    
-    logger.info('loaded %s correctly, got %d rows' % (filepath,len(table)))
-
-    globals()[table_name] = table
-    return table
-
-def saveTable(filepath,table):
-
-    if filepath.split('.')[-1] == 'pp':
-        file_pickle = open(filepath,'w')
-        pickle.dump(table,file_pickle,protocol=2)
-        file_pickle.close()
-    else:
-        header = '# ' + ' '.join(table.dtype.names)
-        numpy.savetxt(filepath,table,header=header)
-
-    logger.info('truth saved %s correctly, got %d rows' % (filepath,len(table.shape)))
-
 def getBiasForEachGal():
 
     # get the results and truth
-    results_array = loadTable('results_array',args.filepath_results,dtype_table_results)
-    truth_array   = loadTable('truth_array',args.filepath_truth,dtype_table_truth)
+    results_array = tabletools.loadTable('results_array',args.filepath_results,dtype_table_results)
+    truth_array   = tabletools.loadTable('truth_array',args.filepath_truth,dtype_table_truth)
 
     cosmos_ids = set(truth_array['id_cosmos'])
     n_cosmos_ids = len(cosmos_ids)
@@ -212,7 +179,7 @@ def getBiasForEachGal():
 def mergeResults():
 
     # truth_array   = loadTruthArray()
-    truth_array = loadTable('truth_array',args.filepath_truth,dtype_table_truth)
+    truth_array = tabletools.loadTable('truth_array',args.filepath_truth,dtype_table_truth)
     n_gals_total = len(truth_array)
     n_gals_per_file = 640
 
@@ -268,10 +235,10 @@ def mergeResults():
     logger.info('number of matches %s' % n_matches)
 
     # save file pickle - use global filename_pickle
-    saveTable(args.filepath_results,results_array)
+    tabletools.saveTable(args.filepath_results,results_array)
     logger.info('results saved %s correctly, got %d rows' % (args.filepath_results,len(results_array)))
     
-    saveTable(args.filepath_truth,truth_array)
+    tabletools.saveTable(args.filepath_truth,truth_array)
     logger.info('truth saved %s correctly, got %d rows' % (args.filepath_truth,len(truth_array)))
 
     logger.info('truth   n %10d first %d last %d' % (len(results_array),results_array[0]['identifier'],results_array[-1]['identifier']))
@@ -281,55 +248,63 @@ def mergeResults():
 
 def createBFITsample():
 
-    # load the stats - they contain the galaxies which passed
-    file_stats_pickle = open(filename_stats_pickle)
-    results_stats = pickle.load(file_stats_pickle)
-    logger.info('results stats have %d galaxies' % len(results_stats))
-
-    # load the resutls
-    results_array = loadResultsArray()
-    logger.info('results array have %d galaxies' % len(results_array))
-
-    truth_array = loadTruthArray()
+    # load the truth
+    truth_array = tabletools.loadTable('truth_array',args.filepath_truth,dtype=dtype_table_truth)
     logger.info('truth array have %d galaxies' % len(truth_array))
 
-    results_array_bfit = numpy.zeros(1,dtype=dtype_table_results)
+    
+    # load the results
+    results_array = tabletools.loadTable('results_array',args.filepath_results,dtype=dtype_table_results)
+    logger.info('results array have %d galaxies' % len(results_array))
 
-    for ig,g in enumerate(results_array):
-        if ig % 100 == 0 : logger.info('passing galaxy %d' % ig)
-        if truth_array[ig]['id_cosmos'] in results_stats['cosmos_id']:
-                import pdb; pdb.set_trace()
-                results_row = numpy.array(results_array[ig],dtype=dtype_table_results)
+    # load the stats - they contain the galaxies which passed
+    stats_array = tabletools.loadTable('stats_sarray',args.filepath_stats,dtype=dtype_table_stats)
+    logger.info('stats array have %d galaxies' % len(stats_array))
+
+    results_array_bfit = numpy.zeros(1,dtype=dtype_table_results)
+    truth_array_bfit = numpy.zeros(1,dtype=dtype_table_truth)
+
+    for ig,g in enumerate(stats_array['cosmos_id']):
+        select = truth_array['id_cosmos'] == g
+
+        results_rows = results_array[select] 
+        truth_rows = truth_array[select]
+
+        if ig % 100 == 0 : 
+            logger.info('passing galaxy %10d results id %10d truth id %10d' % (ig,results_rows['identifier'][0],truth_rows['id_unique'][0]))
+            
+        results_array_bfit = numpy.append(results_array_bfit,results_rows)
+        truth_array_bfit = numpy.append(truth_array_bfit,truth_rows)
 
     # remove the last one
     results_array_bfit = results_array_bfit[1:]
-    n_gals = len(results_array_bfit)
+    truth_array_bfit = truth_array_bfit[1:]
+    n_gals = len(truth_array_bfit)
 
     logger.info('number of galaxies in bfit sample %d' % n_gals)
 
-    fits = getFITSTable(results_array_bfit)
-    n_gals_fits = fits[1].data.shape
+    filename_results_bfit = args.filepath_results.replace('results','results.bfit').replace('pp','fits')
+    filename_truth_bfit = args.filepath_truth.replace('truth','truth.bfit').replace('pp','fits')
+
+    fits_results = tabletools.getFITSTable(results_array_bfit)
+    fits_truth   = tabletools.getFITSTable(truth_array_bfit)
+    n_gals_fits = fits_truth[1].data.shape
     logger.info('got fits table from numpy, with %d rows' % n_gals_fits)
 
-def getFITSTable(numpy_array):
+    fits_results.writeto(filename_results_bfit,clobber=True)
+    fits_truth.writeto(filename_truth_bfit,clobber=True)
+    logger.info('saved %s %s' % (filename_truth_bfit,filename_results_bfit))
 
-    formats = { numpy.dtype('int32') : 'J' , numpy.dtype('float32') : 'D' }
+    # check
 
-    cols = []
+    results_array_bfit_loaded = pyfits.open(filename_results_bfit)
+    n_loaded = len(results_array_bfit_loaded[1].data)
+    logger.info('loaded n_gals %d' % n_loaded)
+    logger.info('first ids %10d %10d' % (results_array_bfit_loaded[1].data[ 0]['identifier'] , results_array_bfit['identifier'][0]))
+    logger.info('last  ids %10d %10d' % (results_array_bfit_loaded[1].data[-1]['identifier'] , results_array_bfit['identifier'][-1]))
+    logger.info('first e1 % f % f' % (results_array_bfit_loaded[1].data['e1'][0]  , results_array_bfit['e1'][0]  ))
+    logger.info('last  e1 % f % f' % (results_array_bfit_loaded[1].data['e1'][-1] , results_array_bfit['e1'][-1] ))
 
-    for i,col_name in enumerate(numpy_array.dtype.names):
-        col_type = numpy_array.dtype[i]
-        col_fmt = formats[col_type]
-        print col_fmt
-        col = pyfits.Column(name=col_name,format=col_fmt,array=numpy_array[col_name])
-        cols.append(col)
-
-    print cols
-    tbhdu = pyfits.new_table(pyfits.ColDefs(cols))
-    import pdb; pdb.set_trace()
-
-    hdu = pyfits.PrimaryHDU()
-    hdulist = pyfits.HDUList([hdu, tbhdu])
 
 
 
@@ -363,9 +338,7 @@ def main():
     
     # load the configuration file
     config = yaml.load(open(args.filepath_config,'r')) 
-    # store the args in config so it's easier to use them
-    config['args'] = args    
-
+    
     eval(args.command + '()')
     # mergeResutls()
     # getBiasForEachGal()
