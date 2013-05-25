@@ -12,12 +12,13 @@ import galsim
 import copy
 import datetime  
 import tabletools
+from tablespec import *
 
-dtype_table_truth   = { 'names'  : ['id_unique','id_cosmos','g1','g2','angle','id_angle','id_shear' , 'zphot'],
-                        'formats': ['i8']*2 + ['f4']*3 + ['i4']*2 + ['f4']*1 }
+# dtype_table_truth   = { 'names'  : ['id_unique','id_cosmos','g1','g2','angle','id_angle','id_shear' , 'zphot'],
+#                         'formats': ['i8']*2 + ['f4']*3 + ['i4']*2 + ['f4']*1 }
 
-dtype_table_results = { 'names'   : ['id_global' , 'id_object' , 'id_unique', 'id_cosmos', 'likelihood','time_taken','x0','y0','e1','e2','radius','fwhm','bulge_flux','disc_flux','flux_ratio','signal_to_noise','min_residuals','max_residuals','model_min','model_max','number_of_likelihood_evals','number_of_iterations','reason_of_termination'],
-                        'formats' : ['i8']*4 + ['f4']*16 + ['i4']*3 }           
+# dtype_table_results = { 'names'   : ['id_global' , 'id_object' , 'id_unique', 'id_cosmos', 'likelihood','time_taken','x0','y0','e1','e2','radius','fwhm','bulge_flux','disc_flux','flux_ratio','signal_to_noise','min_residuals','max_residuals','model_min','model_max','number_of_likelihood_evals','number_of_iterations','reason_of_termination'],
+#                         'formats' : ['i8']*4 + ['f4']*16 + ['i4']*3 }           
 
 
 def getFWHM(i3_result,fwxm=0.5,n_sub=3):
@@ -91,7 +92,7 @@ def getGalaxyImages():
 
     logger.info('starting with obj_num=%6d and processing %6d objects' % (obj_num,nimages))    
     
-    # process imput  `
+    # process input  
     galsim.config.ProcessInput(config1)
 
     logger.info('getting images')
@@ -105,8 +106,9 @@ def getGalaxyImages():
 def runIm3shape():
 
     # open the RGC
-    filepath_rgc = os.path.join(config['input']['real_catalog']['dir'],config['input']['real_catalog']['file_name'])
-    rgc = pyfits.open(filepath_rgc)[1]
+    if 'real_catalog' in config['input']:
+        filepath_rgc = os.path.join(config['input']['real_catalog']['dir'],config['input']['real_catalog']['file_name'])
+        rgc = pyfits.open(filepath_rgc)[1]
 
     # open the ring test catalog
     filename_cat = os.path.join(config['input']['catalog']['dir'],config['input']['catalog']['file_name'])
@@ -153,17 +155,31 @@ def runIm3shape():
         i3_galaxy = im3shape.I3_image(n_pix, n_pix)
         i3_galaxy.from_array(img_gal.array)  
 
-
+        # this is a workaround - the array for model bias real images had id_unique,
+        # but the results files have 'identifier' - so we use one or the other id they exist
         # get the unique_id
-        id_global = ig
-        id_object = (obj_num+ig) % n_objects
-        id_cosmos = truth_cat['id_cosmos'][ id_object ]
-        id_unique = truth_cat['id_unique'][ id_object ]
+        if 'id_unique' in truth_cat.dtype.names:
+
+            id_global = ig
+            id_object = (obj_num+ig) % n_objects
+            id_cosmos = truth_cat['id_cosmos'][ id_object ]
+            id_unique = truth_cat['id_unique'][ id_object ]
+
+        elif 'identifier' in truth_cat.dtype.names:
+            
+            id_global = ig
+            id_object = (obj_num+ig) % n_objects
+            id_unique = truth_cat['identifier'][ id_object ]
+            id_cosmos = int(truth_cat['identifier'][ id_object ]//1000)
+
         
         i3_result, i3_best_fit = im3shape.i3_analyze(i3_galaxy, i3_psf, i3_options, ID=id_unique)
 
+
         saveResult(file_results,i3_result,id_global,id_object,id_unique,id_cosmos)
         printResult(i3_result)
+        if 'e1' in truth_cat.dtype.names: printTruth(i3_result,truth_cat[ig])
+
 
         # save residual plots
         if config['args'].verbosity > 2:
@@ -188,7 +204,7 @@ def runIm3shape():
             pylab.imshow(i3_psf.array,interpolation='nearest')
             pylab.title('PSF')
 
-            filename_fig = 'debug/fig.residual.%09d.png' % unique_id
+            filename_fig = 'debug/fig.residual.%09d.png' % id_unique
             pylab.savefig(filename_fig)
             pylab.close()
 
@@ -249,6 +265,25 @@ def printResult(i3_result):
     
     logger.info(line)
 
+def printTruth(i3_result,truth_row):
+
+    pixel_scale = config['image']['pixel_scale']
+    n_pix = config['image']['size']
+
+    fmt = '%d\t% e\t% 2.2f\t' + '% e\t'*5
+    line = fmt % (
+                 i3_result.identifier,
+                 i3_result.likelihood,
+                 i3_result.time_taken,
+                 truth_row['e1'],   
+                 truth_row['e2'],  
+                 truth_row['radius']*pixel_scale ,
+                 truth_row['bulge_flux'],
+                 truth_row['disc_flux']
+                 )
+    
+    logger.info(line)
+
 if __name__ == "__main__":
 
     description = 'Noise and model bias driver. Requires $IM3SHAPE and $GALSIM to be set.'
@@ -291,8 +326,9 @@ if __name__ == "__main__":
     config['gal']['signal_to_noise'] = args.signal_to_noise
            
     # load site config
-    config['input']['real_catalog']['dir'] = os.path.join(os.environ['GALSIM'],'rgc')
-    logger.info('rgc set to be in %s' % config['input']['real_catalog']['dir'])
+    if 'real_catalog' in config['input']:
+        config['input']['real_catalog']['dir'] = os.path.join(os.environ['GALSIM'],'rgc')
+        logger.info('rgc set to be in %s' % config['input']['real_catalog']['dir'])
 
     # set the truth file path
     if args.filepath_truth != None:

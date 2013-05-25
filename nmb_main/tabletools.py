@@ -1,6 +1,6 @@
 import logging
 
-def loadTable(table_name,filepath,dtype,hdu=1,logger=logging):
+def loadTable(table_name,filepath,dtype=None,hdu=1,logger=logging):
 
     try:
         table = eval(table_name)
@@ -8,6 +8,7 @@ def loadTable(table_name,filepath,dtype,hdu=1,logger=logging):
 
         logger.info('loading %s' % filepath)
         if filepath.split('.')[-1] == 'pp':
+                import cPickle as pickle
                 file_pickle = open(filepath)
                 table = pickle.load(file_pickle)
                 file_pickle.close()
@@ -16,6 +17,7 @@ def loadTable(table_name,filepath,dtype,hdu=1,logger=logging):
                 fits = pyfits.open(filepath)
                 table = fits[hdu].data
         else:
+                import numpy
                 table = numpy.loadtxt(filepath,dtype=dtype)
         
     else:
@@ -28,12 +30,14 @@ def loadTable(table_name,filepath,dtype,hdu=1,logger=logging):
 
 def saveTable(filepath,table,logger=logging):
 
+    import numpy
     formats = { numpy.dtype('int64') : '% 12d' ,
                 numpy.dtype('int32') : '% 12d' ,
                 numpy.dtype('float32') : '% .10e' ,
                 numpy.dtype('float64') : '% .10e' }
 
     if filepath.split('.')[-1] == 'pp':
+        import cPickle as pickle
         file_pickle = open(filepath,'w')
         pickle.dump(table,file_pickle,protocol=2)
         file_pickle.close()

@@ -1,0 +1,46 @@
+# This file is a log of the nmb experiment. Hopefully it will allow to reproduce the procedure of getting the results for the paper.
+
+# 130516 create the truth tables
+# precise$ python nmb_truth.py --filepath_ids galids.2.cat     --filepath_out truth.test.cat  --n_angles 4 --shears 0.05 
+# precise$ python nmb_truth.py --filepath_ids galids.26000.cat --filepath_out truth.26000.cat --n_angles 8 --shears 0.1 
+
+# 130517 run the test scripts
+# python nmb_main.py run nmb_main.real.test.yaml -v 2
+# also runs on legion
+# nmb_main.legion.test.sh
+
+# 130515 check if the ini settings are reproducing galsim images well  
+# run compare_im3shape_galsim.py
+
+# 130515 run on legion
+
+# 130517 got results for 101
+
+# 130518 merge resutls
+# mergeResutls
+
+# 130521 produce first plots
+# ipython run -i /home/tomek/Work/code/nmb/nmb_main/nmb_main_plots.py nmb_main.real.yaml truth.26000.pp -v 2
+
+# 130522 update the table with redshifts:
+# precise$ python nmb_truth.py --filepath_ids galids.26000.cat  --filepath_z cosmos_acs_shera_may2011.fits.gz --filepath_out truth.26000.cat  --n_angles 8 --shears 0.1 
+
+# 130523 
+# merge
+# run ~/code/nmb/nmb_main/nmb_main_analyse.py mergeResults nmb_main.real.yaml --filepath_truth truth.26000.pp -v3
+# got stats
+# run ~/code/nmb/nmb_main/nmb_main_analyse.py getBiasForEachGal nmb_main.real.yaml -v2
+
+# 130524
+# create truth table for the bfit table results.bfit.nmb_main.real.fits  truth.bfit.26000.fits in 150515_nmb_main/101
+# copy the above to 150515_nmb_main/003
+
+# produce plots with hlr
+# In [23]: run -i /home/tomek/Work/code/nmb/nmb_main/nmb_main_plots.py nmb_main.real.yaml  -v 2
+
+# 130525
+# updated im3shape to revision changeset: 177:608e4414bffe
+# run two test scripts:
+# precise$ python /home/tomek/Work/code/nmb/nmb_main/nmb_main.py ~/Work/code/nmb/nmb_main/nmb_main.real.test.yaml -v3 --filepath_truth ~/Work/code/nmb/nmb_main/truth.26000.cat 
+# precise$ python /home/tomek/Work/code/nmb/nmb_main/nmb_main.py ~/Work/code/nmb/nmb_main/nmb_main.bfit.test.yaml -v3 
+# for the bfit, I obtained model bias of order 0.0001
