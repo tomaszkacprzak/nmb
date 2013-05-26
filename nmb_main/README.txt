@@ -45,17 +45,24 @@
 # precise$ python /home/tomek/Work/code/nmb/nmb_main/nmb_main.py ~/Work/code/nmb/nmb_main/nmb_main.bfit.test.yaml -v3 
 # for the bfit, I obtained model bias of order 0.0001
 
-created data directory and moved there all the big files
+# created data directory and moved there all the big files
 
-130526 
-@precise 150515_nmb_main/003
+# 130526 
+# @precise 150515_nmb_main/003
 # precise$ python /home/tomek/Work/code/nmb/nmb_main/nmb_main.py ~/Work/code/nmb/nmb_main/nmb_main.bfit.test.yaml -v3 --filepath_truth ~/Work/code/nmb/nmb_main/data/bfit.nmb_main.real.fits -snr 20.0
 # precise$ python /home/tomek/Work/code/nmb/nmb_main/nmb_main.py ~/Work/code/nmb/nmb_main/nmb_main.real.test.yaml -v3 --filepath_truth ~/Work/code/nmb/nmb_main/data/truth. -snr 20.0
 
-get the bfit catalogs
-precise$ python ~/Work/code/nmb/nmb_main/nmb_main_analyse.py createBFITsample nmb_main.real.yaml 
-the file is truth.25880.fits
+# get the bfit catalogs
+# precise$ python ~/Work/code/nmb/nmb_main/nmb_main_analyse.py createBFITsample nmb_main.real.yaml 
+# the file is truth.25880.fits
 
 # test the noisy scripts
 # precise$ python /home/tomek/Work/code/nmb/nmb_main/nmb_main.py ~/Work/code/nmb/nmb_main/nmb_main.bfit.noisy.yaml -v3 --filepath_truth ~/Work/code/nmb/nmb_main/data/bfit.nmb_main.real.fits --nimages 64
 # precise$ python /home/tomek/Work/code/nmb/nmb_main/nmb_main.py ~/Work/code/nmb/nmb_main/nmb_main.real.noisy.yaml -v3 --filepath_truth ~/Work/code/nmb/nmb_main/data/truth.25880.fits --nimages 64
+
+# test @legion
+# time python ~/nmb/nmb_main/nmb_main.py ~/nmb/nmb_main/nmb_main.bfit.noisy.yaml --filepath_truth ~/nmb/nmb_main/data/bfit.nmb_main.real.fits --nimages 64 --filepath_ini ~/nmb/nmb_main/nmb.ini
+# time python ~/nmb/nmb_main/nmb_main.py ~/nmb/nmb_main/nmb_main.real.noisy.yaml --filepath_truth ~/nmb/nmb_main/data/truth.25880.fits --nimages 64 --filepath_ini ~/nmb/nmb_main/nmb.ini
+
+
+qrsh -l mem=2G,h_rt=1:0:0 -P CosmicShear
