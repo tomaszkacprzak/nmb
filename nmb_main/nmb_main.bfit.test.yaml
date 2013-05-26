@@ -1,0 +1,49 @@
+settings:
+    # total number of images to run - if more than in catalog, the same one will be run with different noise
+    n_images: &n_images 64    
+    
+gal :
+    type : Sum
+    items :
+        - 
+            type : Exponential
+            half_light_radius : { type : InputCatalog , col : radius }
+            ellip : 
+                type : G1G2 
+                g1 : { type : InputCatalog , col : e1 }  
+                g2 : { type : InputCatalog , col : e2 }
+            flux : { type : InputCatalog , col : disc_flux }  
+        -
+            type : DeVaucouleurs
+            half_light_radius : { type : InputCatalog , col : radius }
+            ellip : 
+                type : G1G2 
+                g1 : { type : InputCatalog , col : e1 }  
+                g2 : { type : InputCatalog , col : e2 }
+            flux : { type : InputCatalog , col : bulge_flux }  
+    shift : 
+        type : XY 
+        x : { type : InputCatalog , col : x0 } 
+        y : { type : InputCatalog , col : y0 }
+    signal_to_noise : 2e20
+    
+psf : 
+    type : Moffat
+    fwhm :  0.7695
+    beta : 3.
+    ellip : { type : G1G2,  g1 : 0.05, g2 : 0.05 }
+
+image :
+    type : Single
+    size : 39
+    noise : { type : Gaussian, sigma : 1e-5 }
+    pixel_scale : 0.27
+    
+input :
+    catalog:
+        dir: .
+        file_name : results.bfit.nmb_main.real.fits
+
+output :
+    type : MultiFits
+    nimages : *n_images 
