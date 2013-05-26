@@ -16,19 +16,6 @@ import tabletools
 import cPickle as pickle
 from tablespec import *
 
-# global results_array
-
-# dtype_table_truth   = { 'names'  : ['id_unique','id_cosmos','g1','g2','angle','id_angle','id_shear' , 'zphot'],
-#                         'formats': ['i8']*2   + ['f4']*3 + ['i4']*2 + ['f4']*1 }
-
-# dtype_table_results = { 'names'   : ['identifier','likelihood','time_taken','x0','y0','e1','e2','radius','fwhm','bulge_flux','disc_flux','flux_ratio','signal_to_noise','min_residuals','max_residuals','model_min','model_max','number_of_likelihood_evals','number_of_iterations','reason_of_termination'],
-#                         'formats' : ['i8'] + ['f4']*16 + ['i4']*3 }           
-
-# dtype_table_stats =  { 'names'   : ['index', 'cosmos_id' , 'zphot' ,'m1','m2','m1_std','m2_std','c1','c2','c1_std','c2_std' , 'hlr' , 'rgp' , 'snr'],
-#                         'formats' : ['i8']*2 + ['f4']*12 }            
-
-# NO_RESULT_FLAG = 666
-
 def _getLineFit(x,y,sig):
         """
         @brief get linear least squares fit with uncertainity estimates
@@ -284,8 +271,10 @@ def createBFITsample():
 
     logger.info('number of galaxies in bfit sample %d' % n_gals)
 
+    n_gals = len(stats_array)
+
     filename_results_bfit = args.filepath_results.replace('results','bfit').replace('pp','fits')
-    filename_truth_bfit = args.filepath_truth.replace('truth','bfit').replace('pp','fits')
+    filename_truth_bfit = 'truth.%d.fits' % n_gals
 
     fits_results = tabletools.getFITSTable(results_array_bfit)
     fits_truth   = tabletools.getFITSTable(truth_array_bfit)

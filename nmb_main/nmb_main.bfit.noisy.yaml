@@ -1,6 +1,6 @@
 settings:
     # total number of images to run - if more than in catalog, the same one will be run with different noise
-    n_images: &n_images 1664000    
+    n_images: &n_images 1656320    
     
 gal :
     type : Sum
@@ -25,7 +25,7 @@ gal :
         type : XY 
         x : { type : InputCatalog , col : x0 } 
         y : { type : InputCatalog , col : y0 }
-    signal_to_noise : 2e20
+    signal_to_noise : 20
     
 psf : 
     type : Moffat

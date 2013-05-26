@@ -14,13 +14,6 @@ import datetime
 import tabletools
 from tablespec import *
 
-# dtype_table_truth   = { 'names'  : ['id_unique','id_cosmos','g1','g2','angle','id_angle','id_shear' , 'zphot'],
-#                         'formats': ['i8']*2 + ['f4']*3 + ['i4']*2 + ['f4']*1 }
-
-# dtype_table_results = { 'names'   : ['id_global' , 'id_object' , 'id_unique', 'id_cosmos', 'likelihood','time_taken','x0','y0','e1','e2','radius','fwhm','bulge_flux','disc_flux','flux_ratio','signal_to_noise','min_residuals','max_residuals','model_min','model_max','number_of_likelihood_evals','number_of_iterations','reason_of_termination'],
-#                         'formats' : ['i8']*4 + ['f4']*16 + ['i4']*3 }           
-
-
 def getFWHM(i3_result,fwxm=0.5,n_sub=3):
 
 
@@ -294,7 +287,7 @@ if __name__ == "__main__":
     parser.add_argument('--filepath_ini', type=str, default='nmb.ini', help='ini im3shape config file (default: nmb.ini)')
     parser.add_argument('--filepath_truth', type=str, default=None, help='truth file for the run, overrides the config file (by default is taken from yaml file)')
     parser.add_argument('-v', '--verbosity', type=int, action='store', default=2, choices=(0, 1, 2, 3 ), help='integer verbosity level: min=0, max=3 [default=2]')
-    parser.add_argument('-snr', '--signal_to_noise', type=float, action='store', default=1e20, help='signal to noise at which to run the test')
+    parser.add_argument('-snr', '--signal_to_noise', type=float, action='store', default=None, help='signal to noise at which to run the test')
     parser.add_argument('--obj_num',  type=int, action='store', default= 0, help= 'first obj_num in config to process (starts from 1)') 
     parser.add_argument('--nimages',  type=int, action='store', default=-1, help= 'number of images to process, starting with obj_num')
     
@@ -323,7 +316,7 @@ if __name__ == "__main__":
     # store the args in config so it's easier to use them
     config['args'] = args
     # change config to match signal to noise
-    config['gal']['signal_to_noise'] = args.signal_to_noise
+    if args.signal_to_noise != None: config['gal']['signal_to_noise'] = args.signal_to_noise
            
     # load site config
     if 'real_catalog' in config['input']:

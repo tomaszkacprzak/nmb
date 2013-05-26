@@ -1,0 +1,35 @@
+settings:
+    # total number of images to run - if more than in catalog, the same one will be run with different noise
+    n_images: &n_images 1656320    
+    
+gal :
+    type : RealGalaxy
+    signal_to_noise : 20
+    id :     { type : InputCatalog, col: id_cosmos }
+    shear:   { type : G1G2, g1 :    {type : InputCatalog , col : g1 } , g2 : {type : InputCatalog , col : g2 } } 
+    rotate : { type : Deg,  theta : {type : InputCatalog , col : angle } }
+
+psf : 
+    type : Moffat
+    fwhm :  0.7695
+    beta : 3.
+    ellip : { type : G1G2,  g1 : 0.05, g2 : 0.05 }
+
+image :
+    type : Single
+    size : 39
+    noise : { type : Gaussian, sigma : 1e-5 }
+    pixel_scale : 0.27
+    
+input :
+    real_catalog :
+        # dir and image_dir will be taken from $GALSIM/rgc
+        file_name : real_galaxy_catalog.fits
+        preload : True   
+    catalog:
+        dir: .
+        file_name : truth.25880.fits
+
+output :
+    type : MultiFits
+    nimages : *n_images 
