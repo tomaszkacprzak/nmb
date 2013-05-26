@@ -266,8 +266,8 @@ def printTruth(i3_result,truth_row):
     fmt = '%d\t% e\t% 2.2f\t' + '% e\t'*5
     line = fmt % (
                  i3_result.identifier,
-                 i3_result.likelihood,
-                 i3_result.time_taken,
+                 truth_row['likelihood'],
+                 truth_row['time_taken'],
                  truth_row['e1'],   
                  truth_row['e2'],  
                  truth_row['radius']*pixel_scale ,
