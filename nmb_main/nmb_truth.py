@@ -38,7 +38,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=description, add_help=True)
     parser.add_argument('--filepath_ids',  type=str, action='store', help= 'filepath with ids of the galaxies to process')
     parser.add_argument('--filepath_out',  type=str, action='store', help= 'output file')
-    parser.add_argument('--filepath_z', default='cosmos_zphot_mag25_id_z.tbl',   type=str, action='store', help= 'output file')
+    parser.add_argument('--filepath_z', default='cosmos_acs_shera_may2011.fits.gz',   type=str, action='store', help= 'file with redshifts')
     parser.add_argument('--n_angles',  type=int, action='store', help= 'number of angles in the ring test')
     parser.add_argument('--shears',    type=float, nargs='+',  action='store', help= 'abs shear values, 8 will be created for each')
     args = parser.parse_args()
