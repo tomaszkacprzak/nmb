@@ -328,6 +328,7 @@ logging.getLogger('').addHandler(console)
 # getGalsCatalog()
 
 if args.command == 'merge':
+	if not os.path.exists('results_mat'): os.makedirs('results_mat')
 	logging.info('----------------------------------------')
 	logging.info('merging for different noise maps')
 	logging.info('----------------------------------------')

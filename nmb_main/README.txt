@@ -64,5 +64,15 @@
 # time python ~/nmb/nmb_main/nmb_main.py ~/nmb/nmb_main/nmb_main.bfit.noisy.yaml --filepath_truth ~/nmb/nmb_main/data/bfit.nmb_main.real.fits --nimages 64 --filepath_ini ~/nmb/nmb_main/nmb.ini
 # time python ~/nmb/nmb_main/nmb_main.py ~/nmb/nmb_main/nmb_main.real.noisy.yaml --filepath_truth ~/nmb/nmb_main/data/truth.25880.fits --nimages 64 --filepath_ini ~/nmb/nmb_main/nmb.ini
 
+# qrsh -l mem=2G,h_rt=1:0:0 -P CosmicShear
+# time @legion 120s / 64 gals = 1200s / 640 gals = 20 min per job -- set the wallclock to 2h
 
-qrsh -l mem=2G,h_rt=1:0:0 -P CosmicShear
+# create 130515_nmb_main/201 -- real
+# create 130515_nmb_main/301 -- bfit
+
+# submit legion 301 job -- got it back
+
+# 130530
+# run ~/code/nmb/nmb_main/nmb_main_analyse.py mergeResults nmb_main.real.noisy.yaml --filepath_truth truth.25880.fits -v3
+
+

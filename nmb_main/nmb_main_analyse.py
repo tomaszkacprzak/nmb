@@ -168,14 +168,13 @@ def mergeResults():
 
     # truth_array   = loadTruthArray()
     truth_array = tabletools.loadTable('truth_array',args.filepath_truth,dtype_table_truth)
-    n_gals_total = len(truth_array)
-    n_gals_per_file = 640
+    # n_gals_total = len(truth_array)
+    n_gals_total = config['settings']['n_images']
+    n_gals_per_file = args.n_gals_per_file
 
     # get the wildcard for the files - join all files in a big array
-    filecard_resutls = os.path.join(config['args'].dirpath_results,'results.nmb_main.real.*.cat')
-    files = [os.path.join(config['args'].dirpath_results,'results.nmb_main.real.%05d.cat' % n) for n in range(0,n_gals_total,n_gals_per_file)]
-    # files = glob.glob(filecard_resutls)
-    # files.sort()
+    filecard = 'results.%s' % config['name']  + '.%05d.cat'
+    files = [os.path.join(args.dirpath_results,filecard % n) for n in range(0,n_gals_total,n_gals_per_file)]
     
     n_files = len(files)
     n_meas = len(dtype_table_results['names'])
@@ -222,7 +221,6 @@ def mergeResults():
         if results_array[ri]['identifier'] == truth_array[ri]['id_unique']: n_matches+=1
     logger.info('number of matches %s' % n_matches)
 
-    # save file pickle - use global filename_pickle
     tabletools.saveTable(args.filepath_results,results_array)
     logger.info('results saved %s correctly, got %d rows' % (args.filepath_results,len(results_array)))
     
@@ -306,11 +304,12 @@ def main():
     parser = argparse.ArgumentParser(description=description, add_help=True)
     parser.add_argument('command', type=str, help='what to do?')
     parser.add_argument('filepath_config', type=str, help='yaml config file, see nmb_main.real.test.yaml for example.')
-    parser.add_argument('--filepath_truth', type=str, default='truth.26000.pp', help='truth file for the run, overrides the config file (by default is taken from yaml file)')
-    parser.add_argument('--filepath_stats', type=str, default='stats.nmb_main.real.pp', help='stats file')
-    parser.add_argument('--filepath_results', type=str, default='results.nmb_main.real.pp', help='results file')
+    parser.add_argument('--filepath_truth', type=str, help='truth file for the run, overrides the config file (by default is taken from yaml file)')
+    parser.add_argument('--filepath_stats', type=str, default='auto', help='stats file')
+    parser.add_argument('--filepath_results', type=str, default='auto', help='results file')
     parser.add_argument('--dirpath_results', type=str, default='results', help='where the results files are')
     parser.add_argument('-v', '--verbosity', type=int, action='store', default=2, choices=(0, 1, 2, 3 ), help='integer verbosity level: min=0, max=3 [default=2]')
+    parser.add_argument('--n_gals_per_file', type=int, default=640 , help='number of galaxies in one results file from legion')
     global logger , config , args
 
     args = parser.parse_args()
@@ -328,6 +327,14 @@ def main():
     
     # load the configuration file
     config = yaml.load(open(args.filepath_config,'r')) 
+    config['name'] = os.path.basename(args.filepath_config).replace('.yaml','')
+
+    # get the filenames of stats and results using config name
+    if args.filepath_results == 'auto':
+        args.filepath_results = 'results.%s.fits' % config['name'] 
+    if args.filepath_stats == 'auto':
+        args.filepath_stats = 'stats.%s.fits' % config['name'] 
+
     
     eval(args.command + '()')
     # mergeResutls()

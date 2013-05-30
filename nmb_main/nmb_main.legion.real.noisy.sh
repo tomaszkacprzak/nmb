@@ -3,7 +3,7 @@
 #$ -l h_rt=2:0:0
 #$ -l mem=2G
 #$ -t 1-2588
-#$ -N nmb_bfit
+#$ -N nmb_real
 #$ -P CosmicShear
 #$ -wd /scratch/scratch/ucabtok/130515_nmb_main/301/
 #$ -o  /scratch/scratch/ucabtok/130515_nmb_main/301/output/
@@ -12,7 +12,7 @@
 WDIR=~/Scratch/130515_nmb_main/301/
 SCP_OUT=kacprzak@star.ucl.ac.uk:/import/zupcx32/kacprzak/projects/130515_nmb_main/301/results/
 FILENAME_CONFIG=nmb_main.real.noisy.yaml
-FILENAME_TRUTH=truth.25880.cat
+FILENAME_TRUTH=truth.25880.fits
 FILENAME_INI=nmb.ini
 FILENAME_GIT=gitversion.txt
 DIR_RESULTS=results

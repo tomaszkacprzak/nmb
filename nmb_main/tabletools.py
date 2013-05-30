@@ -57,6 +57,7 @@ def saveTable(filepath,table,logger=logging):
 
 def getFITSTable(numpy_array):
 
+    import numpy
     formats = { numpy.dtype('int64') : 'K' , numpy.dtype('int32') : 'I' , numpy.dtype('int32') : 'J' , numpy.dtype('float32') : 'D' }
 
     cols = []
