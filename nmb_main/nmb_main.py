@@ -127,7 +127,7 @@ def runIm3shape():
     i3_options.stamp_size = n_pix
 
     # get the file 
-    filename_results = 'results.%s.%05d.cat' % (config['args'].name_config,config['args'].obj_num)
+    filename_results = 'results.%s.%125d.cat' % (config['args'].name_config,config['args'].obj_num)
     file_results = open(filename_results,'w')
 
     # create PSF from Moffat parameters
