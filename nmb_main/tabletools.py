@@ -47,7 +47,7 @@ def saveTable(filepath,table,logger=logging):
             table.writeto(filepath,clobber=True)
         else:
             fits = getFITSTable(table)
-            table.writeto(filepath,clobber=True)                      
+            fits.writeto(filepath,clobber=True)                      
     else:
         header = '# ' + ' '.join(table.dtype.names)
         fmt = [formats[table.dtype.fields[f][0]] for f in table.dtype.names]
@@ -58,7 +58,9 @@ def saveTable(filepath,table,logger=logging):
 def getFITSTable(numpy_array):
 
     import numpy
-    formats = { numpy.dtype('int64') : 'K' , numpy.dtype('int32') : 'I' , numpy.dtype('int32') : 'J' , numpy.dtype('float32') : 'D' }
+    import pyfits
+    formats = { numpy.dtype('int64') : 'K' , numpy.dtype('int16') : 'I' , numpy.dtype('int32') : 'J' , numpy.dtype('float32') : 'E' , numpy.dtype('float64') : 'D' ,
+                    numpy.dtype('>i8') : 'K', numpy.dtype('>i4') : 'I', numpy.dtype('>f4') : 'E' , numpy.dtype('>f8') : 'D'}
 
     cols = []
 

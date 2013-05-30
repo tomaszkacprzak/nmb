@@ -38,7 +38,7 @@ def _getLineFit(x,y,sig):
         Sy = numpy.inner(y,invsig2)
         Sxx = numpy.inner(invsig2*x,x)
         Sxy = numpy.inner(invsig2*x,y)
-        
+
         D = S*Sxx - Sx**2
         a = (Sxx*Sy - Sx*Sxy)/D
         b = (S*Sxy  - Sx*Sy)/D
@@ -51,6 +51,127 @@ def _getLineFit(x,y,sig):
         
         return a,b,Cab
 
+# def getBiasForRedshiftBins():
+
+def getTotalBias():
+
+    dtype_table_results_use = dtype_table_results2  
+
+    # get the results and truth
+    results_array = tabletools.loadTable('results_array',args.filepath_results,dtype_table_results_use)
+    truth_array   = tabletools.loadTable('truth_array',args.filepath_truth,dtype_table_truth)    
+
+    n_gals_per_mean = 10000
+
+    n_shears = len(set(truth_array['id_shear']))
+    n_angles = len(set(truth_array['id_angle']))
+
+    true_g1_list = [truth_array['g1'][ truth_array['id_shear'][0:n_shears*n_angles] == idg ][0]  for idg in range(n_shears)]
+    true_g2_list = [truth_array['g2'][ truth_array['id_shear'][0:n_shears*n_angles] == idg ][0]  for idg in range(n_shears)]
+
+    # those will contain len(results_array)/n_gals_per_mean points
+    shears_true_g1 = []  
+    shears_true_g2 = []  
+    shears_mean_g1 = []  
+    shears_mean_g2 = []  
+    shears_stdm_g1 = []  
+    shears_stdm_g2 = []  
+    shears_stdv_g1 = []  
+    shears_stdv_g2 = []  
+    shears_n_gals  = [] 
+
+    for sid in range(n_shears):
+
+        select = getShearIDfromUniqueID(results_array['id_unique'])  == sid
+        results_sid = results_array[select]
+        n_gals = len(results_sid)
+        n_means = numpy.ceil(float(n_gals) / float(n_gals_per_mean)).astype(numpy.int64) 
+        logger.debug('shear %d n_gals %d n_means %d' % (sid,n_gals,n_means))
+
+        for idm in range(n_means):          
+
+            i_start = idm    *n_gals_per_mean
+            i_end   = (idm+1)*n_gals_per_mean if (idm+1)*n_gals_per_mean < n_gals else n_gals
+
+
+            results_sid_part = results_sid[i_start:i_end]         
+            # remove all the fields with
+            select = results_sid_part['e1'] != NO_RESULT_FLAG
+            results_sid_use = results_sid_part[select]
+            n_gals_use = len(results_sid_use)
+
+            mean_g1 = numpy.mean(results_sid_use['e1'])
+            mean_g2 = numpy.mean(results_sid_use['e2'])
+            stdv_g1 = numpy.std(results_sid_use['e1'],ddof=1) 
+            stdv_g2 = numpy.std(results_sid_use['e2'],ddof=1) 
+            stdm_g1 = stdv_g1 / numpy.sqrt(n_gals_use)
+            stdm_g2 = stdv_g2 / numpy.sqrt(n_gals_use)
+
+            logger.info('%10d %10d \t% 2.4f\t% 2.4f \t using %10d / %10d' % (i_start,i_end,mean_g1,mean_g2,len(results_sid_use),len(results_sid_part)))         
+
+            shears_true_g1.append( true_g1_list[sid] )
+            shears_true_g2.append( true_g2_list[sid] )
+            shears_mean_g1.append( mean_g1 )
+            shears_mean_g2.append( mean_g2 )
+            shears_stdm_g1.append( stdm_g1 )
+            shears_stdm_g2.append( stdm_g2 )
+            shears_stdv_g1.append( stdv_g1 )
+            shears_stdv_g2.append( stdv_g2 )
+            shears_n_gals.append(n_gals_use)
+
+    tg1 = numpy.array(shears_true_g1)
+    bg1 = numpy.array(shears_mean_g1) - tg1;
+    sg1 = numpy.array(shears_stdm_g1)
+    c1,m1,cov1 = _getLineFit(tg1,bg1,sg1)
+    lg1 = tg1*m1 + c1
+    zg1 = numpy.ones(sg1.shape)*numpy.std(lg1 - bg1,ddof=1)
+    c1,m1,cov1 = _getLineFit(tg1,bg1,zg1)
+    std_m1 = numpy.sqrt(cov1[1,1])
+    std_c1 = numpy.sqrt(cov1[0,0])
+
+    tg2 = numpy.array(shears_true_g2)
+    bg2 = numpy.array(shears_mean_g2) - tg2;
+    sg2 = numpy.array(shears_stdm_g2)
+    c2,m2,cov2 = _getLineFit(tg2,bg2,sg2)
+    lg2 = tg2*m2 + c2
+    zg2 = numpy.ones(sg2.shape)*numpy.std(lg2 - bg2,ddof=1)
+    c2,m2,cov2 = _getLineFit(tg2,bg2,zg2)
+    std_m2 = numpy.sqrt(cov2[1,1])
+    std_c2 = numpy.sqrt(cov2[0,0])    
+
+    if args.verbosity > 2:
+        import pylab
+        
+        pylab.figure(1)
+        pylab.errorbar(tg1,bg1,yerr=sg1,fmt='r.')
+        pylab.errorbar(tg1,bg1,yerr=zg1,fmt='m.')
+        indices = tg1.argsort()
+        pylab.plot(tg1[indices],lg1[indices],'r-')
+        
+        pylab.errorbar(tg2,bg2,yerr=sg2,fmt='b.')
+        pylab.errorbar(tg2,bg2,yerr=zg2,fmt='c.')
+        indices = tg2.argsort()
+        pylab.plot(tg2[indices],lg2[indices],'b-')
+
+        pylab.show()
+
+    
+    logger.info('m1 = % 2.4f \t +/- % 2.4f' % ( m1, std_m1))
+    logger.info('m2 = % 2.4f \t +/- % 2.4f' % ( m2, std_m2))
+    logger.info('c1 = % 2.4f \t +/- % 2.4f' % ( c1, std_c1))
+    logger.info('c2 = % 2.4f \t +/- % 2.4f' % ( c2, std_c2))
+
+
+
+
+def getShearIDfromUniqueID(ids_unique):
+
+    # enforce numpy array
+    ids = numpy.array(ids_unique)
+    return ((ids % 10000) // 100).astype(numpy.int64)
+
+
+
 def getBiasForEachGal():
 
     # get the results and truth
@@ -60,7 +181,6 @@ def getBiasForEachGal():
     cosmos_ids = set(truth_array['id_cosmos'])
     n_cosmos_ids = len(cosmos_ids)
     n_per_cosmos = sum(truth_array['id_cosmos'] == truth_array[0]['id_cosmos'])
-    print "n_per_cosmos" , n_per_cosmos
     n_shears = len(set(truth_array['id_shear']))
     n_angles = len(set(truth_array['id_angle']))
 
@@ -173,61 +293,91 @@ def mergeResults():
     n_gals_per_file = args.n_gals_per_file
 
     # get the wildcard for the files - join all files in a big array
+    filecard = 'results.%s' % config['name']  + '.%012d.cat'
+    files1 = [os.path.join(args.dirpath_results,filecard % n) for n in range(0,n_gals_total,n_gals_per_file)]
     filecard = 'results.%s' % config['name']  + '.%05d.cat'
-    files = [os.path.join(args.dirpath_results,filecard % n) for n in range(0,n_gals_total,n_gals_per_file)]
+    files2 = [os.path.join(args.dirpath_results,filecard % n) for n in range(0,n_gals_total,n_gals_per_file)]
+
+    # do a small test to get correct format
+
+    if os.path.isfile(files1[0]) : file_results = files1[0]
+    elif os.path.isfile(files2[0]) : file_results = files2[0]
+    results = numpy.loadtxt(file_results)
+    if results.shape[1] == 23:
+        dtype_table_results_use = dtype_table_results2
+        id_unique_field = 'id_unique'
+        logger.info('using dtype_table_results2 with %d columns' % results.shape[1])
+    elif results.shape[1] == 20:
+        dtype_table_results_use = dtype_table_results
+        id_unique_field = 'identifier'
+        logger.info('using dtype_table_results with %d columns' % results.shape[1])
+    else:
+        logger.error('results have unknown column structure')
+
     
-    n_files = len(files)
+    n_files = len(files1)
     n_meas = len(dtype_table_results['names'])
     logger.info('got %d file names' % n_files)
 
     # initialise the empty array
     global results_array
-    results_array = numpy.zeros(n_gals_total,dtype=dtype_table_results)
+    results_array = numpy.zeros(n_gals_total,dtype=dtype_table_results_use)
     results_array['e1'] = NO_RESULT_FLAG 
     results_array['e2'] = NO_RESULT_FLAG
     results_array['time_taken'] = NO_RESULT_FLAG
 
-    for fi,file_results in enumerate(files):
+    for fi in range(len(files1)):
 
-            if os.path.isfile(file_results):
-
+            if os.path.isfile(files1[fi]) or os.path.isfile(files2[fi]):
+                
+                if os.path.isfile(files1[fi]) : file_results = files1[fi]
+                elif os.path.isfile(files2[fi]) : file_results = files2[fi]
+    
+                # locate the part of the total results_array that this file corresponds to
                 index_start = fi*n_gals_per_file
                 index_end   = (fi+1)*n_gals_per_file
-                results = numpy.loadtxt(file_results,dtype=dtype_table_results)
+                results = numpy.loadtxt(file_results,dtype=dtype_table_results_use)
                 n_gals_in_file = len(results)
                 logger.info('%d file %s n_gals %d' % (fi,file_results,n_gals_in_file))
                 if n_gals_in_file != n_gals_per_file:
                     logger.error('skipping file not enough galaxies')
                     continue
                 else:
-
                     results_array[range(index_start,index_end)] = results
             else:
                 logger.error('skipping file doesnt exist')
                 continue
 
-    logger.info('results  n %10d first %d last %d' % (len(results_array),results_array[0]['identifier'] ,results_array[-1]['identifier']))
+    logger.info('results  n %10d first %d last %d' % (len(results_array),results_array[0][id_unique_field] ,results_array[-1][id_unique_field]))
     logger.info('truth    n %10d first %d last %d' % (len(truth_array),truth_array[0]['id_unique']      ,truth_array[-1]['id_unique']))
 
+    import pdb; pdb.set_trace()
+
+    logger.info('getting number of matches ...')
+    
+    # get the number of matches before the assignment of IDS
     n_matches = 0
     for ri in range(len(results_array)):
-        if results_array[ri]['identifier'] == truth_array[ri]['id_unique']: n_matches+=1
+        if results_array[ri][id_unique_field] == truth_array[ri]['id_unique']: n_matches+=1
     logger.info('number of matches %s' % n_matches)
     
-    results_array['identifier'] = truth_array['id_unique']
+    # assign the ids
+    results_array[id_unique_field] = truth_array['id_unique']
     
+    # get the number of matches after the assignment of IDS  
     n_matches = 0
     for ri in range(len(results_array)):
-        if results_array[ri]['identifier'] == truth_array[ri]['id_unique']: n_matches+=1
+        if results_array[ri][id_unique_field] == truth_array[ri]['id_unique']: n_matches+=1
     logger.info('number of matches %s' % n_matches)
 
+    logger.info('saving tables ...')
     tabletools.saveTable(args.filepath_results,results_array)
     logger.info('results saved %s correctly, got %d rows' % (args.filepath_results,len(results_array)))
     
-    tabletools.saveTable(args.filepath_truth,truth_array)
-    logger.info('truth saved %s correctly, got %d rows' % (args.filepath_truth,len(truth_array)))
+    # tabletools.saveTable(args.filepath_truth,truth_array)
+    # logger.info('truth saved %s correctly, got %d rows' % (args.filepath_truth,len(truth_array)))
 
-    logger.info('truth   n %10d first %d last %d' % (len(results_array),results_array[0]['identifier'],results_array[-1]['identifier']))
+    logger.info('truth   n %10d first %d last %d' % (len(results_array),results_array[0][id_unique_field],results_array[-1][id_unique_field]))
     logger.info('results n %10d first %d last %d' % (len(truth_array),truth_array[0]['id_unique'],truth_array[-1]['id_unique']))
 
 

@@ -73,6 +73,19 @@
 # submit legion 301 job -- got it back
 
 # 130530
-# run ~/code/nmb/nmb_main/nmb_main_analyse.py mergeResults nmb_main.real.noisy.yaml --filepath_truth truth.25880.fits -v3
+zupcx32$ python ~/code/nmb/nmb_main/nmb_main_analyse.py mergeResults nmb_main.real.noisy.yaml --filepath_truth truth.25880.fits -v3
+table saved results.nmb_main.real.noisy.fits correctly, got 1 rows
+results saved results.nmb_main.real.noisy.fits correctly, got 1656320 rows
+truth   n    1656320 first 1000270000 last 742430707
+results n    1656320 first 1000270000 last 742430707
 
+zupcx32$ python ~/code/nmb/nmb_main/nmb_main_analyse.py getTotalBias nmb_main.real.noisy.yaml --filepath_truth truth.25880.fits -v3
+got very bad m results:
+m1 = -0.2797     +/-  0.0012
+m2 = -0.2814     +/-  0.0012
+c1 =  0.0006     +/-  0.0001
+c2 =  0.0003     +/-  0.0001
+will create a test scrit to tweak levmar settings
 
+cd @zupcx32 130515_nmb_main/002/
+python ~/code/nmb/nmb_main/nmb_main.py ~/code/nmb/nmb_main/nmb_main.real.optimize.yaml --filepath_truth ~/code/nmb/nmb_main/truth.optimize.cat

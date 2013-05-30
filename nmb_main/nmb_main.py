@@ -127,7 +127,7 @@ def runIm3shape():
     i3_options.stamp_size = n_pix
 
     # get the file 
-    filename_results = 'results.%s.%125d.cat' % (config['args'].name_config,config['args'].obj_num)
+    filename_results = 'results.%s.%012d.cat' % (config['args'].name_config,config['args'].obj_num)
     file_results = open(filename_results,'w')
 
     # create PSF from Moffat parameters
@@ -146,7 +146,10 @@ def runIm3shape():
 
         # get i3 images
         i3_galaxy = im3shape.I3_image(n_pix, n_pix)
+        scale = img_gal.array.sum()
         i3_galaxy.from_array(img_gal.array)  
+        i3_galaxy.scale(1.0/scale)
+
 
         # this is a workaround - the array for model bias real images had id_unique,
         # but the results files have 'identifier' - so we use one or the other id they exist
@@ -178,24 +181,30 @@ def runIm3shape():
         if config['args'].verbosity > 2:
 
             i1 = i3_best_fit.array/sum(i3_best_fit.array.flatten())
-            i2 = img_gal.array/sum(img_gal.array.flatten())
+            i2 = img_gal.array/sum(img_gal.array.flatten())          
 
             import pylab
-            pylab.subplot(1,4,1)
+            pylab.subplot(1,5,1)
             pylab.imshow(i1,interpolation='nearest')
             pylab.title('best fit')
 
-            pylab.subplot(1,4,2)
+            pylab.subplot(1,5,2)
             pylab.imshow(i2,interpolation='nearest')
             pylab.title('galaxy')
 
-            pylab.subplot(1,4,3)
+            pylab.subplot(1,5,3)
             pylab.imshow(i1-i2,interpolation='nearest')
             pylab.title('residuals')
 
-            pylab.subplot(1,4,4)
+            pylab.subplot(1,5,4)
             pylab.imshow(i3_psf.array,interpolation='nearest')
             pylab.title('PSF')
+
+            pylab.subplot(1,5,5)
+            pylab.imshow(img_gal.array,interpolation='nearest')
+            pylab.colorbar()
+            pylab.title('best fit')
+
 
             filename_fig = 'debug/fig.residual.%09d.png' % id_unique
             pylab.savefig(filename_fig)
