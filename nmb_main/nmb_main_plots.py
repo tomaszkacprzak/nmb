@@ -73,20 +73,30 @@ def plotBiasHistogram():
 
     # m1 m2 hist    
 
-    pylab.figure()
+    pylab.figure(figsize=(5,4))
     pylab.clf()
-    h1,b1,_ = pylab.hist(results_m1,n_bins,histtype='step')
-    h2,b2,_ = pylab.hist(results_m2,n_bins,histtype='step')
+    n_bins = 50
+    h1,b1,_ = pylab.hist(results_m1,n_bins,color='r',histtype='step',label='m1')
+    h2,b2,_ = pylab.hist(results_m2,n_bins,color='b',histtype='step',label='m2')
     # pylab.plot(_binCenters(b1),h1,'r+-')
     # pylab.plot(_binCenters(b2),h2,'bx-')
-    pylab.xlabel('m1 , m2')
+    pylab.axvline(x=results_m1.mean(),linewidth=1, color='r')
+    pylab.axvline(x=results_m2.mean(),linewidth=1, color='b')
+
+    pylab.xlabel('multiplicative bias')
+    pylab.grid()
+    pylab.legend()
     print "mean" , numpy.mean(results_m1)
     print "mean" , numpy.mean(results_m2)
-    print "std" , numpy.std(results_m1,ddof=1)
-    print "std" , numpy.std(results_m2,ddof=1)
+    print "stdv" , numpy.std(results_m1,ddof=1)
+    print "stdv" , numpy.std(results_m2,ddof=1)
+    print "stdm" , numpy.std(results_m1,ddof=1)/numpy.sqrt(len(results_m1))
+    print "stdm" , numpy.std(results_m2,ddof=1)/numpy.sqrt(len(results_m2))
     print 'nans?' , any(numpy.isnan(results_m1))
     filename_fig = 'figures/figure.hist.m1m2.real.png'
     pylab.savefig(filename_fig)
+    filename_fig = 'figures/figure.hist.m1m2.real.eps'
+    pylab.savefig(filename_fig,dpi=1000)
     logger.info('saved %s' % filename_fig)
 
     # snr distribution

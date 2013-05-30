@@ -69,3 +69,10 @@
 
 # create 130515_nmb_main/201 -- real
 # create 130515_nmb_main/301 -- bfit
+
+# submit legion 301 job -- got it back
+
+# 130530
+# run ~/code/nmb/nmb_main/nmb_main_analyse.py mergeResults nmb_main.real.noisy.yaml --filepath_truth truth.25880.fits -v3
+
+
