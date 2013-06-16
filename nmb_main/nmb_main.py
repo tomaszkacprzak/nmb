@@ -253,7 +253,7 @@ def printResult(i3_result,id_global):
 
     fmt = '%10d\t%10d\t% e\t% 2.2f\t' + '% e\t'*5 + '%2.2f\t'*2
     line = fmt % (
-                 id_global
+                 id_global,
                  i3_result.identifier,
                  i3_result.likelihood,
                  i3_result.time_taken,

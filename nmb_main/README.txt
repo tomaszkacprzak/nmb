@@ -117,6 +117,11 @@ c2 = -0.0014 	 +/-  0.0001
 
 set up 202_bfit_noisy run
 
-test the code with 
-zupcx32$ python /home/tomek/Work/code/nmb/nmb_main/nmb_main.py ~/Work/code/nmb/nmb_main/nmb_main.bfit.noisy.yaml -v3 --filepath_truth bfit.nmb_main.real.fits --nimages 64
+from legion, got the commit number for im3shape: o
+updating im3shape to this version
 
+test the code with 
+precise$ python /home/tomek/Work/code/nmb/nmb_main/nmb_main.py ~/Work/code/nmb/nmb_main/nmb_main.bfit.noisy.yaml -v3 --filepath_truth bfit.nmb_main.real.fits --nimages 64
+ran through
+
+lunching on legion
