@@ -89,3 +89,33 @@ will create a test scrit to tweak levmar settings
 
 cd @zupcx32 130515_nmb_main/002/
 python ~/code/nmb/nmb_main/nmb_main.py ~/code/nmb/nmb_main/nmb_main.real.optimize.yaml --filepath_truth ~/code/nmb/nmb_main/truth.optimize.cat
+
+changed the system so that the images are normalised to unit flux (and noise sigma = 1), so that the optimization is more stable
+launched a run 302_real_noisy, with results from the optimization
+
+130616 can't believe that it has been a almost 3 weeks since I have been working on this!
+
+merge the results in 302_real_noisy
+zupcx32$ python ~/code/nmb/nmb_main/nmb_main_analyse.py mergeResults nmb_main.real.noisy.yaml --filepath_truth truth.25880.fits -v3
+...
+saving tables ...
+table saved results.nmb_main.real.noisy.fits correctly, got 1 rows
+results saved results.nmb_main.real.noisy.fits correctly, got 1656320 rows
+truth   n    1656320 first 1000270000 last 742430707
+results n    1656320 first 1000270000 last 742430707
+
+get total bias
+zupcx32$ python ~/code/nmb/nmb_main/nmb_main_analyse.py getTotalBias nmb_main.real.noisy.yaml --filepath_truth truth.25880.fits -v3
+woah it actually worked and gives 'sensible' results!
+m1 = -0.0395 	 +/-  0.0015
+m2 = -0.0396 	 +/-  0.0014
+c1 = -0.0013 	 +/-  0.0001
+c2 = -0.0014 	 +/-  0.0001
+
+set up 202_bfit_noisy run
+
+test the code with 
+zupcx32$ python /home/tomek/Work/code/nmb/nmb_main/nmb_main.py ~/Work/code/nmb/nmb_main/nmb_main.bfit.noisy.yaml -v3 --filepath_truth bfit.nmb_main.real.fits --nimages 64
+
+
+
