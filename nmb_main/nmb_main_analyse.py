@@ -285,6 +285,9 @@ def getBiasForEachGal():
     logger.info('saved %s' % args.filepath_stats) 
     
 def mergeResults():
+    """
+    @brief read all the results files, and then merge them together and save it in a fits binary table.
+    """
 
     # truth_array   = loadTruthArray()
     truth_array = tabletools.loadTable('truth_array',args.filepath_truth,dtype_table_truth)
@@ -314,7 +317,7 @@ def mergeResults():
     else:
         logger.error('results have unknown column structure')
 
-    
+    # get the dimensionalty of the datas
     n_files = len(files1)
     n_meas = len(dtype_table_results['names'])
     logger.info('got %d file names' % n_files)
@@ -351,7 +354,7 @@ def mergeResults():
     logger.info('results  n %10d first %d last %d' % (len(results_array),results_array[0][id_unique_field] ,results_array[-1][id_unique_field]))
     logger.info('truth    n %10d first %d last %d' % (len(truth_array),truth_array[0]['id_unique']      ,truth_array[-1]['id_unique']))
 
-    import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
 
     logger.info('getting number of matches ...')
     
@@ -448,7 +451,7 @@ def createBFITsample():
 
 def main():
 
-    description = 'Plots for the results of nmb_main. To use in ipython, create a variable global results_array, global truth_array to speed up loading'
+    description = 'Plots for the results of nmb_main.'
 
     # parse arguments
     parser = argparse.ArgumentParser(description=description, add_help=True)
@@ -487,7 +490,7 @@ def main():
 
     
     eval(args.command + '()')
-    # mergeResutls()
+    # mergeResults()
     # getBiasForEachGal()
     # createBFITsample()
 

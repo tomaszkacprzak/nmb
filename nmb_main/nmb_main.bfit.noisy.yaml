@@ -42,7 +42,7 @@ image :
 input :
     catalog:
         dir: .
-        file_name : results.bfit.nmb_main.real.fits
+        file_name : bfit.nmb_main.real.fits
 
 output :
     type : MultiFits
