@@ -173,7 +173,7 @@ def runIm3shape():
 
 
         saveResult(file_results,i3_result,id_global,id_object,id_unique,id_cosmos)
-        printResult(i3_result)
+        printResult(i3_result,id_global)
         if 'e1' in truth_cat.dtype.names: printTruth(i3_result,truth_cat[ig])
 
 
@@ -245,14 +245,15 @@ def saveResult(file_results,i3_result,idg,ido,idu,idc):
     
     file_results.write(line)
 
-def printResult(i3_result):
+def printResult(i3_result,id_global):
 
 
     pixel_scale = config['image']['pixel_scale']
     n_pix = config['image']['size']
 
-    fmt = '%d\t% e\t% 2.2f\t' + '% e\t'*5 + '%2.2f\t'*2
+    fmt = '%10d\t%10d\t% e\t% 2.2f\t' + '% e\t'*5 + '%2.2f\t'*2
     line = fmt % (
+                 id_global
                  i3_result.identifier,
                  i3_result.likelihood,
                  i3_result.time_taken,

@@ -288,7 +288,7 @@ def plotBiasHistogram():
     pylab.xticks([-0.1 , -0.05 , -0.01 ,   0.01 , 0.05 , 0.1])
     pylab.ylabel('normalised hist')
 
-    filename_fig = 'figures/figure.hist.M1M2forMODD.real.png'
+    filename_fig = 'figures/figure.hist.M1M2forMODD.real.eps'
     pylab.savefig(filename_fig)
     logger.info('saved %s' % filename_fig)
 

@@ -89,3 +89,6 @@ will create a test scrit to tweak levmar settings
 
 cd @zupcx32 130515_nmb_main/002/
 python ~/code/nmb/nmb_main/nmb_main.py ~/code/nmb/nmb_main/nmb_main.real.optimize.yaml --filepath_truth ~/code/nmb/nmb_main/truth.optimize.cat
+
+on @legion 
+python ~/nmb/nmb_main/nmb_main.py nmb_main.real.optimize.yaml --filepath_truth ~/nmb/nmb_main/truth.optimize.cat -v3
