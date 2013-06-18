@@ -51,7 +51,138 @@ def _getLineFit(x,y,sig):
         
         return a,b,Cab
 
-# def getBiasForRedshiftBins():
+def getBiasForIDs(gal_ids):
+    """
+    @brief get m and c for the range of selected galaxies
+    @param gal_indices array of indices in results_array (and truth_array), for which to calculate m and c
+    """
+
+    dtype_table_results_use = dtype_table_results2  
+
+    # get the results and truth
+    results_array = tabletools.loadTable('results_array',args.filepath_results,dtype_table_results_use)
+    truth_array   = tabletools.loadTable('truth_array',args.filepath_truth,dtype_table_truth)    
+
+    # select the objects using indices
+    results_array = results_array[gal_indices]
+    truth_array   = truth_array[gal_indices]
+
+    # to estimate the standard deviation on m and c using GREAT08 method, we want to have at least different shear results for one line fit - choosing 50 now
+    n_gals_per_mean = len(results_array)/50.
+
+    n_shears = len(set(truth_array['id_shear']))
+    n_angles = len(set(truth_array['id_angle']))
+
+    true_g1_list = [truth_array['g1'][ truth_array['id_shear'][0:n_shears*n_angles] == idg ][0]  for idg in range(n_shears)]
+    true_g2_list = [truth_array['g2'][ truth_array['id_shear'][0:n_shears*n_angles] == idg ][0]  for idg in range(n_shears)]
+
+    # those will contain len(results_array)/n_gals_per_mean points
+    shears_true_g1 = []  
+    shears_true_g2 = []  
+    shears_mean_g1 = []  
+    shears_mean_g2 = []  
+    shears_stdm_g1 = []  
+    shears_stdm_g2 = []  
+    shears_stdv_g1 = []  
+    shears_stdv_g2 = []  
+    shears_n_gals  = [] 
+
+    # loop over shears to get the mean shear 
+    for sid in range(n_shears):
+
+        select = getShearIDfromUniqueID(results_array['id_unique'])  == sid
+        results_sid = results_array[select]
+        n_gals = len(results_sid)
+        n_means = numpy.ceil(float(n_gals) / float(n_gals_per_mean)).astype(numpy.int64) 
+        logger.debug('shear %d n_gals %d n_means %d' % (sid,n_gals,n_means))
+
+        # each shear will be using n_means points
+        for idm in range(n_means):          
+
+            # get the range in the array to overage over
+            i_start = idm    *n_gals_per_mean
+            i_end   = (idm+1)*n_gals_per_mean if (idm+1)*n_gals_per_mean < n_gals else n_gals
+            results_sid_part = results_sid[i_start:i_end]         
+
+            # remove all the fields with no results
+            select = results_sid_part['e1'] != NO_RESULT_FLAG
+            results_sid_use = results_sid_part[select]
+            n_gals_use = len(results_sid_use)
+
+            # get the statistic
+            mean_g1 = numpy.mean(results_sid_use['e1'])
+            mean_g2 = numpy.mean(results_sid_use['e2'])
+            stdv_g1 = numpy.std(results_sid_use['e1'],ddof=1) 
+            stdv_g2 = numpy.std(results_sid_use['e2'],ddof=1) 
+            stdm_g1 = stdv_g1 / numpy.sqrt(n_gals_use)
+            stdm_g2 = stdv_g2 / numpy.sqrt(n_gals_use)
+
+            logger.info('%10d %10d \t% 2.4f\t% 2.4f \t using %10d / %10d' % (i_start,i_end,mean_g1,mean_g2,len(results_sid_use),len(results_sid_part)))         
+
+            # append the lists
+            shears_true_g1.append( true_g1_list[sid] )
+            shears_true_g2.append( true_g2_list[sid] )
+            shears_mean_g1.append( mean_g1 )
+            shears_mean_g2.append( mean_g2 )
+            shears_stdm_g1.append( stdm_g1 )
+            shears_stdm_g2.append( stdm_g2 )
+            shears_stdv_g1.append( stdv_g1 )
+            shears_stdv_g2.append( stdv_g2 )
+            shears_n_gals.append(n_gals_use)
+
+    # get the data for the line fit
+    tg1 = numpy.array(shears_true_g1)
+    bg1 = numpy.array(shears_mean_g1) - tg1;
+    sg1 = numpy.array(shears_stdm_g1)
+    # do the line fit
+    c1,m1,cov1 = _getLineFit(tg1,bg1,sg1)
+    std_m1 = numpy.sqrt(cov1[1,1])
+    std_c1 = numpy.sqrt(cov1[0,0])
+    # get the errors using the GREAT08 method   
+    lg1 = tg1*m1 + c1
+    zg1 = numpy.ones(sg1.shape)*numpy.std(lg1 - bg1,ddof=1)
+    c1,m1,cov1 = _getLineFit(tg1,bg1,zg1)
+
+    # same for g2
+    tg2 = numpy.array(shears_true_g2)
+    bg2 = numpy.array(shears_mean_g2) - tg2;
+    sg2 = numpy.array(shears_stdm_g2)
+    # do the line fit
+    c2,m2,cov2 = _getLineFit(tg2,bg2,sg2)
+    lg2 = tg2*m2 + c2
+    zg2 = numpy.ones(sg2.shape)*numpy.std(lg2 - bg2,ddof=1)
+    # get the errors using the GREAT08 method   
+    c2,m2,cov2 = _getLineFit(tg2,bg2,zg2)
+    std_m2 = numpy.sqrt(cov2[1,1])
+    std_c2 = numpy.sqrt(cov2[0,0])    
+  
+    logger.info('m1 = % 2.4f \t +/- % 2.4f' % ( m1, std_m1))
+    logger.info('m2 = % 2.4f \t +/- % 2.4f' % ( m2, std_m2))
+    logger.info('c1 = % 2.4f \t +/- % 2.4f' % ( c1, std_c1))
+    logger.info('c2 = % 2.4f \t +/- % 2.4f' % ( c2, std_c2))
+
+    # create results struct
+    mc_result['m1'] = m1 
+    mc_result['m2'] = m2 
+    mc_result['c1'] = c1 
+    mc_result['c2'] = c2 
+    mc_result['std_m1'] = std_m1
+    mc_result['std_m2'] = std_m2
+    mc_result['std_c1'] = std_c1
+    mc_result['std_c2'] = std_c2
+    mc_result['tg1'] = tg1
+    mc_result['bg1'] = bg1
+    mc_result['sg1'] = sg1
+    mc_result['lg1'] = lg1
+    mc_result['zg1'] = zg1
+    mc_result['tg2'] = tg2
+    mc_result['bg2'] = bg2
+    mc_result['sg2'] = sg2
+    mc_result['lg2'] = lg2
+    mc_result['zg2'] = zg2
+
+    
+    return mc_result
 
 def getTotalBias():
 
@@ -61,13 +192,20 @@ def getTotalBias():
     results_array = tabletools.loadTable('results_array',args.filepath_results,dtype_table_results_use)
     truth_array   = tabletools.loadTable('truth_array',args.filepath_truth,dtype_table_truth)    
 
-    n_gals_per_mean = 10000
+    getBiasForResults(results_array,truth_array,logger)
 
+
+def getBiasForResults(results_array,truth_array,logger=None,verbosity=2):
+
+    n_gals_per_mean = 50000
+
+    # see how many shears and angles we have
     n_shears = len(set(truth_array['id_shear']))
     n_angles = len(set(truth_array['id_angle']))
 
     true_g1_list = [truth_array['g1'][ truth_array['id_shear'][0:n_shears*n_angles] == idg ][0]  for idg in range(n_shears)]
     true_g2_list = [truth_array['g2'][ truth_array['id_shear'][0:n_shears*n_angles] == idg ][0]  for idg in range(n_shears)]
+
 
     # those will contain len(results_array)/n_gals_per_mean points
     shears_true_g1 = []  
@@ -107,7 +245,7 @@ def getTotalBias():
             stdm_g1 = stdv_g1 / numpy.sqrt(n_gals_use)
             stdm_g2 = stdv_g2 / numpy.sqrt(n_gals_use)
 
-            logger.info('%10d %10d \t% 2.4f\t% 2.4f \t using %10d / %10d' % (i_start,i_end,mean_g1,mean_g2,len(results_sid_use),len(results_sid_part)))         
+            logger.debug('%10d %10d \t% 2.4f\t% 2.4f\t% 2.4f\t% 2.4f\t% 2.4f\t% 2.4f \t using %10d / %10d' % (i_start,i_end,mean_g1,mean_g2,stdm_g1,stdm_g2,stdv_g1,stdv_g2,len(results_sid_use),len(results_sid_part)))         
 
             shears_true_g1.append( true_g1_list[sid] )
             shears_true_g2.append( true_g2_list[sid] )
@@ -124,8 +262,8 @@ def getTotalBias():
     sg1 = numpy.array(shears_stdm_g1)
     c1,m1,cov1 = _getLineFit(tg1,bg1,sg1)
     lg1 = tg1*m1 + c1
-    zg1 = numpy.ones(sg1.shape)*numpy.std(lg1 - bg1,ddof=1)
-    c1,m1,cov1 = _getLineFit(tg1,bg1,zg1)
+    # zg1 = numpy.ones(sg1.shape)*numpy.std(lg1 - bg1,ddof=1)
+    # c1,m1,cov1 = _getLineFit(tg1,bg1,zg1)
     std_m1 = numpy.sqrt(cov1[1,1])
     std_c1 = numpy.sqrt(cov1[0,0])
 
@@ -134,22 +272,22 @@ def getTotalBias():
     sg2 = numpy.array(shears_stdm_g2)
     c2,m2,cov2 = _getLineFit(tg2,bg2,sg2)
     lg2 = tg2*m2 + c2
-    zg2 = numpy.ones(sg2.shape)*numpy.std(lg2 - bg2,ddof=1)
-    c2,m2,cov2 = _getLineFit(tg2,bg2,zg2)
+    # zg2 = numpy.ones(sg2.shape)*numpy.std(lg2 - bg2,ddof=1)
+    # c2,m2,cov2 = _getLineFit(tg2,bg2,zg2)
     std_m2 = numpy.sqrt(cov2[1,1])
     std_c2 = numpy.sqrt(cov2[0,0])    
 
-    if args.verbosity > 2:
+    if verbosity > 2:
         import pylab
         
         pylab.figure(1)
         pylab.errorbar(tg1,bg1,yerr=sg1,fmt='r.')
-        pylab.errorbar(tg1,bg1,yerr=zg1,fmt='m.')
+        # pylab.errorbar(tg1,bg1,yerr=zg1,fmt='m.')
         indices = tg1.argsort()
         pylab.plot(tg1[indices],lg1[indices],'r-')
         
         pylab.errorbar(tg2,bg2,yerr=sg2,fmt='b.')
-        pylab.errorbar(tg2,bg2,yerr=zg2,fmt='c.')
+        # pylab.errorbar(tg2,bg2,yerr=zg2,fmt='c.')
         indices = tg2.argsort()
         pylab.plot(tg2[indices],lg2[indices],'b-')
 
@@ -161,16 +299,11 @@ def getTotalBias():
     logger.info('c1 = % 2.4f \t +/- % 2.4f' % ( c1, std_c1))
     logger.info('c2 = % 2.4f \t +/- % 2.4f' % ( c2, std_c2))
 
-
-
-
 def getShearIDfromUniqueID(ids_unique):
 
     # enforce numpy array
     ids = numpy.array(ids_unique)
     return ((ids % 10000) // 100).astype(numpy.int64)
-
-
 
 def getBiasForEachGal():
 
@@ -308,11 +441,11 @@ def mergeResults():
     results = numpy.loadtxt(file_results)
     if results.shape[1] == 23:
         dtype_table_results_use = dtype_table_results2
-        id_unique_field = 'id_unique'
+        id_unique_field_results = 'id_unique'
         logger.info('using dtype_table_results2 with %d columns' % results.shape[1])
     elif results.shape[1] == 20:
         dtype_table_results_use = dtype_table_results
-        id_unique_field = 'identifier'
+        id_unique_field_results = 'identifier'
         logger.info('using dtype_table_results with %d columns' % results.shape[1])
     else:
         logger.error('results have unknown column structure')
@@ -351,8 +484,8 @@ def mergeResults():
                 logger.error('skipping file doesnt exist')
                 continue
 
-    logger.info('results  n %10d first %d last %d' % (len(results_array),results_array[0][id_unique_field] ,results_array[-1][id_unique_field]))
-    logger.info('truth    n %10d first %d last %d' % (len(truth_array),truth_array[0]['id_unique']      ,truth_array[-1]['id_unique']))
+    logger.info('results  n %10d first %d last %d' % (len(results_array),results_array[0][id_unique_field_results] ,results_array[-1][id_unique_field_results]))
+    logger.info('truth    n %10d first %d last %d' % (len(truth_array),truth_array[0][id_unique_field_results]     ,truth_array[-1][id_unique_field_results]))
 
     # import pdb; pdb.set_trace()
 
@@ -361,16 +494,16 @@ def mergeResults():
     # get the number of matches before the assignment of IDS
     n_matches = 0
     for ri in range(len(results_array)):
-        if results_array[ri][id_unique_field] == truth_array[ri]['id_unique']: n_matches+=1
+        if results_array[ri][id_unique_field_results] == truth_array[ri]['id_unique']: n_matches+=1
     logger.info('number of matches %s' % n_matches)
     
     # assign the ids
-    results_array[id_unique_field] = truth_array['id_unique']
+    results_array[id_unique_field_results] = truth_array['id_unique']
     
     # get the number of matches after the assignment of IDS  
     n_matches = 0
     for ri in range(len(results_array)):
-        if results_array[ri][id_unique_field] == truth_array[ri]['id_unique']: n_matches+=1
+        if results_array[ri][id_unique_field_results] == truth_array[ri]['id_unique']: n_matches+=1
     logger.info('number of matches %s' % n_matches)
 
     logger.info('saving tables ...')
@@ -380,10 +513,8 @@ def mergeResults():
     # tabletools.saveTable(args.filepath_truth,truth_array)
     # logger.info('truth saved %s correctly, got %d rows' % (args.filepath_truth,len(truth_array)))
 
-    logger.info('truth   n %10d first %d last %d' % (len(results_array),results_array[0][id_unique_field],results_array[-1][id_unique_field]))
+    logger.info('truth   n %10d first %d last %d' % (len(results_array),results_array[0][id_unique_field_results],results_array[-1][id_unique_field_results]))
     logger.info('results n %10d first %d last %d' % (len(truth_array),truth_array[0]['id_unique'],truth_array[-1]['id_unique']))
-
-
 
 def createBFITsample():
 
@@ -446,7 +577,51 @@ def createBFITsample():
     logger.info('first e1 % f % f' % (results_array_bfit_loaded[1].data['e1'][0]  , results_array_bfit['e1'][0]  ))
     logger.info('last  e1 % f % f' % (results_array_bfit_loaded[1].data['e1'][-1] , results_array_bfit['e1'][-1] ))
 
+def selectByIDs(ids,results_array,truth_array,logger=None):
+    """
+    @brief selects a subset of results which correspond to the ids
+    @param ids a list of integer ids for cosmos galaxies
+    @param results_array results array to be selected from
+    @param truth_array results array to be selected from
+    @return results_bin results,truth_bin,indices_bin
+    """
 
+    # get the counts for various things
+    cosmos_ids = set(truth_array['id_cosmos'])
+    logger.debug('using set of %d cosmos galaxies ' % len(cosmos_ids) )
+    n_cosmos_ids = len(cosmos_ids)
+    n_per_cosmos = sum(truth_array['id_cosmos'] == truth_array[0]['id_cosmos'])
+    n_shears = len(set(truth_array['id_shear']))
+    n_angles = len(set(truth_array['id_angle']))
+
+    # get lenth of results_array
+    n_measurements = len(results_array)
+
+    # get the cosmos ids, but unique in the same order
+    select = range(0,n_measurements,n_per_cosmos)
+    ids_cosmos_unique = results_array[select]['id_cosmos']
+
+    # initialise a list to hold the indices
+    indices_bin = []
+
+    # loop over all cosmos ids in this bin
+    for j,current_id in enumerate(ids):
+
+        # get the index of the first occurence of this cosmos id in the ids_cosmos_unique
+        id_index_in_truth = numpy.nonzero(ids_cosmos_unique == current_id)[0]
+
+        # if found - append indices_bins with indices of that cosmos id in the results
+        if len(id_index_in_truth) > 0: 
+            id_index_in_results_start = id_index_in_truth    *n_per_cosmos
+            id_index_in_results_end   = (id_index_in_truth+1)*n_per_cosmos
+            indices_bin.extend(range(id_index_in_results_start,id_index_in_results_end))
+
+    # add the results
+    results_bin = results_array[indices_bin]
+    truth_bin = truth_array[indices_bin]
+    logger.debug('found %5d in acs_array and %5d entries in results_array' % (len(ids),len(results_bin)))
+
+    return results_bin,truth_bin,indices_bin
 
 
 def main():

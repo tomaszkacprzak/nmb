@@ -117,11 +117,20 @@ c2 = -0.0014 	 +/-  0.0001
 
 set up 202_bfit_noisy run
 
-from legion, got the commit number for im3shape: o
-updating im3shape to this version
+from legion, got the commit number for im3shape: 3be9e7bf10aa (levmar_eps5) tip
+updating im3shape to this version on precise
 
 test the code with 
 precise$ python /home/tomek/Work/code/nmb/nmb_main/nmb_main.py ~/Work/code/nmb/nmb_main/nmb_main.bfit.noisy.yaml -v3 --filepath_truth bfit.nmb_main.real.fits --nimages 64
 ran through
 
 lunching on legion
+run through
+
+130617 trying to merge results for bfit -- qstat shows only 1/2 done
+merge the results in 202_bfit_noisy
+zupcx32$ python ~/code/nmb/nmb_main/nmb_main_analyse.py mergeResults nmb_main.bfit.noisy.yaml --filepath_truth truth.25880.fits -v3
+
+130618
+writing functions to get bias for bins
+python ~/code/nmb/nmb_main/nmb_main_plots.py  nmb_main.real.noisy.yaml --filepath_results results.nmb_main.real.noisy.fits --filepath_truth truth.25880.fits -v3 --filepath_acs /home/kacprzak/code/nmb/nmb_main/data/cosmos_acs_shera_may2011.fits.gz
