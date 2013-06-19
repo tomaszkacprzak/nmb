@@ -12,10 +12,16 @@ def loadTable(table_name,filepath,dtype=None,hdu=1,logger=logging):
                 file_pickle = open(filepath)
                 table = pickle.load(file_pickle)
                 file_pickle.close()
+
         elif filepath.split('.')[-1] == 'fits' or filepath.split('.')[-2] == 'fits':
                 import pyfits
                 fits = pyfits.open(filepath)
                 table = fits[hdu].data
+
+                # if using FITS_record, get FITS rec
+                if isinstance(table,pyfits.FITS_record):
+                    import pdb; pdb.set_trace()
+                    table = table.array
         else:
                 import numpy
                 table = numpy.loadtxt(filepath,dtype=dtype)
@@ -76,3 +82,16 @@ def getFITSTable(numpy_array):
 
     return hdulist
 
+def getColNames(table):
+    
+    import numpy
+    import pyfits
+
+    if isinstance(table,pyfits.FITS_record):
+        colnames = table.array.dtype.names
+    elif isinstance(table,pyfits.FITS_rec):
+        colnames = table.dtype.names
+    elif isinstance(table,numpy.ndarray):
+        colnames = table.dtype.names
+
+    return colnames

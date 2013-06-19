@@ -261,4 +261,11 @@ these were done using commit 0eec29501273fdedd6691a1d66b8882e1d3437bc
 now rewriting binning functions to be more general
 
     zupcx32$ python ~/code/nmb/nmb_main/nmb_main_plots.py  nmb_main.real.noisy.yaml --filepath_results results.nmb_main.real.noisy.fits --filepath_truth truth.25880.fits -v2 --filepath_acs /home/kacprzak/code/nmb/nmb_main/data/cosmos_acs_shera_may2011.fits.gz --filepath_stats /home/kacprzak/code/nmb/nmb_main/data/stats.nmb_main.real.pp
+
+the functions now use fixed results filenames, call
+    
+    precise$ python ~/Work/code/nmb/nmb_main/nmb_main_plots.py -v 2
+
+
+
     

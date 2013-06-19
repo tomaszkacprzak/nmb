@@ -89,7 +89,7 @@ def getBiasForResults(results_array,truth_array,logger=None,n_gals_per_mean=5000
 
         if 'id_cosmos' in results_array.dtype.names:
             select = getShearIDfromUniqueID(results_array['id_unique'])  == sid
-        elif 'identifier' in results_array.dtype.names:
+        elif 'identifier' in  results_array.dtype.names:
             select = getShearIDfromUniqueID(results_array['identifier'])  == sid
 
         results_sid = results_array[select]
@@ -170,15 +170,17 @@ def getBiasForResults(results_array,truth_array,logger=None,n_gals_per_mean=5000
     logger.info('c1 = % 2.4f \t +/- % 2.4f' % ( c1, std_c1))
     logger.info('c2 = % 2.4f \t +/- % 2.4f' % ( c2, std_c2))
 
-    mc_results = {}
-    mc_results['m1']      = m1     
-    mc_results['m2']      = m2     
-    mc_results['c1']      = c1     
-    mc_results['c2']      = c2     
-    mc_results['std_m1']  = std_m1         
-    mc_results['std_m2']  = std_m2         
-    mc_results['std_c1']  = std_c1         
-    mc_results['std_c2']  = std_c2         
+    # mc_results = {}  
+    # mc_results['m1']      = m1     
+    # mc_results['m2']      = m2     
+    # mc_results['c1']      = c1     
+    # mc_results['c2']      = c2     
+    # mc_results['std_m1']  = std_m1         
+    # mc_results['std_m2']  = std_m2         
+    # mc_results['std_c1']  = std_c1         
+    # mc_results['std_c2']  = std_c2             
+
+    mc_results = numpy.array([(0,0,len(results_array),m1,m2,c1,c2,std_m1,std_m2,std_c1,std_c2)],dtype=dtype_table_binstats)
 
     return mc_results
 
