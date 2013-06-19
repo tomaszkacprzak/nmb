@@ -166,7 +166,7 @@ def runIm3shape():
             id_global = ig
             id_object = (obj_num+ig) % n_objects
             id_unique = truth_cat['identifier'][ id_object ]
-            id_cosmos = int(truth_cat['identifier'][ id_object ]//1000)
+            id_cosmos = int(truth_cat['identifier'][ id_object ]//10000)
 
         
         i3_result, i3_best_fit = im3shape.i3_analyze(i3_galaxy, i3_psf, i3_options, ID=id_unique)

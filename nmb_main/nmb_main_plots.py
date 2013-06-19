@@ -382,7 +382,7 @@ def plotBiasForBins(results_array,truth_array,info_string):
     # load the acs array
     acs_array = pyfits.getdata(args.filepath_acs,1)
     acs_zphot = acs_array['zphot']
-    bins_redshift = [0 , 0.35, 0.6, 0.8, 1.1 , 1.5]
+    bins_redshift = [0 , 0.35, 0.6, 0.8, 1.1 , 1.5] 
     
     # initialise bins
     bins_ids = []
@@ -393,7 +393,7 @@ def plotBiasForBins(results_array,truth_array,info_string):
     for i,ids in enumerate(bins_ids):
         results_bin,truth_bin,_ = analyse.selectByIDs(ids,results_array,truth_array,logger)
         logger.info('redshift bin %d, number of galaxies in sample %5d' % (i,len(results_bin)))
-        analyse.getBiasForResults(results_bin,truth_bin,logger,verbosity=3)
+        analyse.getBiasForResults(results_bin,truth_bin,logger)
 
 
     
@@ -404,6 +404,8 @@ def plotBiasForBins(results_array,truth_array,info_string):
 
 
 def main():
+
+    global logger , config , args
 
     description = 'Plots for the results of nmb_main. To use in ipython, create a variable global results_array, global truth_array to speed up loading'
 
@@ -425,7 +427,6 @@ def main():
                        2: logging.INFO,
                        3: logging.DEBUG }
     logging_level = logging_levels[args.verbosity]
-    global logger , config , args
     logging.basicConfig(format="%(message)s", level=logging_level, stream=sys.stdout)
     logger = logging.getLogger("nmb_main_plots.py") 
     logger.setLevel(logging_level)
@@ -440,7 +441,13 @@ def main():
     truth_array = tabletools.loadTable('truth_array',args.filepath_truth,dtype_table_truth)
     results_array = tabletools.loadTable('results_array',args.filepath_results,dtype_table_results2)
 
+    # get total bias
+    logger.info('getting results for all')
+    analyse.getBiasForResults(results_array,truth_array,logger,n_gals_per_mean=2e6)
+
+    # get the bins
     plotBiasForBins(results_array,truth_array,'real')
+    
 
 if __name__ == "__main__":
 
