@@ -14,21 +14,13 @@ import pylab
 import glob
 import cPickle as pickle
 import tabletools
+from tablespec import *
+import nmb_main_analyse as analyse
 
-# global results_array
-
-dtype_table_truth   = { 'names'  : ['id_unique','id_cosmos','g1','g2','angle','id_angle','id_shear' , 'zphot'],
-                        'formats': ['i8']*2 + ['f4']*3 + ['i4']*2 + ['f4']*1 }
-
-dtype_table_results = { 'names'   : ['identifier','likelihood','time_taken','x0','y0','e1','e2','radius','fwhm','bulge_flux','disc_flux','flux_ratio','signal_to_noise','min_residuals','max_residuals','model_min','model_max','number_of_likelihood_evals','number_of_iterations','reason_of_termination'],
-                        'formats' : ['i8'] + ['f4']*16 + ['i4']*3 }           
-
-dtype_table_stats =  { 'names'   : ['index', 'cosmos_id' , 'zphot' ,'m1','m2','m1_std','m2_std','c1','c2','c1_std','c2_std' , 'hlr' , 'rgp' , 'snr'],
-                        'formats' : ['i8']*2 + ['f4']*12 }             
 
 NO_RESULT_FLAG = 666
 
-def plotBiasHistogram():
+def plotModelBias():
 
     def _binCenters(b):
           c1 = [ b[i-1] + (b[i] - b[i-1])/2. for i in range(1,len(b)) ] 
@@ -292,9 +284,6 @@ def plotBiasHistogram():
     pylab.savefig(filename_fig)
     logger.info('saved %s' % filename_fig)
 
-
-
-
     # m1 vs redshift
 
     digitized = numpy.digitize(results_zphot, bins_redshift)
@@ -382,8 +371,41 @@ def plotBiasHistogram():
     pylab.savefig(filename_fig)
     logger.info('saved %s' % filename_fig)
 
+def plotBiasForBins(results_array,truth_array,info_string):
+    """
+    @brief plot bias for different bins of different parameters
+    @results_array use this array to get the results -- it can be noiseless, noisy real or noisy bfit
+    @truth_array truth array used to create results_array
+    @info_string some info for plot titles
+    """
+
+    # load the acs array
+    acs_array = pyfits.getdata(args.filepath_acs,1)
+    acs_zphot = acs_array['zphot']
+    bins_redshift = [0 , 0.35, 0.6, 0.8, 1.1 , 1.5] 
+    
+    # initialise bins
+    bins_ids = []
+    digitized = numpy.digitize(acs_zphot, bins_redshift)
+    bins_ids = [acs_array['IDENT'][digitized == i] for i in range(1, len(bins_redshift))] 
+    
+    # loop over bins
+    for i,ids in enumerate(bins_ids):
+        results_bin,truth_bin,_ = analyse.selectByIDs(ids,results_array,truth_array,logger)
+        logger.info('redshift bin %d, number of galaxies in sample %5d' % (i,len(results_bin)))
+        analyse.getBiasForResults(results_bin,truth_bin,logger)
+
+
+    
+
+
+
+
+
 
 def main():
+
+    global logger , config , args
 
     description = 'Plots for the results of nmb_main. To use in ipython, create a variable global results_array, global truth_array to speed up loading'
 
@@ -405,7 +427,6 @@ def main():
                        2: logging.INFO,
                        3: logging.DEBUG }
     logging_level = logging_levels[args.verbosity]
-    global logger , config , args
     logging.basicConfig(format="%(message)s", level=logging_level, stream=sys.stdout)
     logger = logging.getLogger("nmb_main_plots.py") 
     logger.setLevel(logging_level)
@@ -415,9 +436,18 @@ def main():
     # store the args in config so it's easier to use them
     config['args'] = args    
 
-    # mergeResutls()
-    # getBiasForEachGal()
-    plotBiasHistogram()
+    # plotModelBias()
+
+    truth_array = tabletools.loadTable('truth_array',args.filepath_truth,dtype_table_truth)
+    results_array = tabletools.loadTable('results_array',args.filepath_results,dtype_table_results2)
+
+    # get total bias
+    logger.info('getting results for all')
+    analyse.getBiasForResults(results_array,truth_array,logger,n_gals_per_mean=2e6)
+
+    # get the bins
+    plotBiasForBins(results_array,truth_array,'real')
+    
 
 if __name__ == "__main__":
 

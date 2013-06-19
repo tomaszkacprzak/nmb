@@ -110,18 +110,148 @@ results n    1656320 first 1000270000 last 742430707
 get total bias
 zupcx32$ python ~/code/nmb/nmb_main/nmb_main_analyse.py getTotalBias nmb_main.real.noisy.yaml --filepath_truth truth.25880.fits -v3
 woah it actually worked and gives 'sensible' results!
-m1 = -0.0395 	 +/-  0.0015
-m2 = -0.0396 	 +/-  0.0014
-c1 = -0.0013 	 +/-  0.0001
-c2 = -0.0014 	 +/-  0.0001
+m1 = -0.0395     +/-  0.0015
+m2 = -0.0396     +/-  0.0014
+c1 = -0.0013     +/-  0.0001
+c2 = -0.0014     +/-  0.0001
 
 set up 202_bfit_noisy run
 
-from legion, got the commit number for im3shape: o
-updating im3shape to this version
+from legion, got the commit number for im3shape: 3be9e7bf10aa (levmar_eps5) tip
+updating im3shape to this version on precise
 
 test the code with 
 precise$ python /home/tomek/Work/code/nmb/nmb_main/nmb_main.py ~/Work/code/nmb/nmb_main/nmb_main.bfit.noisy.yaml -v3 --filepath_truth bfit.nmb_main.real.fits --nimages 64
 ran through
 
 lunching on legion
+run through
+
+130617 trying to merge results for bfit -- qstat shows only 1/2 done
+merge the results in 202_bfit_noisy
+zupcx32$ python ~/code/nmb/nmb_main/nmb_main_analyse.py mergeResults nmb_main.bfit.noisy.yaml --filepath_truth truth.25880.fits -v3
+
+130618
+writing functions to get bias for bins
+python ~/code/nmb/nmb_main/nmb_main_plots.py  nmb_main.real.noisy.yaml --filepath_results results.nmb_main.real.noisy.fits --filepath_truth truth.25880.fits -v3 --filepath_acs /home/kacprzak/code/nmb/nmb_main/data/cosmos_acs_shera_may2011.fits.gz
+
+130619
+The real noisy results seem to be solid - I checked the errorbars and it looks OK
+The results are:
+
+Now run for the noiseless case:
+
+    zupcx32$ python ~/code/nmb/nmb_main/nmb_main_plots.py  nmb_main.real.yaml --filepath_results results.nmb_main.real.pp --filepath_truth truth.26000.pp -v2 --filepath_acs /home/kacprzak/code/nmb/nmb_main/data/cosmos_acs_shera_may2011.fits.gz
+    loading truth.26000.pp
+    loaded truth.26000.pp correctly, got 1664000 rows
+    loading results.nmb_main.real.pp
+    loaded results.nmb_main.real.pp correctly, got 1664000 rows
+    getting results for all galaxies 1664000
+    m1 = -0.0034     +/-  0.0002
+    m2 = -0.0038     +/-  0.0002
+    c1 =  0.0001     +/-  0.0000
+    c2 =  0.0001     +/-  0.0000
+    getting results for bins
+    redshift bin 0, number of galaxies in sample 435520
+    m1 = -0.0049     +/-  0.0002
+    m2 = -0.0057     +/-  0.0002
+    c1 =  0.0002     +/-  0.0000
+    c2 =  0.0002     +/-  0.0000
+    redshift bin 1, number of galaxies in sample 506176
+    m1 = -0.0039     +/-  0.0002
+    m2 = -0.0042     +/-  0.0001
+    c1 =  0.0001     +/-  0.0000
+    c2 =  0.0001     +/-  0.0000
+    redshift bin 2, number of galaxies in sample 376704
+    m1 = -0.0027     +/-  0.0002
+    m2 = -0.0028     +/-  0.0002
+    c1 =  0.0000     +/-  0.0000
+    c2 =  0.0001     +/-  0.0000
+    redshift bin 3, number of galaxies in sample 303360
+    m1 = -0.0013     +/-  0.0002
+    m2 = -0.0017     +/-  0.0002
+    c1 = -0.0000     +/-  0.0000
+    c2 = -0.0000     +/-  0.0000
+    redshift bin 4, number of galaxies in sample 40064
+    m1 = -0.0014     +/-  0.0009
+    m2 = -0.0023     +/-  0.0017
+    c1 = -0.0001     +/-  0.0001
+    c2 =  0.0002     +/-  0.0001
+
+for the noisy real
+
+    zupcx32$ python ~/code/nmb/nmb_main/nmb_main_plots.py  nmb_main.real.noisy.yaml --filepath_results results.nmb_main.real.noisy.fits --filepath_truth truth.25880.fits -v2 --filepath_acs /home/kacprzak/code/nmb/nmb_main/data/cosmos_acs_shera_may2011.fits.gz
+    loading truth.25880.fits
+    loaded truth.25880.fits correctly, got 1656320 rows
+    loading results.nmb_main.real.noisy.fits
+    loaded results.nmb_main.real.noisy.fits correctly, got 1656320 rows
+    getting results for all galaxies 1656320
+    m1 = -0.0396     +/-  0.0018
+    m2 = -0.0397     +/-  0.0016
+    c1 = -0.0013     +/-  0.0002
+    c2 = -0.0014     +/-  0.0001
+    getting results for bins
+    redshift bin 0, number of galaxies in sample 431680
+    m1 = -0.0209     +/-  0.0027
+    m2 = -0.0240     +/-  0.0028
+    c1 = -0.0011     +/-  0.0002
+    c2 = -0.0012     +/-  0.0002
+    redshift bin 1, number of galaxies in sample 501504
+    m1 = -0.0424     +/-  0.0027
+    m2 = -0.0380     +/-  0.0023
+    c1 = -0.0011     +/-  0.0002
+    c2 = -0.0014     +/-  0.0002
+    redshift bin 2, number of galaxies in sample 373056
+    m1 = -0.0548     +/-  0.0035
+    m2 = -0.0529     +/-  0.0030
+    c1 = -0.0015     +/-  0.0003
+    c2 = -0.0015     +/-  0.0003
+    redshift bin 3, number of galaxies in sample 300608
+    m1 = -0.0392     +/-  0.0036
+    m2 = -0.0407     +/-  0.0035
+    c1 = -0.0013     +/-  0.0003
+    c2 = -0.0017     +/-  0.0003
+    redshift bin 4, number of galaxies in sample 39680
+    m1 = -0.0577     +/-  0.0098
+    m2 = -0.0483     +/-  0.0069
+    c1 = -0.0026     +/-  0.0008
+    c2 = -0.0010     +/-  0.0006
+
+merged run 202_bfit_noisy
+
+    zupcx32$ python ~/code/nmb/nmb_main/nmb_main_plots.py  nmb_main.bfit.noisy.yaml --filepath_results results.nmb_main.bfit.noisy.fits --filepath_truth truth.25880.fits -v2 --filepath_acs /home/kacprzak/code/nmb/nmb_main/data/cosmos_acs_shera_may2011.fits.gz
+    loading truth.25880.fits
+    loaded truth.25880.fits correctly, got 1656320 rows
+    loading results.nmb_main.bfit.noisy.fits
+    loaded results.nmb_main.bfit.noisy.fits correctly, got 1656320 rows
+    getting results for all galaxies 1656320
+    m1 = -0.0364     +/-  0.0012
+    m2 = -0.0367     +/-  0.0009
+    c1 = -0.0015     +/-  0.0001
+    c2 = -0.0014     +/-  0.0001
+    getting results for bins
+    redshift bin 0, number of IDs in ACS 8164, number of galaxies in sample 427392
+    m1 = -0.0251     +/-  0.0026
+    m2 = -0.0168     +/-  0.0027
+    c1 = -0.0016     +/-  0.0002
+    c2 = -0.0015     +/-  0.0002
+    redshift bin 1, number of IDs in ACS 9109, number of galaxies in sample 497792
+    m1 = -0.0347     +/-  0.0025
+    m2 = -0.0401     +/-  0.0028
+    c1 = -0.0011     +/-  0.0002
+    c2 = -0.0016     +/-  0.0002
+    redshift bin 2, number of IDs in ACS 6725, number of galaxies in sample 370624
+    m1 = -0.0482     +/-  0.0036
+    m2 = -0.0451     +/-  0.0037
+    c1 = -0.0015     +/-  0.0003
+    c2 = -0.0011     +/-  0.0003
+    redshift bin 3, number of IDs in ACS 5435, number of galaxies in sample 298496
+    m1 = -0.0362     +/-  0.0036
+    m2 = -0.0412     +/-  0.0043
+    c1 = -0.0020     +/-  0.0003
+    c2 = -0.0015     +/-  0.0004
+    redshift bin 4, number of IDs in ACS 739, number of galaxies in sample 39360
+    m1 = -0.0407     +/-  0.0163
+    m2 = -0.0604     +/-  0.0116
+    c1 = -0.0031     +/-  0.0014
+    c2 = -0.0010     +/-  0.0010
