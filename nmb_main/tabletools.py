@@ -6,13 +6,13 @@ def loadTable(table_name,filepath,dtype=None,hdu=1,logger=logging):
         table = eval(table_name)
     except:
 
-        logger.info('loading %s' % filepath)
+        logger.debug('loading %s' % filepath)
         if filepath.split('.')[-1] == 'pp':
                 import cPickle as pickle
                 file_pickle = open(filepath)
                 table = pickle.load(file_pickle)
                 file_pickle.close()
-        elif filepath.split('.')[-1] == 'fits':
+        elif filepath.split('.')[-1] == 'fits' or filepath.split('.')[-2] == 'fits':
                 import pyfits
                 fits = pyfits.open(filepath)
                 table = fits[hdu].data
@@ -21,9 +21,9 @@ def loadTable(table_name,filepath,dtype=None,hdu=1,logger=logging):
                 table = numpy.loadtxt(filepath,dtype=dtype)
         
     else:
-        logger.info('using preloaded array %s' % table_name)
+        logger.debug('using preloaded array %s' % table_name)
     
-    logger.info('loaded %s correctly, got %d rows' % (filepath,len(table)))
+    logger.debug('loaded %s correctly, got %d rows' % (filepath,len(table)))
 
     globals()[table_name] = table
     return table
@@ -41,7 +41,7 @@ def saveTable(filepath,table,logger=logging):
         file_pickle = open(filepath,'w')
         pickle.dump(table,file_pickle,protocol=2)
         file_pickle.close()
-    elif filepath.split('.')[-1] == 'fits':
+    elif filepath.split('.')[-1] == 'fits' or filepath.split('.')[-2] == 'fits':
         import pyfits
         if type(table) is pyfits.core.HDUList:
             table.writeto(filepath,clobber=True)
