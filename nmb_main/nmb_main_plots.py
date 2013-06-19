@@ -17,8 +17,91 @@ import tabletools
 from tablespec import *
 import nmb_main_analyse as analyse
 
+filepath_stats              = 'stats.nmb_main.real.pp'
+filepath_acs_join_stats     = 'acs_joins_stats.pp'
+filepath_truth              = 'truth.25880.fits'
+filepath_acs                = 'cosmos_acs_shera_may2011.fits.gz'
+filepath_results_real       = 'results.nmb_main.real.pp' 
+filepath_results_real_noisy = 'results.nmb_main.real.noisy.fits'
+filepath_results_bfit_noisy = 'results.nmb_main.bfit.noisy.fits'
 
 NO_RESULT_FLAG = 666
+
+def getTableACSjoinStats():
+
+    global results_stats
+
+    file_pickle = open(args.filepath_stats)
+    results_stats = pickle.load(file_pickle)
+    logger.info('opened stats file %s with %d rows' % (args.filepath_stats,results_stats.shape[0]))
+
+    logger.info('getting modd')
+    acs_array = pyfits.getdata(args.filepath_acs,1)
+    results_modd = numpy.zeros(len(results_stats))
+    for i in range(len(results_modd)):
+        select = numpy.nonzero(acs_array['IDENT']==results_stats['cosmos_id'][i])
+        results_modd[i] = acs_array['modd'][select]
+    logger.info('got modd')
+    tabletools.saveTable(filename_acs_join_stats,results_modd)
+    return results_modd
+
+
+
+def plotBiasForBins():
+
+    # load the data
+    truth_array        = tabletools.loadTable('truth_array',filepath_truth,dtype_table_truth,logger=logger)
+    results_bfit_noisy = tabletools.loadTable('results_bfit_noisy',filepath_results_real_noisy, dtype_table_results2, logger=logger)
+    results_real_noisy = tabletools.loadTable('results_real_noisy',filepath_results_bfit_noisy, dtype_table_results2, logger=logger)
+    results_real       = tabletools.loadTable('results_real',filepath_results_real, dtype_table_results, logger=logger)
+    stats_array        = tabletools.loadTable('stats_array',filepath_stats,logger=logger)
+    ajs_array          = tabletools.loadTable('ajs_array',filepath_acs_join_stats,logger=logger)
+    acs_array          = tabletools.loadTable('acs_array',filepath_acs,logger=logger)
+
+    # m vs redshift
+
+    bins_redshift = [0 , 0.35, 0.6, 0.8, 1.1 , 1.5]    
+    # do the real noisy case
+    mc_results = getBiasForBins(results_real_noisy,truth_array,bin_column=acs_array['zphot'], bin_ids=acs_array['IDENT'],bin_values=bins_redshift)
+    filename_results = 'bins.redshift.real.noisy.cat'
+    writeMCresults(filename_results,mc_results)
+    # do the bfit noisy case
+    mc_results = getBiasForBins(results_bfit_noisy,truth_array,bin_column=acs_array['zphot'], bin_ids=acs_array['IDENT'],bin_values=bins_redshift)
+    filename_results = 'bins.redshift.bfit.noisy.cat'
+    writeMCresults(filename_results,mc_results)
+    # do the real noiseless case
+    mc_results = getBiasForBins(results_real,truth_array,bin_column=acs_array['zphot'], bin_ids=acs_array['IDENT'],bin_values=bins_redshift)
+    filename_results = 'bins.redshift.real.cat'
+    writeMCresults(filename_results,mc_results)
+
+    # m vs size
+
+    n_bins_size = 5
+    bins_size = numpy.linspace(1,4,n_bins_size)
+    mc_results = getBiasForBins(results_real_noisy,truth_array,bin_column=stats_array['rgp'], bin_ids=stats_array['id_cosmos'],bin_values=bins_redshift)
+    filename_results = 'bins.redshift.cat'
+    writeMCresults(filename_results,mc_results)
+    # do the bfit noisy case
+    mc_results = getBiasForBins(results_bfit_noisy,truth_array,bin_column=stats_array['rgp'], bin_ids=stats_array['id_cosmos'],bin_values=bins_redshift)
+    filename_results = 'bins.redshift.bfit.noisy.cat'
+    writeMCresults(filename_results,mc_results)
+    # do the real noiseless case
+    mc_results = getBiasForBins(results_real,truth_array,bin_column=stats_array['rgp'], bin_ids=stats_array['id_cosmos'],bin_values=bins_redshift)
+    filename_results = 'bins.redshift.real.cat'
+    writeMCresults(filename_results,mc_results)
+
+
+
+    # truth_array = tabletools.loadTable('truth_array',filepath_truth,dtype_table_truth,logger=logger)
+    # results_array = tabletools.loadTable('results_array',filepath_results,dtype_table_results2,logger=logger)
+
+    # # get total bias
+    # logger.info('getting results for all')
+    # analyse.getBiasForResults(results_array,truth_array,logger=logger,n_gals_per_mean=2e6)
+
+
+
+
 
 def plotModelBias():
 
@@ -37,14 +120,15 @@ def plotModelBias():
     if os.path.isfile(filename_acs_join_stats):
         results_modd = tabletools.loadTable('results_modd',filename_acs_join_stats,logger=logger)
     else:
-        logger.info('getting modd')
-        acs_array = pyfits.getdata(args.filepath_acs,1)
-        results_modd = numpy.zeros(len(results_stats))
-        for i in range(len(results_modd)):
-            select = numpy.nonzero(acs_array['IDENT']==results_stats['cosmos_id'][i])
-            results_modd[i] = acs_array['modd'][select]
-        logger.info('got modd')
-        tabletools.saveTable(filename_acs_join_stats,results_modd)
+        results_modd = getTableACSjoinStats()
+        # logger.info('getting modd')
+        # acs_array = pyfits.getdata(args.filepath_acs,1)
+        # results_modd = numpy.zeros(len(results_stats))
+        # for i in range(len(results_modd)):
+        #     select = numpy.nonzero(acs_array['IDENT']==results_stats['cosmos_id'][i])
+        #     results_modd[i] = acs_array['modd'][select]
+        # logger.info('got modd')
+        # tabletools.saveTable(filename_acs_join_stats,results_modd)
 
     pixel_scale = 0.27
     n_bins = 20
@@ -371,7 +455,8 @@ def plotModelBias():
     pylab.savefig(filename_fig)
     logger.info('saved %s' % filename_fig)
 
-def plotBiasForBins(results_array,truth_array,info_string):
+def getBiasForBins(results_array,truth_array,bin_column, bin_ids,bin_values):
+
     """
     @brief plot bias for different bins of different parameters
     @results_array use this array to get the results -- it can be noiseless, noisy real or noisy bfit
@@ -379,30 +464,43 @@ def plotBiasForBins(results_array,truth_array,info_string):
     @info_string some info for plot titles
     """
 
-    # load the acs array
-    acs_array = pyfits.getdata(args.filepath_acs,1)
-    acs_zphot = acs_array['zphot']
-    bins_redshift = [0 , 0.35, 0.6, 0.8, 1.1 , 1.5] 
-    
     # initialise bins
     bins_ids = []
-    digitized = numpy.digitize(acs_zphot, bins_redshift)
-    bins_ids = [acs_array['IDENT'][digitized == i] for i in range(1, len(bins_redshift))] 
+    digitized = numpy.digitize(bin_column, bin_values)
+    bins_ids = [bin_ids[digitized == i] for i in range(1, len(bin_values))] 
     
+    mc_results = []
+
     # loop over bins
     for i,ids in enumerate(bins_ids):
         results_bin,truth_bin,_ = analyse.selectByIDs(ids,results_array,truth_array,logger)
-        logger.info('redshift bin %d, number of galaxies in sample %5d' % (i,len(results_bin)))
-        analyse.getBiasForResults(results_bin,truth_bin,logger)
+        logger.info('bin %d, number of galaxies in sample %5d' % (i,len(results_bin)))
+        mcr = analyse.getBiasForResults(results_bin,truth_bin,logger)
+        mcr['bin_id'] = i
+        mcr['bin_value'] = bin_values[i]
+        mcr['n_gals_in_bin'] = len(results_bin)
+        mc_results.append(mcr)
+
+    return mc_results
+
+def writeMCresults(filename_results,mc_results):
+
+    header = '# bin_id bin_value n_gals_in_bin m1 m2 c1 c2 std_m1 std_m2 std_c1 std_c2'
+    fmt = '%d\t%f\t%d\t' + '%2.10e\t'*8 + '\n'
+
+    file_results = open(filename_results,'w')
+ 
+    for mcr in mc_results:
+        line = fmt % (mcr['bin_id'],mcr['bin_value'],mcr['n_gals_in_bin'],mcr['m1'],mcr['m2'],mcr['c1'],mcr['c2'],mcr['std_m1'],mcr['std_m2'],mcr['std_c1'],mcr['std_c2'])
+        file_results.write(line)
+
+    file_results.close()
+    logger.info('wrote file %s with %d bins' % (filename_results,len(mc_results)) )
+
+
 
 
     
-
-
-
-
-
-
 def main():
 
     global logger , config , args
@@ -411,15 +509,15 @@ def main():
 
     # parse arguments
     parser = argparse.ArgumentParser(description=description, add_help=True)
-    parser.add_argument('filepath_config', type=str, help='yaml config file, see nmb_main.real.test.yaml for example.')
-    parser.add_argument('--filepath_truth', type=str, default='truth.26000.sorted.pp', help='truth file for the run, overrides the config file (by default is taken from yaml file)')
-    parser.add_argument('--filepath_stats', type=str, default='stats.nmb_main.real.pp', help='stats file')
-    parser.add_argument('--filepath_results', type=str, default='results.nmb_main.real.pp', help='results file')
-    parser.add_argument('--filepath_acs', type=str, default='cosmos_acs_shera_may2011.fits.gz', help='cosmos_acs_shera_may2011.fits.gz file')
+    # parser.add_argument('filepath_config', type=str, help='yaml config file, see nmb_main.real.test.yaml for example.')
+    # parser.add_argument('--filepath_truth', type=str, default='truth.26000.sorted.pp', help='truth file for the run, overrides the config file (by default is taken from yaml file)')
+    # parser.add_argument('--filepath_stats', type=str, default='stats.nmb_main.real.pp', help='stats file')
+    # parser.add_argument('--filepath_results', type=str, default='results.nmb_main.real.pp', help='results file')
+    # parser.add_argument('--filepath_acs', type=str, default='cosmos_acs_shera_may2011.fits.gz', help='cosmos_acs_shera_may2011.fits.gz file')
     parser.add_argument('-v', '--verbosity', type=int, action='store', default=2, choices=(0, 1, 2, 3 ), help='integer verbosity level: min=0, max=3 [default=2]')
 
     args = parser.parse_args()
-    args.name_config = os.path.basename(args.filepath_config).replace('.yaml','')
+    # args.name_config = os.path.basename(args.filepath_config).replace('.yaml','')
 
     # Parse the integer verbosity level from the command line args into a logging_level string
     logging_levels = { 0: logging.CRITICAL, 
@@ -432,21 +530,16 @@ def main():
     logger.setLevel(logging_level)
     
     # load the configuration file
-    config = yaml.load(open(args.filepath_config,'r')) 
+    # config = yaml.load(open(args.filepath_config,'r')) 
     # store the args in config so it's easier to use them
-    config['args'] = args    
+    # config['args'] = args    
 
     # plotModelBias()
 
-    truth_array = tabletools.loadTable('truth_array',args.filepath_truth,dtype_table_truth)
-    results_array = tabletools.loadTable('results_array',args.filepath_results,dtype_table_results2)
-
-    # get total bias
-    logger.info('getting results for all')
-    analyse.getBiasForResults(results_array,truth_array,logger,n_gals_per_mean=2e6)
-
     # get the bins
-    plotBiasForBins(results_array,truth_array,'real')
+    # plotBiasForBins(results_array,truth_array,'real')
+    
+    plotBiasForBins()
     
 
 if __name__ == "__main__":

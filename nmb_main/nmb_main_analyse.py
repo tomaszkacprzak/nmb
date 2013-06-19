@@ -172,12 +172,12 @@ def getBiasForResults(results_array,truth_array,logger=None,n_gals_per_mean=5000
 
     mc_results = {}
     mc_results['m1']      = m1     
-    mc_results['std_m1']  = std_m1         
     mc_results['m2']      = m2     
-    mc_results['std_m2']  = std_m2         
     mc_results['c1']      = c1     
-    mc_results['std_c1']  = std_c1         
     mc_results['c2']      = c2     
+    mc_results['std_m1']  = std_m1         
+    mc_results['std_m2']  = std_m2         
+    mc_results['std_c1']  = std_c1         
     mc_results['std_c2']  = std_c2         
 
     return mc_results
@@ -463,7 +463,7 @@ def createBFITsample():
     logger.info('first e1 % f % f' % (results_array_bfit_loaded[1].data['e1'][0]  , results_array_bfit['e1'][0]  ))
     logger.info('last  e1 % f % f' % (results_array_bfit_loaded[1].data['e1'][-1] , results_array_bfit['e1'][-1] ))
 
-def selectByIDs(ids,results_array,truth_array,logger=None):
+def selectByIDs(ids,results_array,truth_array,logger=logging):
     """
     @brief selects a subset of results which correspond to the ids
     @param ids a list of integer ids for cosmos galaxies
