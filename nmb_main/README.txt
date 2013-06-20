@@ -266,6 +266,11 @@ the functions now use fixed results filenames, call
     
     precise$ python ~/Work/code/nmb/nmb_main/nmb_main_plots.py -v 2
 
+commit 9c0c71161ba00d982b15e6a593ae9cbe78745ce8
+on zupcx32 using python 2.7    
+
+    zupcx32$ python ~/code/nmb/nmb_main/nmb_main_plots.py -v 2
+
 
 
     

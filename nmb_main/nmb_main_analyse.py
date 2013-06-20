@@ -62,7 +62,7 @@ def getTotalBias():
     getBiasForResults(results_array,truth_array,logger)
 
 
-def getBiasForResults(results_array,truth_array,logger=None,n_gals_per_mean=5000):
+def getBiasForResults(results_array,truth_array,logger=None,n_gals_per_mean=5000,bin_param='test',bin_id=0):
 
     
 
@@ -152,33 +152,31 @@ def getBiasForResults(results_array,truth_array,logger=None,n_gals_per_mean=5000
         if logger.level <= logging.DEBUG:
             import pylab
             
-            pylab.figure(1)
+            pylab.figure()
             pylab.errorbar(tg1,bg1,yerr=sg1,fmt='r.')
-            # pylab.errorbar(tg1,bg1,yerr=zg1,fmt='m.')
+            pylab.errorbar(tg1,bg1,yerr=zg1,fmt='m.')
             indices = tg1.argsort()
             pylab.plot(tg1[indices],lg1[indices],'r-')
             
             pylab.errorbar(tg2,bg2,yerr=sg2,fmt='b.')
-            # pylab.errorbar(tg2,bg2,yerr=zg2,fmt='c.')
+            pylab.errorbar(tg2,bg2,yerr=zg2,fmt='c.')
             indices = tg2.argsort()
             pylab.plot(tg2[indices],lg2[indices],'b-')
 
-            pylab.show()
+            filename_fig = 'debug/fig.bins.%s.%02d.png' % (bin_param,bin_id)
+
+            pylab.xlabel('g_true')
+            pylab.ylabel('g_est - g_true')
+            pylab.title('bin %d in %s' % (bin_id,bin_param))
+
+            pylab.savefig(filename_fig)
+            pylab.close()
+
     
     logger.info('m1 = % 2.4f \t +/- % 2.4f' % ( m1, std_m1))
     logger.info('m2 = % 2.4f \t +/- % 2.4f' % ( m2, std_m2))
     logger.info('c1 = % 2.4f \t +/- % 2.4f' % ( c1, std_c1))
     logger.info('c2 = % 2.4f \t +/- % 2.4f' % ( c2, std_c2))
-
-    # mc_results = {}  
-    # mc_results['m1']      = m1     
-    # mc_results['m2']      = m2     
-    # mc_results['c1']      = c1     
-    # mc_results['c2']      = c2     
-    # mc_results['std_m1']  = std_m1         
-    # mc_results['std_m2']  = std_m2         
-    # mc_results['std_c1']  = std_c1         
-    # mc_results['std_c2']  = std_c2             
 
     mc_results = numpy.array([(0,0,len(results_array),m1,m2,c1,c2,std_m1,std_m2,std_c1,std_c2)],dtype=dtype_table_binstats)
 

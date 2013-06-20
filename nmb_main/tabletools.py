@@ -57,7 +57,16 @@ def saveTable(filepath,table,logger=logging):
     else:
         header = '# ' + ' '.join(table.dtype.names)
         fmt = [formats[table.dtype.fields[f][0]] for f in table.dtype.names]
-        numpy.savetxt(filepath,table,header=header,fmt=fmt,delimiter='\t')
+        float(numpy.__version__[0:3])
+        if float(numpy.__version__[0:3]) >= 1.7:
+            numpy.savetxt(filepath,table,header=header,fmt=fmt,delimiter='\t')
+        else:
+            numpy.savetxt(filepath,table,fmt=fmt,delimiter='\t')
+            with file(filepath, 'r') as original: data = original.read()
+            with file(filepath, 'w') as modified: 
+                modified.write(header + '\n' + data)
+                modified.close()
+            
 
     logger.info('table saved %s correctly, got %d rows' % (filepath,len(table.shape)))
 
