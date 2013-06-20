@@ -106,7 +106,7 @@ def runIm3shape():
     # open the ring test catalog
     filename_cat = os.path.join(config['input']['catalog']['dir'],config['input']['catalog']['file_name'])
     # truth_cat = numpy.loadtxt(filename_cat,dtype=dtype_table_truth)
-    truth_cat = tabletools.loadTable('truth_cat',filename_cat,dtype=dtype_table_truth,logger=logger)
+    truth_cat = tabletools.loadTable(filepath=filename_cat,table_name='truth_cat',dtype=dtype_table_truth,logger=logger)
 
     n_objects = truth_cat.shape[0]
 

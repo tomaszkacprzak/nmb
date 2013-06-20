@@ -50,12 +50,13 @@ def plotBiasForBins():
 
     # redshift
 
-    binstats_real_noisy = tabletools.loadTable('bins.redshift.real.noisy.cat',dtype=dtype_table_binstats)
-    binstats_bfit_noisy = tabletools.loadTable('bins.redshift.bfit.noisy.cat',dtype=dtype_table_binstats)
-    binstats_real_clear = tabletools.loadTable('bins.redshift.real.clear.cat',dtype=dtype_table_binstats)
+    binstats_real_noisy = tabletools.loadTable(filepath='bins.redshift.real.noisy.cat',dtype=dtype_table_binstats)
+    binstats_bfit_noisy = tabletools.loadTable(filepath='bins.redshift.bfit.noisy.cat',dtype=dtype_table_binstats)
+    binstats_real_clear = tabletools.loadTable(filepath='bins.redshift.real.clear.cat',dtype=dtype_table_binstats)
 
-    pylab.figure()
-    pylab.errorbar(mc_results_real_clear['bin_value'],mc_results_real_clear['m1'])
+    # import pdb;pdb.set_trace()
+    # pylab.figure()
+    # pylab.errorbar(mc_results_real_clear['bin_value'],mc_results_real_clear['m1'])
 
 
 
@@ -65,14 +66,14 @@ def plotBiasForBins():
 def saveBiasForBins():
 
     # load the data
-    truth_array_25880  = tabletools.loadTable('truth_array_25880',filepath_truth_25880,dtype_table_truth,logger=logger)
-    truth_array_26000  = tabletools.loadTable('truth_array_26000',filepath_truth_26000,dtype_table_truth,logger=logger)
-    results_bfit_noisy = tabletools.loadTable('results_bfit_noisy',filepath_results_real_noisy, dtype_table_results2, logger=logger)
-    results_real_noisy = tabletools.loadTable('results_real_noisy',filepath_results_bfit_noisy, dtype_table_results2, logger=logger)
-    results_real       = tabletools.loadTable('results_real',filepath_results_real, dtype_table_results, logger=logger)
-    stats_array        = tabletools.loadTable('stats_array',filepath_stats,logger=logger)
-    ajs_array          = tabletools.loadTable('ajs_array',filepath_acs_join_stats,logger=logger)
-    acs_array          = tabletools.loadTable('acs_array',filepath_acs,logger=logger)
+    truth_array_25880  = tabletools.loadTable(table_name='truth_array_25880',  filepath = filepath_truth_25880,        dtype = dtype_table_truth,       logger=logger)
+    truth_array_26000  = tabletools.loadTable(table_name='truth_array_26000',  filepath = filepath_truth_26000,        dtype = dtype_table_truth,       logger=logger)
+    results_bfit_noisy = tabletools.loadTable(table_name='results_bfit_noisy', filepath = filepath_results_real_noisy, dtype = dtype_table_results2,    logger=logger)
+    results_real_noisy = tabletools.loadTable(table_name='results_real_noisy', filepath = filepath_results_bfit_noisy, dtype = dtype_table_results2,    logger=logger)
+    results_real       = tabletools.loadTable(table_name='results_real',       filepath = filepath_results_real,       dtype = dtype_table_results,     logger=logger)
+    stats_array        = tabletools.loadTable(table_name='stats_array',        filepath = filepath_stats,              logger=logger)
+    ajs_array          = tabletools.loadTable(table_name='ajs_array',          filepath = filepath_acs_join_stats,     logger=logger)
+    acs_array          = tabletools.loadTable(table_name='acs_array',          filepath = filepath_acs,                logger=logger)
 
     # m vs redshift
 
@@ -141,8 +142,8 @@ def saveBiasForBins():
 
 
 
-    # truth_array = tabletools.loadTable('truth_array',filepath_truth,dtype_table_truth,logger=logger)
-    # results_array = tabletools.loadTable('results_array',filepath_results,dtype_table_results2,logger=logger)
+    # truth_array = tabletools.loadTable(table_name='truth_array',filepath=filepath_truth,dtype=dtype_table_truth,logger=logger)
+    # results_array = tabletools.loadTable(table_name='results_array',filepath=filepath_results,dtype=dtype_table_results2,logger=logger)
 
     # # get total bias
     # logger.info('getting results for all')
@@ -167,7 +168,7 @@ def plotModelBias():
 
     filename_acs_join_stats = 'acs_joins_stats.pp'
     if os.path.isfile(filename_acs_join_stats):
-        results_modd = tabletools.loadTable('results_modd',filename_acs_join_stats,logger=logger)
+        results_modd = tabletools.loadTable(table_name='results_modd',filepath=filename_acs_join_stats,logger=logger)
     else:
         results_modd = getTableACSjoinStats()
         # logger.info('getting modd')

@@ -1,9 +1,12 @@
 import logging
 
-def loadTable(table_name,filepath,dtype=None,hdu=1,logger=logging):
+def loadTable(filepath,table_name='none',dtype=None,hdu=1,logger=logging):
 
     try:
-        table = eval(table_name)
+        if table_name != 'none':
+            table = eval(table_name)
+        else:
+            raise Exception
     except:
 
         logger.debug('loading %s' % filepath)

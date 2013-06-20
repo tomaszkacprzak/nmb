@@ -271,6 +271,7 @@ on zupcx32 using python 2.7
 
     zupcx32$ python ~/code/nmb/nmb_main/nmb_main_plots.py -v 2
 
+commit 956222c 
 
 
     

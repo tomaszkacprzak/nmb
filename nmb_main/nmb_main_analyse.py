@@ -56,8 +56,8 @@ def getTotalBias():
     dtype_table_results_use = dtype_table_results2  
 
     # get the results and truth
-    results_array = tabletools.loadTable('results_array',args.filepath_results,dtype_table_results_use)
-    truth_array   = tabletools.loadTable('truth_array',args.filepath_truth,dtype_table_truth)    
+    results_array = tabletools.loadTable(table_name='results_array',filepath=args.filepath_results,dtype=dtype_table_results_use)
+    truth_array   = tabletools.loadTable(table_name='truth_array'  ,filepath=args.filepath_truth  ,dtype=dtype_table_truth)    
 
     getBiasForResults(results_array,truth_array,logger)
 
@@ -197,8 +197,8 @@ def getCosmosIDfromUniqeID(ids_unique):
 def getBiasForEachGal():
 
     # get the results and truth
-    results_array = tabletools.loadTable('results_array',args.filepath_results,dtype_table_results)
-    truth_array   = tabletools.loadTable('truth_array',args.filepath_truth,dtype_table_truth)
+    results_array = tabletools.loadTable(table_name='results_array',filepath=args.filepath_results,dtype=dtype_table_results)
+    truth_array   = tabletools.loadTable(table_name='truth_array'  ,filepath=args.filepath_truth  ,dtype=dtype_table_truth)
 
     cosmos_ids = set(truth_array['id_cosmos'])
     n_cosmos_ids = len(cosmos_ids)
@@ -312,7 +312,7 @@ def mergeResults():
     """
 
     # truth_array   = loadTruthArray()
-    truth_array = tabletools.loadTable('truth_array',args.filepath_truth,dtype_table_truth)
+    truth_array = tabletools.loadTable(table_name='truth_array',filepath=args.filepath_truth,dtype=dtype_table_truth)
     # n_gals_total = len(truth_array)
     n_gals_total = config['settings']['n_images']
     n_gals_per_file = args.n_gals_per_file
@@ -405,16 +405,16 @@ def mergeResults():
 def createBFITsample():
 
     # load the truth
-    truth_array = tabletools.loadTable('truth_array',args.filepath_truth,dtype=dtype_table_truth)
+    truth_array = tabletools.loadTable(table_name='truth_array',filepath=args.filepath_truth,dtype=dtype_table_truth)
     logger.info('truth array have %d galaxies' % len(truth_array))
 
     
     # load the results
-    results_array = tabletools.loadTable('results_array',args.filepath_results,dtype=dtype_table_results)
+    results_array = tabletools.loadTable(table_name='results_array',filepath=args.filepath_results,dtype=dtype_table_results)
     logger.info('results array have %d galaxies' % len(results_array))
 
     # load the stats - they contain the galaxies which passed
-    stats_array = tabletools.loadTable('stats_sarray',args.filepath_stats,dtype=dtype_table_stats)
+    stats_array = tabletools.loadTable(table_name='stats_sarray',filepath=args.filepath_stats,dtype=dtype_table_stats)
     logger.info('stats array have %d galaxies' % len(stats_array))
 
     results_array_bfit = numpy.zeros(1,dtype=dtype_table_results)
