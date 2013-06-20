@@ -16,6 +16,9 @@ import tabletools
 import cPickle as pickle
 from tablespec import *
 
+default_logger = logging.getLogger('nmb_main_analyse')
+default_logger.setLevel(logging.ERROR)
+
 def _getLineFit(x,y,sig):
         """
         @brief get linear least squares fit with uncertainity estimates
@@ -62,7 +65,7 @@ def getTotalBias():
     getBiasForResults(results_array,truth_array,logger)
 
 
-def getBiasForResults(results_array,truth_array,logger=None,n_gals_per_mean=5000,bin_param='test',bin_id=0):
+def getBiasForResults(results_array,truth_array,logger=None,n_gals_per_mean=20000,bin_param='test',bin_id=0):
 
     
 
@@ -104,7 +107,7 @@ def getBiasForResults(results_array,truth_array,logger=None,n_gals_per_mean=5000
 
 
             results_sid_part = results_sid[i_start:i_end]         
-            # remove all the fields with
+            # remove all the fields with errors
             select = results_sid_part['e1'] != NO_RESULT_FLAG
             results_sid_use = results_sid_part[select]
             n_gals_use = len(results_sid_use)
@@ -134,7 +137,7 @@ def getBiasForResults(results_array,truth_array,logger=None,n_gals_per_mean=5000
     c1,m1,cov1 = _getLineFit(tg1,bg1,sg1)
     lg1 = tg1*m1 + c1
     zg1 = numpy.ones(sg1.shape)*numpy.std(lg1 - bg1,ddof=1)
-    c1,m1,cov1 = _getLineFit(tg1,bg1,zg1)
+    # c1,m1,cov1 = _getLineFit(tg1,bg1,zg1)
     std_m1 = numpy.sqrt(cov1[1,1])
     std_c1 = numpy.sqrt(cov1[0,0])
 
@@ -144,7 +147,7 @@ def getBiasForResults(results_array,truth_array,logger=None,n_gals_per_mean=5000
     c2,m2,cov2 = _getLineFit(tg2,bg2,sg2)
     lg2 = tg2*m2 + c2
     zg2 = numpy.ones(sg2.shape)*numpy.std(lg2 - bg2,ddof=1)
-    c2,m2,cov2 = _getLineFit(tg2,bg2,zg2)
+    # c2,m2,cov2 = _getLineFit(tg2,bg2,zg2)
     std_m2 = numpy.sqrt(cov2[1,1])
     std_c2 = numpy.sqrt(cov2[0,0])    
 
@@ -463,7 +466,7 @@ def createBFITsample():
     logger.info('first e1 % f % f' % (results_array_bfit_loaded[1].data['e1'][0]  , results_array_bfit['e1'][0]  ))
     logger.info('last  e1 % f % f' % (results_array_bfit_loaded[1].data['e1'][-1] , results_array_bfit['e1'][-1] ))
 
-def selectByIDs(ids,results_array,truth_array,logger=logging):
+def selectByIDs(ids,results_array,truth_array,logger=default_logger):
     """
     @brief selects a subset of results which correspond to the ids
     @param ids a list of integer ids for cosmos galaxies

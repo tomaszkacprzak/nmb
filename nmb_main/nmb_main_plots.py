@@ -48,15 +48,43 @@ def getTableACSjoinStats():
 
 def plotBiasForBins():
 
+    req1_m = 0.02
+    req2_m = 0.003
+
     # redshift
 
     binstats_real_noisy = tabletools.loadTable(filepath='bins.redshift.real.noisy.cat',dtype=dtype_table_binstats)
     binstats_bfit_noisy = tabletools.loadTable(filepath='bins.redshift.bfit.noisy.cat',dtype=dtype_table_binstats)
     binstats_real_clear = tabletools.loadTable(filepath='bins.redshift.real.clear.cat',dtype=dtype_table_binstats)
 
-    # import pdb;pdb.set_trace()
-    # pylab.figure()
-    # pylab.errorbar(mc_results_real_clear['bin_value'],mc_results_real_clear['m1'])
+    pylab.figure()
+    pylab.clf()
+
+    pylab.errorbar(binstats_real_clear['bin_value'],binstats_real_clear['m1'],yerr=binstats_real_clear['m1_std'])
+    pylab.errorbar(binstats_real_clear['bin_value'],binstats_real_clear['m2'],yerr=binstats_real_clear['m2_std'])
+
+    pylab.errorbar(binstats_real_noisy['bin_value'],binstats_real_noisy['m1'],yerr=binstats_real_noisy['m1_std'])
+    pylab.errorbar(binstats_real_noisy['bin_value'],binstats_real_noisy['m2'],yerr=binstats_real_noisy['m2_std'])
+    xadd = max( [ abs(binstats_real_noisy['bin_value'].min()) , abs(binstats_real_noisy['bin_value'].max()) ] ) *0.1
+    print xadd
+    pylab.xlim(binstats_real_noisy['bin_value'].min()-xadd,binstats_real_noisy['bin_value'].max()+xadd)
+    print pylab.xlim()
+
+    corner = pylab.xlim()[0]
+    length = abs(pylab.xlim()[1]) + abs(pylab.xlim()[0])
+    pylab.gca().add_patch(pylab.Rectangle(  (corner,-req1_m), length , 2*req1_m , alpha=0.1))
+    pylab.gca().add_patch(pylab.Rectangle(  (corner,-req2_m), length , 2*req2_m , alpha=0.2))
+
+
+    pylab.xlabel('redshift zphot')
+    pylab.ylabel('m_i')
+
+
+    filename_fig = 'figures/fig.bins.redshift.png'
+    pylab.savefig(filename_fig)
+    pylab.close()
+
+
 
 
 
@@ -80,48 +108,48 @@ def saveBiasForBins():
 
     ### ------------------------ redshift
 
-    bins_redshift = [0 , 0.35, 0.6, 0.8, 1.1 , 1.5]    
+    # bins_redshift = [0 , 0.35, 0.6, 0.8, 1.1 , 1.5]    
 
-    # do the real noisy case
-    mc_results_real_noisy = getBiasForBins(results_real_noisy,truth_array_25880,bin_column=acs_array['zphot'], bin_ids=acs_array['IDENT'],bin_values=bins_redshift,bin_column_name='zphot_real_noisy')
-    filename_results = 'bins.redshift.real.noisy.cat'
-    tabletools.saveTable(filename_results,mc_results_real_noisy)
+    # # do the real noisy case
+    # mc_results_real_noisy = getBiasForBins(results_real_noisy,truth_array_25880,bin_column=acs_array['zphot'], bin_ids=acs_array['IDENT'],bin_values=bins_redshift,bin_column_name='zphot_real_noisy')
+    # filename_results = 'bins.redshift.real.noisy.cat'
+    # tabletools.saveTable(filename_results,mc_results_real_noisy)
 
-    # do the bfit noisy case
-    mc_results_bfit_noisy = getBiasForBins(results_bfit_noisy,truth_array_25880,bin_column=acs_array['zphot'], bin_ids=acs_array['IDENT'],bin_values=bins_redshift,bin_column_name='zphot_bfit_noisy')
-    filename_results = 'bins.redshift.bfit.noisy.cat'
-    tabletools.saveTable(filename_results,mc_results_bfit_noisy)
+    # # do the bfit noisy case
+    # mc_results_bfit_noisy = getBiasForBins(results_bfit_noisy,truth_array_25880,bin_column=acs_array['zphot'], bin_ids=acs_array['IDENT'],bin_values=bins_redshift,bin_column_name='zphot_bfit_noisy')
+    # filename_results = 'bins.redshift.bfit.noisy.cat'
+    # tabletools.saveTable(filename_results,mc_results_bfit_noisy)
 
-    # do the real noiseless case
-    mc_results_real_clear = getBiasForBins(results_real,truth_array_26000,bin_column=acs_array['zphot'], bin_ids=acs_array['IDENT'],bin_values=bins_redshift,bin_column_name='zphot_bfit_clear')
-    filename_results = 'bins.redshift.real.clear.cat'
-    tabletools.saveTable(filename_results,mc_results_real_clear)
+    # # do the real noiseless case
+    # mc_results_real_clear = getBiasForBins(results_real,truth_array_26000,bin_column=acs_array['zphot'], bin_ids=acs_array['IDENT'],bin_values=bins_redshift,bin_column_name='zphot_bfit_clear')
+    # filename_results = 'bins.redshift.real.clear.cat'
+    # tabletools.saveTable(filename_results,mc_results_real_clear)
 
     ### ------------------------ galaxy size
 
     # n_bins_size = 12;
-    # # bins_size = numpy.linspace(0,3,n_bins_size)
-    # bins_size = [1 , 1.4 , 2.6]
-    # psf_size = 0.7695
-    # bin_column = stats_array['rgp']/psf_size
-    # import pdb;pdb.set_trace()
-    # # import pylab;pylab.hist(bin_column,bins_size);pylab.show()
+    # bins_size = numpy.linspace(0,3,n_bins_size)
+    bins_size = [1 , 1.4 , 2.6]
+    psf_size = 0.7695
+    bin_column = stats_array['rgp']/psf_size
+    import pdb;pdb.set_trace()
+    # import pylab;pylab.hist(bin_column,bins_size);pylab.show()
 
-    # # do the real noisy case
+    # do the real noisy case
 
-    # mc_results = getBiasForBins(results_real_noisy,truth_array_25880,bin_column=bin_column,bin_ids=truth_array_25880['id_cosmos'],bin_values=bins_size)
-    # filename_results = 'bins.size.real.noisy.cat'
-    # tabletools.saveTable(filename_results,mc_results)
+    mc_results = getBiasForBins(results_real_noisy,truth_array_25880,bin_column=bin_column,bin_ids=truth_array_25880['id_cosmos'],bin_values=bins_size,bin_column_name='size_real_noisy')
+    filename_results = 'bins.size.real.noisy.cat'
+    tabletools.saveTable(filename_results,mc_results)
 
-    # # do the bfit noisy case
-    # mc_results = getBiasForBins(results_bfit_noisy,truth_array_25880,bin_column=bin_column, bin_ids=truth_array_25880['id_cosmos'],bin_values=bins_size)
-    # filename_results = 'bins.size.bfit.noisy.cat'
-    # tabletools.saveTable(filename_results,mc_results)
+    # do the bfit noisy case
+    mc_results = getBiasForBins(results_bfit_noisy,truth_array_25880,bin_column=bin_column, bin_ids=truth_array_25880['id_cosmos'],bin_values=bins_size,bin_column_name='size_bfit_noisy')
+    filename_results = 'bins.size.bfit.noisy.cat'
+    tabletools.saveTable(filename_results,mc_results)
 
-    # # do the real noiseless case
-    # mc_results = getBiasForBins(results_real,truth_array_26000,bin_column=bin_column, bin_ids=truth_array_25880['id_cosmos'],bin_values=bins_size)
-    # filename_results = 'bins.size.real.cat'
-    # tabletools.saveTable(filename_results,mc_results)
+    # do the real noiseless case
+    mc_results = getBiasForBins(results_real,truth_array_26000,bin_column=bin_column, bin_ids=truth_array_25880['id_cosmos'],bin_values=bins_size,bin_column_name='size_real_clear')
+    filename_results = 'bins.size.real.cat'
+    tabletools.saveTable(filename_results,mc_results)
 
 
     # m vs size
@@ -579,6 +607,9 @@ def main():
     logging.basicConfig(format="%(message)s", level=logging_level, stream=sys.stdout)
     logger = logging.getLogger("nmb_main_plots.py") 
     logger.setLevel(logging_level)
+
+    if not os.path.isdir('figures'): os.mkdir('figures')
+    if (args.verbosity > 2) and (not os.path.isdir('figures')): os.mkdir('figures')
     
     # load the configuration file
     # config = yaml.load(open(args.filepath_config,'r')) 
@@ -587,10 +618,27 @@ def main():
 
     # plotModelBias()
 
+    # get total bias
+
+    truth_array_25880  = tabletools.loadTable(table_name='truth_array_25880',  filepath = filepath_truth_25880,        dtype = dtype_table_truth,       logger=logger)
+    truth_array_26000  = tabletools.loadTable(table_name='truth_array_26000',  filepath = filepath_truth_26000,        dtype = dtype_table_truth,       logger=logger)
+    results_bfit_noisy = tabletools.loadTable(table_name='results_bfit_noisy', filepath = filepath_results_real_noisy, dtype = dtype_table_results2,    logger=logger)
+    results_real_noisy = tabletools.loadTable(table_name='results_real_noisy', filepath = filepath_results_bfit_noisy, dtype = dtype_table_results2,    logger=logger)
+    results_real       = tabletools.loadTable(table_name='results_real',       filepath = filepath_results_real,       dtype = dtype_table_results,     logger=logger)
+    stats_array        = tabletools.loadTable(table_name='stats_array',        filepath = filepath_stats,              logger=logger)
+    ajs_array          = tabletools.loadTable(table_name='ajs_array',          filepath = filepath_acs_join_stats,     logger=logger)
+    acs_array          = tabletools.loadTable(table_name='acs_array',          filepath = filepath_acs,                logger=logger)
+
+    mc_bfit_noisy = analyse.getBiasForResults(results_bfit_noisy,truth_array_25880,n_gals_per_mean=2e6,bin_param='all',bin_id=0)
+    mc_real_noisy = analyse.getBiasForResults(results_real_noisy,truth_array_25880,n_gals_per_mean=2e6,bin_param='all',bin_id=0)
+
+    print mc_bfit_noisy
+    print mc_real_noisy
+
     # get the bins
     
     # saveBiasForBins()
-    plotBiasForBins()
+    # plotBiasForBins()
     
 
 if __name__ == "__main__":
