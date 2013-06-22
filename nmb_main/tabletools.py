@@ -1,13 +1,30 @@
 import logging
 
-def loadTable(filepath,table_name='none',dtype=None,hdu=1,logger=logging):
+loaded_tables = {}
 
-    try:
-        if table_name != 'none':
-            table = eval(table_name)
-        else:
-            raise Exception
-    except:
+default_logger = logging.getLogger('tabletools')
+default_logger.setLevel(logging.WARNING)
+
+
+def addTable(table_name,table,logger=default_logger):
+    
+    if not isinstance(table_name,str):
+        raise Exception('table_name should be a type string and is %s' % str(type(table_name)))
+
+    
+    if table_name in loaded_tables:
+        logger.warning('replacing %s in loaded tables' % table_name)
+        loaded_tables[table_name] = table
+
+
+def loadTable(filepath,table_name='do_not_store',dtype=None,hdu=1,logger=logging):
+
+    if (table_name in loaded_tables) and (table_name !='do_not_store'):
+
+        logger.debug('using preloaded array %s' % table_name)
+        table = loaded_tables[table_name]
+    
+    else:
 
         logger.debug('loading %s' % filepath)
         if filepath.split('.')[-1] == 'pp':
@@ -20,21 +37,23 @@ def loadTable(filepath,table_name='none',dtype=None,hdu=1,logger=logging):
                 import pyfits
                 fits = pyfits.open(filepath)
                 table = fits[hdu].data
+                import numpy
+                table = numpy.asarray(table)
 
                 # if using FITS_record, get FITS rec
                 if isinstance(table,pyfits.FITS_record):
-                    import pdb; pdb.set_trace()
                     table = table.array
+                    import numpy
+                    table = numpy.asarray(table)
         else:
                 import numpy
                 table = numpy.loadtxt(filepath,dtype=dtype)
         
-    else:
-        logger.debug('using preloaded array %s' % table_name)
     
     logger.debug('loaded %s correctly, got %d rows' % (filepath,len(table)))
 
-    globals()[table_name] = table
+    if ( table_name != 'do_not_store' ): loaded_tables[table_name] = table
+
     return table
 
 def saveTable(filepath,table,logger=logging):

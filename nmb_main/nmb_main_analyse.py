@@ -17,7 +17,7 @@ import cPickle as pickle
 from tablespec import *
 
 default_logger = logging.getLogger('nmb_main_analyse')
-default_logger.setLevel(logging.ERROR)
+default_logger.setLevel(logging.WARNING)
 
 def _getLineFit(x,y,sig):
         """
@@ -65,7 +65,7 @@ def getTotalBias():
     getBiasForResults(results_array,truth_array,logger)
 
 
-def getBiasForResults(results_array,truth_array,logger=None,n_gals_per_mean=20000,bin_param='test',bin_id=0):
+def getBiasForResults(results_array,truth_array,n_gals_per_mean=20000,bin_param='test',bin_id=0,logger=default_logger):
 
     
 
@@ -108,7 +108,7 @@ def getBiasForResults(results_array,truth_array,logger=None,n_gals_per_mean=2000
 
             results_sid_part = results_sid[i_start:i_end]         
             # remove all the fields with errors
-            select = results_sid_part['e1'] != NO_RESULT_FLAG
+            select = numpy.logical_and(results_sid_part['e1'] < 1.,results_sid_part['e2'] < 1.)
             results_sid_use = results_sid_part[select]
             n_gals_use = len(results_sid_use)
 
@@ -119,7 +119,7 @@ def getBiasForResults(results_array,truth_array,logger=None,n_gals_per_mean=2000
             stdm_g1 = stdv_g1 / numpy.sqrt(n_gals_use)
             stdm_g2 = stdv_g2 / numpy.sqrt(n_gals_use)
 
-            logger.debug('%10d %10d \t% 2.4f\t% 2.4f\t% 2.4f\t% 2.4f\t% 2.4f\t% 2.4f \t using %10d / %10d' % (i_start,i_end,mean_g1,mean_g2,stdm_g1,stdm_g2,stdv_g1,stdv_g2,len(results_sid_use),len(results_sid_part)))         
+            logger.debug('%10d %10d \t% 2.4f\t% 2.4f\t% 2.4f\t% 2.4f\t% 2.4f\t% 2.4f \t using %10d / %10d, min/max e1/e2 = %2.2f %2.2f %2.2f %2.2f' % (i_start,i_end,mean_g1,mean_g2,stdm_g1,stdm_g2,stdv_g1,stdv_g2,len(results_sid_use),len(results_sid_part),results_sid_use['e1'].min(),results_sid_use['e1'].max(),results_sid_use['e2'].min(),results_sid_use['e2'].max()))         
 
             shears_true_g1.append( true_g1_list[sid] )
             shears_true_g2.append( true_g2_list[sid] )
@@ -132,8 +132,9 @@ def getBiasForResults(results_array,truth_array,logger=None,n_gals_per_mean=2000
             shears_n_gals.append(n_gals_use)
 
     tg1 = numpy.array(shears_true_g1)
-    bg1 = numpy.array(shears_mean_g1) - tg1;
+    mg1 = numpy.array(shears_mean_g1)
     sg1 = numpy.array(shears_stdm_g1)
+    bg1 = mg1 - tg1;
     c1,m1,cov1 = _getLineFit(tg1,bg1,sg1)
     lg1 = tg1*m1 + c1
     zg1 = numpy.ones(sg1.shape)*numpy.std(lg1 - bg1,ddof=1)
@@ -142,8 +143,9 @@ def getBiasForResults(results_array,truth_array,logger=None,n_gals_per_mean=2000
     std_c1 = numpy.sqrt(cov1[0,0])
 
     tg2 = numpy.array(shears_true_g2)
-    bg2 = numpy.array(shears_mean_g2) - tg2;
+    mg2 = numpy.array(shears_mean_g2)
     sg2 = numpy.array(shears_stdm_g2)
+    bg2 = mg2 - tg2;
     c2,m2,cov2 = _getLineFit(tg2,bg2,sg2)
     lg2 = tg2*m2 + c2
     zg2 = numpy.ones(sg2.shape)*numpy.std(lg2 - bg2,ddof=1)
@@ -160,11 +162,13 @@ def getBiasForResults(results_array,truth_array,logger=None,n_gals_per_mean=2000
             pylab.errorbar(tg1,bg1,yerr=zg1,fmt='m.')
             indices = tg1.argsort()
             pylab.plot(tg1[indices],lg1[indices],'r-')
+            # pylab.plot(tg1[indices],tg1[indices],'-k')
             
             pylab.errorbar(tg2,bg2,yerr=sg2,fmt='b.')
             pylab.errorbar(tg2,bg2,yerr=zg2,fmt='c.')
             indices = tg2.argsort()
             pylab.plot(tg2[indices],lg2[indices],'b-')
+            # pylab.plot(tg1[indices],tg1[indices],'-k')
 
             filename_fig = 'debug/fig.bins.%s.%02d.png' % (bin_param,bin_id)
 
@@ -174,6 +178,8 @@ def getBiasForResults(results_array,truth_array,logger=None,n_gals_per_mean=2000
 
             pylab.savefig(filename_fig)
             pylab.close()
+            logger.info('saved file %s' % filename_fig)
+
 
     
     logger.info('m1 = % 2.4f \t +/- % 2.4f' % ( m1, std_m1))
@@ -477,7 +483,6 @@ def selectByIDs(ids,results_array,truth_array,logger=default_logger):
 
     # get the counts for various things
     cosmos_ids = set(truth_array['id_cosmos'])
-    logger.debug('using set of %d cosmos galaxies ' % len(cosmos_ids) )
     n_cosmos_ids = len(cosmos_ids)
     n_per_cosmos = sum(truth_array['id_cosmos'] == truth_array[0]['id_cosmos'])
     n_shears = len(set(truth_array['id_shear']))
@@ -488,15 +493,10 @@ def selectByIDs(ids,results_array,truth_array,logger=default_logger):
 
     # get the cosmos ids, but unique in the same order
     select = range(0,n_measurements,n_per_cosmos)
-    if 'id_cosmos' in results_array.dtype.names:
-        ids_cosmos_unique = results_array[select]['id_cosmos']       
-    elif 'identifier' in results_array.dtype.names:
-        ids_cosmos_unique = results_array[select]['identifier']
-        ids_cosmos_unique = getCosmosIDfromUniqeID(ids_cosmos_unique)
+    if 'id_unique' in results_array.dtype.names:    ids_cosmos_unique = results_array[select]['id_unique']       
+    elif 'identifier' in results_array.dtype.names: ids_cosmos_unique = results_array[select]['identifier']
 
-    # fix a bug with one additional zero in id_cosmos in bfit.noisy
-    if 1000270 in ids_cosmos_unique:
-        ids_cosmos_unique = ids_cosmos_unique/10
+    ids_cosmos_unique = getCosmosIDfromUniqeID(ids_cosmos_unique)
 
     # initialise a list to hold the indices
     indices_bin = []
@@ -520,7 +520,7 @@ def selectByIDs(ids,results_array,truth_array,logger=default_logger):
     # add the results
     results_bin = results_array[indices_bin]
     truth_bin = truth_array[indices_bin]
-    logger.debug('found %5d in acs_array and %5d entries in results_array' % (len(ids),len(results_bin)))
+    logger.debug('%5d unique IDs given, found %5d entries in results_array' % (len(ids),len(results_bin)))
 
     return results_bin,truth_bin,indices_bin
 

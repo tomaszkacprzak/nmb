@@ -269,9 +269,12 @@ the functions now use fixed results filenames, call
 commit 9c0c71161ba00d982b15e6a593ae9cbe78745ce8
 on zupcx32 using python 2.7    
 
-    zupcx32$ python ~/code/nmb/nmb_main/nmb_main_plots.py -v 2
+    zupcx32$ python $CODE/nmb/nmb_main/nmb_main_plots.py -v 2
 
 commit 956222c 
 
+130621 found the indexing bug and made a lot of new plots    
 
-    
+    precise$ python ~/Work/code/nmb/nmb_main/nmb_main_plots.py -v 2
+
+    submitting qsub nmb_main.legion.bfit.noisy.run2.sh
