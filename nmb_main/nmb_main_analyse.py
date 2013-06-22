@@ -320,10 +320,13 @@ def mergeResults():
     @brief read all the results files, and then merge them together and save it in a fits binary table.
     """
 
+    n_reps = args.n_reps 
+
     # truth_array   = loadTruthArray()
     truth_array = tabletools.loadTable(table_name='truth_array',filepath=args.filepath_truth,dtype=dtype_table_truth)
     # n_gals_total = len(truth_array)
-    n_gals_total = config['settings']['n_images']
+    n_gals_total = config['settings']['n_images']*n_reps
+    logger.info('using %d repetitions of the all config galaxies, total %d gals' % (n_reps,n_gals_total) )
     n_gals_per_file = args.n_gals_per_file
 
     # get the wildcard for the files - join all files in a big array
@@ -348,7 +351,7 @@ def mergeResults():
     else:
         logger.error('results have unknown column structure')
 
-    # get the dimensionalty of the datas
+    # get the dimensionalty of the datas - doesn't matter if we use files1 or files2 for that
     n_files = len(files1)
     n_meas = len(dtype_table_results['names'])
     logger.info('got %d file names' % n_files)
@@ -360,9 +363,14 @@ def mergeResults():
     results_array['e2'] = NO_RESULT_FLAG
     results_array['time_taken'] = NO_RESULT_FLAG
 
+    n_files_found = 0
+    n_files_valid = 0
+
     for fi in range(len(files1)):
 
             if os.path.isfile(files1[fi]) or os.path.isfile(files2[fi]):
+
+                n_files_found += 1
                 
                 if os.path.isfile(files1[fi]) : file_results = files1[fi]
                 elif os.path.isfile(files2[fi]) : file_results = files2[fi]
@@ -372,15 +380,16 @@ def mergeResults():
                 index_end   = (fi+1)*n_gals_per_file
                 results = numpy.loadtxt(file_results,dtype=dtype_table_results_use)
                 n_gals_in_file = len(results)
-                logger.info('%d file %s n_gals %d' % (fi,file_results,n_gals_in_file))
                 if n_gals_in_file != n_gals_per_file:
-                    logger.error('skipping file not enough galaxies')
-                    continue
+                    logger.error('%5d file %s not enough galaxies ----- skipping, so far found %d files, missing %d, accepted %d , invalid %d' % (fi,file_results,n_files_found,fi-n_files_found+1,n_files_valid,fi-n_files_valid+1))
                 else:
+                    n_files_valid += 1
+                    logger.info('%5d file %s n_gals %d' % (fi,file_results,n_gals_in_file))
                     results_array[range(index_start,index_end)] = results
             else:
-                logger.error('skipping file doesnt exist')
-                continue
+                file_results = files1[fi]
+                logger.error('%5d file %s file not found      ----- skipping, so far found %d files, missing %d, accepted %d , invalid %d' % (fi,file_results,n_files_found,fi-n_files_found+1,n_files_valid,fi-n_files_valid+1))
+                
 
     logger.info('results  n %10d first %d last %d' % (len(results_array),results_array[0][id_unique_field_results] ,results_array[-1][id_unique_field_results]))
     logger.info('truth    n %10d first %d last %d' % (len(truth_array),truth_array[0][id_unique_field_results]     ,truth_array[-1][id_unique_field_results]))
@@ -388,19 +397,29 @@ def mergeResults():
     
     # get the number of matches before the assignment of IDS
     n_matches = 0
+    n_gals_in_truth = len(truth_array)
     for ri in range(len(results_array)):
-        if results_array[ri][id_unique_field_results] == truth_array[ri]['id_unique']: n_matches+=1
+        # roll the ri_truth to be always within the len of truth_array, as results may have more reps
+        if ri >= n_gals_in_truth: 
+            ri_truth = ri % n_gals_in_truth
+        else: ri_truth = ri
+        if results_array[ri][id_unique_field_results] == truth_array[ri_truth]['id_unique']: n_matches+=1
     logger.info('number of matches %s' % n_matches)
     
     # assign the ids
-    results_array[id_unique_field_results] = truth_array['id_unique']
+    # import pdb; pdb.set_trace()
+    truth_id_extended_array = numpy.concatenate([truth_array['id_unique']]*n_reps)
+    results_array[id_unique_field_results] = truth_id_extended_array
     
     # get the number of matches after the assignment of IDS  
     n_matches = 0
     for ri in range(len(results_array)):
-        if results_array[ri][id_unique_field_results] == truth_array[ri]['id_unique']: n_matches+=1
+        # roll the ri_truth to be always within the len of truth_array, as results may have more reps
+        if ri >= len(truth_array): 
+            ri_truth = ri % len(truth_array)
+        else: ri_truth = ri
+        if results_array[ri][id_unique_field_results] == truth_array[ri_truth]['id_unique']: n_matches+=1    
     logger.info('number of matches %s' % n_matches)
-
     logger.info('saving tables ...')
     tabletools.saveTable(args.filepath_results,results_array)
     logger.info('results saved %s correctly, got %d rows' % (args.filepath_results,len(results_array)))
@@ -408,8 +427,8 @@ def mergeResults():
     # tabletools.saveTable(args.filepath_truth,truth_array)
     # logger.info('truth saved %s correctly, got %d rows' % (args.filepath_truth,len(truth_array)))
 
-    logger.info('truth   n %10d first %d last %d' % (len(results_array),results_array[0][id_unique_field_results],results_array[-1][id_unique_field_results]))
-    logger.info('results n %10d first %d last %d' % (len(truth_array),truth_array[0]['id_unique'],truth_array[-1]['id_unique']))
+    logger.info('results   n %10d first %d last %d' % (len(results_array),results_array[0][id_unique_field_results],results_array[-1][id_unique_field_results]))
+    logger.info('truth     n %10d first %d last %d' % (len(truth_array),truth_array[0]['id_unique'],truth_array[-1]['id_unique']))
 
 def createBFITsample():
 
@@ -539,6 +558,7 @@ def main():
     parser.add_argument('--dirpath_results', type=str, default='results', help='where the results files are')
     parser.add_argument('-v', '--verbosity', type=int, action='store', default=2, choices=(0, 1, 2, 3 ), help='integer verbosity level: min=0, max=3 [default=2]')
     parser.add_argument('--n_gals_per_file', type=int, default=640 , help='number of galaxies in one results file from legion')
+    parser.add_argument('--n_reps', type=int, default=1 , help='number of times the config file was ran')
     global logger , config , args
 
     args = parser.parse_args()

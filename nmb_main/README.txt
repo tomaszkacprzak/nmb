@@ -278,3 +278,28 @@ commit 956222c
     precise$ python ~/Work/code/nmb/nmb_main/nmb_main_plots.py -v 2
 
     submitting qsub nmb_main.legion.bfit.noisy.run2.sh
+
+130622 using commit e8509a03ad6bab68f5813967fc313068c604f241
+
+    now the legion run is finished --> incorporating the new results
+
+
+    Turns out that we are missing around 800 files, which makes 8000 galaxies -- really bad. Remember to increase the clock time to 6hrs!
+
+    python ~/code/nmb/nmb_main/nmb_main_analyse.py mergeResults nmb_main.bfit.noisy.yaml --filepath_truth truth.25880.fits -v3 --n_reps 2
+
+    results  n    3312640 first 1000270000 last 0
+    truth    n    1656320 first 1000270000 last 742430707
+    getting number of matches ...
+    number of matches 2800640
+    number of matches 3312640
+    saving tables ...
+    Overwriting existing file 'results.nmb_main.bfit.noisy.fits'.
+    table saved results.nmb_main.bfit.noisy.fits correctly, got 1 rows
+    results saved results.nmb_main.bfit.noisy.fits correctly, got 3312640 rows
+    truth   n    3312640 first 1000270000 last 742430707
+    results n    1656320 first 1000270000 last 742430707
+
+    looks like everything is matched correctly!
+
+
