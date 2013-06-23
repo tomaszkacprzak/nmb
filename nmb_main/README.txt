@@ -302,4 +302,20 @@ commit 956222c
 
     looks like everything is matched correctly!
 
+    using 
+    testSaveBiasForBins()
+
+using the old results file filepath_results_bfit_noisy = 'results.nmb_main.bfit.noisy.fits', bin 2:
+
+m1 =  0.0357     +/-  0.0033
+m2 =  0.0348     +/-  0.0033
+c1 = -0.0018     +/-  0.0003
+c2 = -0.0017     +/-  0.0003
+
+using the new results file filepath_results_bfit_noisy = 'results.nmb_main.bfit.noisy.rep2.fits', bin 2:
+
+
+
+
+made new plots for m1 m2 vs model bias -- need more statistics
 

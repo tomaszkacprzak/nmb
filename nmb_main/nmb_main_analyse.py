@@ -88,6 +88,7 @@ def getBiasForResults(results_array,truth_array,n_gals_per_mean=20000,bin_param=
     shears_stdv_g2 = []  
     shears_n_gals  = [] 
 
+    # loop over shears
     for sid in range(n_shears):
 
         if 'id_cosmos' in results_array.dtype.names:
@@ -524,21 +525,30 @@ def selectByIDs(ids,results_array,truth_array,logger=default_logger):
     for j,current_id in enumerate(ids):
 
         # get the index of the first occurence of this cosmos id in the ids_cosmos_unique
-        id_index_in_truth = numpy.nonzero(ids_cosmos_unique == current_id)[0]
+        id_indices_in_truth = numpy.nonzero(ids_cosmos_unique == current_id)[0]
 
-        # if found - append indices_bins with indices of that cosmos id in the results
-        if len(id_index_in_truth) > 0: 
+        # logger.debug('selecting by ID %10d, found %d places in results list: %s' % (current_id,len(id_indices_in_truth),str(id_indices_in_truth)))
+
+        for id_index_in_truth in id_indices_in_truth:
+
+            # if found - append indices_bins with indices of that cosmos id in the results
+            
             id_index_in_results_start = id_index_in_truth    *n_per_cosmos
             id_index_in_results_end   = (id_index_in_truth+1)*n_per_cosmos
             indices_bin.extend(range(id_index_in_results_start,id_index_in_results_end))
-        else:
-            # import pdb;pdb.set_trace()
-            # logger.error('couldnt find galaxy with ID %d in the results' %  current_id)
-            pass
+            
 
     # add the results
-    results_bin = results_array[indices_bin]
-    truth_bin = truth_array[indices_bin]
+    if len(results_array) == len(truth_array):
+        results_bin = results_array[indices_bin]
+        truth_bin = truth_array[indices_bin]
+    else :
+        n_reps = len(results_array)/len(truth_array)
+        logger.debug('n_reps = %d' % n_reps)
+        results_bin = results_array[indices_bin]
+        truth_array_rep = numpy.concatenate([truth_array]*n_reps)
+        truth_bin = truth_array_rep[indices_bin] 
+
     logger.debug('%5d unique IDs given, found %5d entries in results_array' % (len(ids),len(results_bin)))
 
     return results_bin,truth_bin,indices_bin
