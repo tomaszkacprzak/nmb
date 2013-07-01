@@ -107,6 +107,7 @@ def runIm3shape():
     filename_cat = os.path.join(config['input']['catalog']['dir'],config['input']['catalog']['file_name'])
     # truth_cat = numpy.loadtxt(filename_cat,dtype=dtype_table_truth)
     truth_cat = tabletools.loadTable(filepath=filename_cat,table_name='truth_cat',dtype=dtype_table_truth,logger=logger)
+    logger.info('loaded %s' % filename_cat)
 
     n_objects = truth_cat.shape[0]
 
@@ -208,7 +209,11 @@ def runIm3shape():
 
             filename_fig = 'debug/fig.residual.%09d.png' % id_unique
             pylab.savefig(filename_fig)
+            logger.info('saved %s' % filename_fig)
             pylab.close()
+
+    file_results.close()
+    logger.info('saved %s' % filename_results)
 
 
 def saveResult(file_results,i3_result,idg,ido,idu,idc):
@@ -266,7 +271,7 @@ def printResult(i3_result,id_global):
                  getFWHM(i3_result),
                  )
     
-    logger.info(line)
+    logger.debug(line)
 
 def printTruth(i3_result,truth_row):
 
@@ -285,7 +290,7 @@ def printTruth(i3_result,truth_row):
                  truth_row['disc_flux']
                  )
     
-    logger.info(line)
+    logger.debug(line)
 
 if __name__ == "__main__":
 

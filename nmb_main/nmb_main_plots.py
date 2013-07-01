@@ -23,9 +23,10 @@ filepath_truth_25880        = 'truth.25880.fits'
 filepath_truth_26000        = 'truth.26000.pp'
 filepath_acs                = 'cosmos_acs_shera_may2011.fits.gz'
 filepath_results_real       = 'results.nmb_main.real.pp' 
-filepath_results_real_noisy = 'results.nmb_main.real.noisy.fits'
-# filepath_results_bfit_noisy = 'results.nmb_main.bfit.noisy.rep2.fits'
-filepath_results_bfit_noisy = 'results.nmb_main.bfit.noisy.fits'
+# filepath_results_real_noisy = 'results.nmb_main.real.noisy.fits'
+filepath_results_real_noisy = 'results.nmb_main.real.noisy.rep2.fits'
+# filepath_results_bfit_noisy = 'results.nmb_main.bfit.noisy.fits'
+filepath_results_bfit_noisy = 'results.nmb_main.bfit.noisy.rep2.fits'
 
 NO_RESULT_FLAG = 666
 
@@ -1044,6 +1045,69 @@ def plotModelBias():
     pylab.savefig(filename_fig)
     logger.info('saved %s' % filename_fig)
 
+def plotTime():
+
+    # load the data
+    truth_array_25880  = tabletools.loadTable(table_name='truth_array_25880',  filepath = filepath_truth_25880,        dtype = dtype_table_truth,       logger=logger)
+    truth_array_26000  = tabletools.loadTable(table_name='truth_array_26000',  filepath = filepath_truth_26000,        dtype = dtype_table_truth,       logger=logger)
+    results_real_noisy = tabletools.loadTable(table_name='results_real_noisy', filepath = filepath_results_real_noisy, dtype = dtype_table_results2,    logger=logger)
+    results_bfit_noisy = tabletools.loadTable(table_name='results_bfit_noisy', filepath = filepath_results_bfit_noisy, dtype = dtype_table_results2,    logger=logger)   
+    results_real       = tabletools.loadTable(table_name='results_real',       filepath = filepath_results_real,       dtype = dtype_table_results,     logger=logger)
+    stats_array        = tabletools.loadTable(table_name='stats_array',        filepath = filepath_stats,              logger=logger)
+    ajs_array          = tabletools.loadTable(table_name='ajs_array',          filepath = filepath_acs_join_stats,     logger=logger)
+    acs_array          = tabletools.loadTable(table_name='acs_array',          filepath = filepath_acs,                logger=logger)
+
+
+    results_bfit_noisy_valid = results_bfit_noisy[results_bfit_noisy['time_taken']<666]
+    results_real_noisy_valid = results_real_noisy[results_real_noisy['time_taken']<666]
+
+    # split = len(results_bfit_noisy_valid)/2
+
+    # pylab.figure()
+    # # pylab.plot(results_bfit_noisy_valid['time_taken'],'x')
+    # # pylab.show()
+    # pylab.hist(results_bfit_noisy_valid['time_taken'][0:split],1000,histtype='step',color='r')
+    # pylab.hist(results_bfit_noisy_valid['time_taken'][split:] ,1000,histtype='step',color='b')
+    # pylab.show()
+
+
+    # pylab.figure()
+    # # pylab.plot(results_real_noisy_valid['time_taken'],'x')
+    # # pylab.show()
+    # pylab.hist(results_real_noisy_valid['time_taken'][0:split],1000,histtype='step',color='r')
+    # pylab.hist(results_real_noisy_valid['time_taken'][split:] ,1000,histtype='step',color='b')
+    # pylab.show()
+
+    n_per_task = 640
+    n_tasks = len(results_bfit_noisy)/n_per_task
+    time_mean = []
+    time_total = []
+    for i in range(0,len(results_bfit_noisy),n_per_task):
+        i_start = i
+        i_end   = i + n_per_task
+        time_mean.append(numpy.mean(results_bfit_noisy['time_taken'][i_start:i_end]))
+        time_total.append(numpy.sum(results_bfit_noisy['time_taken'][i_start:i_end]))
+
+    time_mean  = numpy.array(time_mean)
+    time_total = numpy.array(time_total)
+    time_mean_valid  = time_mean[time_mean < NO_RESULT_FLAG]  
+    time_total_valid = time_total[time_mean < NO_RESULT_FLAG]
+
+    # import pdb; pdb.set_trace()
+    pylab.hist(time_mean_valid,100)
+    pylab.show()
+    pylab.hist(time_total_valid/60.,100)
+    pylab.show()
+
+    # import pdb; pdb.set_trace()
+
+
+
+
+
+
+
+
 def getBiasForBins(results_array,truth_array,bin_column, bin_ids,bin_values , bin_column_name='test'):
 
     """
@@ -1175,9 +1239,10 @@ def main():
 
     # get the bins
     
-    testSaveBiasForBins()
+    # testSaveBiasForBins()
     # saveBiasForBins()
     # plotBiasForBins()
+    plotTime()
 
 
     

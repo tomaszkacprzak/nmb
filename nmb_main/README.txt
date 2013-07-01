@@ -314,8 +314,11 @@ c2 = -0.0017     +/-  0.0003
 
 using the new results file filepath_results_bfit_noisy = 'results.nmb_main.bfit.noisy.rep2.fits', bin 2:
 
-
+almost the same with +/-  0.0025 errors
 
 
 made new plots for m1 m2 vs model bias -- need more statistics
 
+second real_noisy is finished
+
+    python ~/code/nmb/nmb_main/nmb_main_analyse.py mergeResults nmb_main.bfit.noisy.yaml --filepath_truth truth.25880.fits -v3 --n_reps 2

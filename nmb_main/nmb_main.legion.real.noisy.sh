@@ -8,6 +8,7 @@
 #$ -wd /scratch/scratch/ucabtok/130515_nmb_main/301/
 #$ -o  /scratch/scratch/ucabtok/130515_nmb_main/301/output/
 #$ -e  /scratch/scratch/ucabtok/130515_nmb_main/301/output/
+#Local2Scratch
 
 WDIR=~/Scratch/130515_nmb_main/301/
 SCP_OUT=kacprzak@star.ucl.ac.uk:/import/zupcx32/kacprzak/projects/130515_nmb_main/301/results/
@@ -45,13 +46,20 @@ echo SGE_TASK_LAST $SGE_TASK_LAST
 echo SGE_TASK_FIRST $SGE_TASK_FIRST
 echo TASK_ID $TASK_ID
 echo JOB_NAME  $JOB_NAME 
-echo $OBJ_NUM
-echo $N_OBJ
+echo OBJ_NUM $OBJ_NUM
+echo N_OBJ $N_OBJ
+echo TMPDIR $TMPDIR
 
 # load modules
 echo $TASK_ID `date` "loading modules"
 source ~/source_all.sh
 source ~/source_paths.sh
+
+# check if files are available
+ls $DIR_BIN/nmb_main.py 
+ls $WDIR/$FILENAME_CONFIG
+ls $WDIR/$FILENAME_INI
+ls $WDIR/$FILENAME_TRUTH
 
 # create command
 echo $TASK_ID `date` "creating command"
