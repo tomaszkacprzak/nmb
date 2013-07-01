@@ -322,3 +322,38 @@ made new plots for m1 m2 vs model bias -- need more statistics
 second real_noisy is finished
 
     python ~/code/nmb/nmb_main/nmb_main_analyse.py mergeResults nmb_main.bfit.noisy.yaml --filepath_truth truth.25880.fits -v3 --n_reps 2
+
+130107 got so far so many results:
+bfit noisy 4416 - 2 reps
+real noisy 5839 - 3 reps
+
+merging 302 results
+
+        python ~/code/nmb/nmb_main/nmb_main_analyse.py mergeResults nmb_main.real.noisy.yaml --filepath_truth truth.25880.fits -v3 --n_reps 3
+
+merged fine:
+
+    7763 file results/results.nmb_main.real.noisy.000004968320.cat n_gals 640
+    results  n    4968960 first 1000270000 last 742430707
+    truth    n    1656320 first 1000270000 last 742430707
+    getting number of matches ...
+    number of matches 3722240
+    number of matches 4968960
+    saving tables ...
+    Overwriting existing file 'results.nmb_main.real.noisy.fits'.
+    table saved results.nmb_main.real.noisy.fits correctly, got 1 rows
+    results saved results.nmb_main.real.noisy.fits correctly, got 4968960 rows
+    results   n    4968960 first 1000270000 last 742430707
+    truth     n    1656320 first 1000270000 last 742430707
+
+plots:
+
+    zupcx32$ python $CODE/nmb/nmb_main/nmb_main_plots.py plotBiasForBins -v 2
+
+    looks OK, but some backend problems, I will try on laptop
+
+in the meanwhile submitted the third bfit run:
+[ucabtok@login01 202_bfit_noisy]$ qsub nmb_main.legion.bfit.noisy.run3.sh
+
+
+

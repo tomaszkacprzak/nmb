@@ -24,7 +24,7 @@ filepath_truth_26000        = 'truth.26000.pp'
 filepath_acs                = 'cosmos_acs_shera_may2011.fits.gz'
 filepath_results_real       = 'results.nmb_main.real.pp' 
 # filepath_results_real_noisy = 'results.nmb_main.real.noisy.fits'
-filepath_results_real_noisy = 'results.nmb_main.real.noisy.rep2.fits'
+filepath_results_real_noisy = 'results.nmb_main.real.noisy.rep3.fits'
 # filepath_results_bfit_noisy = 'results.nmb_main.bfit.noisy.fits'
 filepath_results_bfit_noisy = 'results.nmb_main.bfit.noisy.rep2.fits'
 
@@ -122,6 +122,7 @@ def plotBiasForBins():
     filename_fig = 'figures/fig.bins.redshift.png'
     pylab.savefig(filename_fig)
     pylab.close()
+    logger.info('saved %s' % filename_fig)
 
 
 
@@ -159,9 +160,6 @@ def plotBiasForBins():
     # pylab.xlim(binstats_real_noisy['bin_value'].min()-xadd,binstats_real_noisy['bin_value'].max()+xadd)
     # print pylab.xlim()
 
-    pylab.xlim([1.,2.])
-    pylab.ylim([-1, 0.07])
-
     corner = pylab.xlim()[0]
     length = abs(pylab.xlim()[1]) + abs(pylab.xlim()[0])
     pylab.gca().add_patch(pylab.Rectangle(  (corner,-req1_m), length , 2*req1_m , alpha=0.1))
@@ -175,12 +173,16 @@ def plotBiasForBins():
     pylab.yticks(yticks,[str(x) for x in  yticks ])
 
     pylab.grid()
-    pylab.legend(loc='lower right')
+    # pylab.legend(loc='lower right')
+
+
+    pylab.xlim([1.,2.])
+    # pylab.ylim([-1., 1.])
 
     filename_fig = 'figures/fig.bins.size_nocut.png'
     pylab.savefig(filename_fig)
     pylab.close()
-
+    logger.info('saved %s' % filename_fig)
 
 # size ------------------------------------------------------------------------------------------------------------------
 
@@ -239,7 +241,7 @@ def plotBiasForBins():
     filename_fig = 'figures/fig.bins.size.png'
     pylab.savefig(filename_fig)
     pylab.close()
-
+    logger.info('saved %s' % filename_fig)
 
 # morphology ------------------------------------------------------------------------------------------------------------
 
@@ -298,7 +300,7 @@ def plotBiasForBins():
     filename_fig = 'figures/fig.bins.modd.png'
     pylab.savefig(filename_fig)
     pylab.close()
-
+    logger.info('saved %s' % filename_fig)
 
 # model bias ------------------------------------------------------------------------------------------------------------
 
@@ -358,7 +360,7 @@ def plotBiasForBins():
     filename_fig = 'figures/fig.bins.model_bias.png'
     pylab.savefig(filename_fig)
     pylab.close()
-
+    logger.info('saved %s' % filename_fig)
 
 
 def getCuts():
@@ -1093,13 +1095,12 @@ def plotTime():
     time_mean_valid  = time_mean[time_mean < NO_RESULT_FLAG]  
     time_total_valid = time_total[time_mean < NO_RESULT_FLAG]
 
-    # import pdb; pdb.set_trace()
     pylab.hist(time_mean_valid,100)
+    pylab.xlabel('mean time per galaxy [sec]')
     pylab.show()
     pylab.hist(time_total_valid/60.,100)
+    pylab.xlabel('time total per file [min]')
     pylab.show()
-
-    # import pdb; pdb.set_trace()
 
 
 
@@ -1166,6 +1167,7 @@ def main():
 
     # parse arguments
     parser = argparse.ArgumentParser(description=description, add_help=True)
+    parser.add_argument('command', type=str, help='what to do?')
     # parser.add_argument('filepath_config', type=str, help='yaml config file, see nmb_main.real.test.yaml for example.')
     # parser.add_argument('--filepath_truth', type=str, default='truth.26000.sorted.pp', help='truth file for the run, overrides the config file (by default is taken from yaml file)')
     # parser.add_argument('--filepath_stats', type=str, default='stats.nmb_main.real.pp', help='stats file')
@@ -1242,8 +1244,9 @@ def main():
     # testSaveBiasForBins()
     # saveBiasForBins()
     # plotBiasForBins()
-    plotTime()
+    # plotTime()
 
+    eval(args.command + '()')
 
     
 
