@@ -355,5 +355,11 @@ plots:
 in the meanwhile submitted the third bfit run:
 [ucabtok@login01 202_bfit_noisy]$ qsub nmb_main.legion.bfit.noisy.run3.sh
 
+merging 202 results with 3 reps
 
+        python ~/code/nmb/nmb_main/nmb_main_analyse.py mergeResults nmb_main.real.bfit.yaml --filepath_truth truth.25880.fits -v3 --n_reps 3
+
+        redoing plots
+
+        
 
