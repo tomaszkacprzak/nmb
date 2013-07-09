@@ -361,5 +361,23 @@ merging 202 results with 3 reps
 
         redoing plots
 
-        
+rsynced the folders to get the missing files:
 
+    zupcx32$ rsync -v --ignore-existing $LEGION:Scratch/130515*/202*/results/* results
+
+
+merged bfit and real again,
+
+zupcx32$ python $CODE/nmb/nmb_main/nmb_main_plots.py saveBiasForBins -v 2
+
+130709 
+
+got new series of results run4/rep4..
+rsyncing with zupcx32
+        zupcx32$ rsync -v --ignore-existing $LEGION:Scratch/130515*/202*/results/* results
+
+202 -- all ok
+302 -- all ok
+
+redo plots
+zupcx32$ python $CODE/nmb/nmb_main/nmb_main_plots.py saveBiasForBins -v 2

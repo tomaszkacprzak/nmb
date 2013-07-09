@@ -10,7 +10,6 @@ import yaml
 import galsim
 import copy
 import datetime  
-import pylab
 import glob
 import tabletools
 import cPickle as pickle
