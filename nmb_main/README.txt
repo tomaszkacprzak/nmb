@@ -359,8 +359,11 @@ merging 202 results with 3 reps
 
         python ~/code/nmb/nmb_main/nmb_main_analyse.py mergeResults nmb_main.real.bfit.yaml --filepath_truth truth.25880.fits -v3 --n_reps 3
 
-        redoing plots
+redoing plots
 
+    zupcx32$ python $CODE/nmb/nmb_main/nmb_main_plots.py saveBiasForBins -v 2
+    zupcx32$ python $CODE/nmb/nmb_main/nmb_main_plots.py plotBiasForBins -v 2
+        
 rsynced the folders to get the missing files:
 
     zupcx32$ rsync -v --ignore-existing $LEGION:Scratch/130515*/202*/results/* results

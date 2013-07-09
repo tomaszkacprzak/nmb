@@ -39,6 +39,25 @@ bins_snr = numpy.logspace(2,4,20)
 bins_hlr = numpy.linspace(0,5,5)
 # 1->8 Ell-S0, 9->15 Sa-Sc, 16->19 Sd-Sdm from Polletta et al., >=20 starburst from BC03
 
+req1_m = 0.02
+req2_m = 0.004
+
+
+def plotAddReq():
+
+    corner = pylab.xlim()[0]
+    length = abs(pylab.xlim()[1]) + abs(pylab.xlim()[0])
+    pylab.gca().add_patch(pylab.Rectangle(  (corner,-req1_m), length , 2*req1_m , facecolor = '0.9' , edgecolor='k' ))
+    pylab.gca().add_patch(pylab.Rectangle(  (corner,-req2_m), length , 2*req2_m , facecolor = '0.7' , edgecolor='k' ))
+
+def saveCurrentFig(filename_noext):
+
+    filename_fig_png = filename_noext + '.eps'
+    pylab.savefig(filename_fig_png)
+    filename_fig_pdf = filename_noext + '.png'
+    pylab.savefig(filename_fig_pdf)
+    logger.info('saved %s %s' % (filename_fig_pdf,filename_fig_png))
+
 def getColorMap(n_colors):
     import colorsys
     HSV_tuples = [(x*1.0/n_colors, 0.75, 0.75) for x in range(n_colors)]
@@ -64,9 +83,9 @@ def getTableACSjoinStats():
 
 def plotBiasForBins():
 
-    req1_m = 0.02
-    req2_m = 0.004
+    global req2_m, req1_m
 
+    
 # redshift ------------------------------------------------------------------------------------------------------------
 
     binstats_real_noisy = tabletools.loadTable(filepath='bins.redshift.real.noisy.cat',dtype=dtype_table_binstats)
@@ -103,27 +122,22 @@ def plotBiasForBins():
     pylab.xlim([0,1.5])
     # pylab.ylim([-0.1, 0.1])
 
-    corner = pylab.xlim()[0]
-    length = abs(pylab.xlim()[1]) + abs(pylab.xlim()[0])
-    pylab.gca().add_patch(pylab.Rectangle(  (corner,-req1_m), length , 2*req1_m , alpha=0.1))
-    pylab.gca().add_patch(pylab.Rectangle(  (corner,-req2_m), length , 2*req2_m , alpha=0.2))
-
     # pylab.yscale('symlog',linthreshy=0.05)
-    pylab.xlabel('redshift zphot')
-    pylab.ylabel('m_i')
+    pylab.xlabel('galaxy redshift    z-phot')
+    pylab.ylabel('m')
 
     yticks = [-0.1,-0.05,-req2_m,-0.01,-req1_m,0.,req1_m,0.01,req2_m,0.05,0.1]
     pylab.yticks(yticks,[str(x) for x in  yticks ])
     pylab.ylim([-0.01,0.07])
 
     pylab.grid()
-    pylab.legend(loc='upper left',ncol=2)
+    pylab.legend(loc='upper left',ncol=2,mode='expand')
 
+    plotAddReq()
 
-    filename_fig = 'figures/fig.bins.redshift.png'
-    pylab.savefig(filename_fig)
+    filename_fig = 'figures/fig.bins.redshift'
+    saveCurrentFig(filename_fig)
     pylab.close()
-    logger.info('saved %s' % filename_fig)
 
 
 
@@ -161,29 +175,25 @@ def plotBiasForBins():
     # pylab.xlim(binstats_real_noisy['bin_value'].min()-xadd,binstats_real_noisy['bin_value'].max()+xadd)
     # print pylab.xlim()
 
-    corner = pylab.xlim()[0]
-    length = abs(pylab.xlim()[1]) + abs(pylab.xlim()[0])
-    pylab.gca().add_patch(pylab.Rectangle(  (corner,-req1_m), length , 2*req1_m , alpha=0.1))
-    pylab.gca().add_patch(pylab.Rectangle(  (corner,-req2_m), length , 2*req2_m , alpha=0.2))
-
     pylab.yscale('symlog',linthreshy=0.05)
-    pylab.xlabel('size Rgp/Rp')
-    pylab.ylabel('m_i')
+    pylab.xlabel('galaxy size    Rgp/Rp')
+    pylab.ylabel('m')
 
-    yticks = [-0.1,-0.05,-req2_m,-0.01,-req1_m,0.,req1_m,0.01,req2_m,0.05,0.1]
+    yticks = [-0.9,-0.1,-0.05,-req1_m,0.,req1_m,0.05,0.1]
     pylab.yticks(yticks,[str(x) for x in  yticks ])
 
     pylab.grid()
-    # pylab.legend(loc='lower right')
+    pylab.legend(loc='lower right')
 
 
     pylab.xlim([1.,2.])
     # pylab.ylim([-1., 1.])
 
-    filename_fig = 'figures/fig.bins.size_nocut.png'
-    pylab.savefig(filename_fig)
+    plotAddReq()
+
+    filename_fig = 'figures/fig.bins.size_nocut'
+    saveCurrentFig(filename_fig)
     pylab.close()
-    logger.info('saved %s' % filename_fig)
 
 # size ------------------------------------------------------------------------------------------------------------------
 
@@ -220,15 +230,9 @@ def plotBiasForBins():
     # pylab.xlim(binstats_real_noisy['bin_value'].min()-xadd,binstats_real_noisy['bin_value'].max()+xadd)
     # print pylab.xlim()
 
-
-    corner = pylab.xlim()[0]
-    length = abs(pylab.xlim()[1]) + abs(pylab.xlim()[0])
-    pylab.gca().add_patch(pylab.Rectangle(  (corner,-req1_m), length , 2*req1_m , alpha=0.1))
-    pylab.gca().add_patch(pylab.Rectangle(  (corner,-req2_m), length , 2*req2_m , alpha=0.2))
-
     # pylab.yscale('symlog',linthreshy=0.05)
-    pylab.xlabel('size Rgp/Rp')
-    pylab.ylabel('m_i')
+    pylab.xlabel('galaxy size    Rgp/Rp')
+    pylab.ylabel('m')
 
     yticks = [-0.1,-0.05,-req2_m,-0.01,-req1_m,0.,req1_m,0.01,req2_m,0.05,0.1]
     pylab.yticks(yticks,[str(x) for x in  yticks ])
@@ -237,12 +241,13 @@ def plotBiasForBins():
     pylab.ylim([-0.03, 0.06])
 
     pylab.grid()
-    pylab.legend(loc='lower right',ncol=2)
+    pylab.legend(loc='lower right',ncol=2,mode='expand')
 
-    filename_fig = 'figures/fig.bins.size.png'
-    pylab.savefig(filename_fig)
+    plotAddReq()
+
+    filename_fig = 'figures/fig.bins.size'
+    saveCurrentFig(filename_fig)
     pylab.close()
-    logger.info('saved %s' % filename_fig)
 
 # morphology ------------------------------------------------------------------------------------------------------------
 
@@ -281,27 +286,22 @@ def plotBiasForBins():
     pylab.xlim([0.,27.5])
     # pylab.ylim([-0.1, 0.1])
 
-    corner = pylab.xlim()[0]
-    length = abs(pylab.xlim()[1]) + abs(pylab.xlim()[0])
-    pylab.gca().add_patch(pylab.Rectangle(  (corner,-req1_m), length , 2*req1_m , alpha=0.1))
-    pylab.gca().add_patch(pylab.Rectangle(  (corner,-req2_m), length , 2*req2_m , alpha=0.2))
-
-    pylab.yscale('symlog',linthreshy=0.05)
-    pylab.xlabel('morph Hubble Seq')
-    pylab.ylabel('m_i')
+    # pylab.yscale('symlog',linthreshy=0.05)
+    pylab.xlabel('Hubble seqence index')
+    pylab.ylabel('m')
 
     yticks = [-0.15,-0.1,-0.05,-req2_m,-0.01,-req1_m,0.,req1_m,0.01,req2_m,0.05,0.1]
     pylab.yticks(yticks,[str(x) for x in  yticks ])
     pylab.ylim([-0.03,0.04])
 
     pylab.grid()
-    pylab.legend(loc='lower right',ncol=2)
+    pylab.legend(loc='lower right',ncol=2,mode='expand')
 
+    plotAddReq()
 
-    filename_fig = 'figures/fig.bins.modd.png'
-    pylab.savefig(filename_fig)
+    filename_fig = 'figures/fig.bins.modd'
+    saveCurrentFig(filename_fig)
     pylab.close()
-    logger.info('saved %s' % filename_fig)
 
 # model bias ------------------------------------------------------------------------------------------------------------
 
@@ -341,27 +341,22 @@ def plotBiasForBins():
     pylab.xlim([0.0,0.025])
     # pylab.ylim([-0.1, 0.1])
 
-    corner = pylab.xlim()[0]
-    length = abs(pylab.xlim()[1]) + abs(pylab.xlim()[0])
-    pylab.gca().add_patch(pylab.Rectangle(  (corner,-req1_m), length , 2*req1_m , alpha=0.1))
-    pylab.gca().add_patch(pylab.Rectangle(  (corner,-req2_m), length , 2*req2_m , alpha=0.2))
-
-    pylab.yscale('symlog',linthreshy=0.05)
-    pylab.xlabel('m1')
-    pylab.ylabel('m_i')
+    # pylab.yscale('symlog',linthreshy=0.05)
+    pylab.xlabel('model bias |m|')
+    pylab.ylabel('m')
 
     yticks = [-0.15,-0.1,-0.05,-req2_m,-0.01,-req1_m,0.,req1_m,0.01,req2_m,0.05,0.1]
     pylab.yticks(yticks,[str(x) for x in  yticks ])
     pylab.ylim([-0.03,0.04])
 
     pylab.grid()
-    pylab.legend(loc='lower right',ncol=2)
+    pylab.legend(loc='lower right',ncol=2,mode='expand')
 
+    plotAddReq()
 
-    filename_fig = 'figures/fig.bins.model_bias.png'
-    pylab.savefig(filename_fig)
+    filename_fig = 'figures/fig.bins.model_bias'
+    saveCurrentFig(filename_fig)
     pylab.close()
-    logger.info('saved %s' % filename_fig)
 
 
 def getCuts():
@@ -506,7 +501,7 @@ def testSaveBiasForBins():
 
     pylab.yscale('symlog',linthreshy=0.05)
     pylab.xlabel('m1')
-    pylab.ylabel('m_i')
+    pylab.ylabel('m')
 
     yticks = [-0.15,-0.1,-0.05,-req2_m,-0.01,-req1_m,0.,req1_m,0.01,req2_m,0.05,0.1]
     pylab.yticks(yticks,[str(x) for x in  yticks ])
@@ -732,7 +727,7 @@ def plotModelBias():
     # pylab.ion()
     pylab.close('all')
 
-    # m1 m2 hist    
+    # m1 m2 hist -----------------------------------------------------------------------------------
 
     pylab.figure(figsize=(5,4))
     pylab.clf()
@@ -754,54 +749,54 @@ def plotModelBias():
     print "stdm" , numpy.std(results_m1,ddof=1)/numpy.sqrt(len(results_m1))
     print "stdm" , numpy.std(results_m2,ddof=1)/numpy.sqrt(len(results_m2))
     print 'nans?' , any(numpy.isnan(results_m1))
-    filename_fig = 'figures/figure.hist.m1m2.real.png'
-    pylab.savefig(filename_fig)
-    filename_fig = 'figures/figure.hist.m1m2.real.eps'
-    pylab.savefig(filename_fig,dpi=1000)
-    logger.info('saved %s' % filename_fig)
 
-    # snr distribution
+    filename_fig = 'figures/figure.hist.m1m2.real'
+    saveCurrentFig(filename_fig)
+    pylab.close()
+
+    # snr distribution -----------------------------------------------------------------------------
 
     pylab.figure()
     h,b,p = pylab.hist(results_snr,bins=bins_snr)
     pylab.xlabel('snr')
     pylab.xscale('log')    
-    filename_fig = 'figures/figure.hist.snr.real.png'
-    pylab.savefig(filename_fig)
-    logger.info('saved %s' % filename_fig)
 
-    # Rgp/Rp distribution
+    filename_fig = 'figures/figure.hist.snr.real'
+    saveCurrentFig(filename_fig)
+    pylab.close()
+
+    # Rgp/Rp distribution --------------------------------------------------------------------------
     
     pylab.figure()
     psf_size =  0.7695
     results_size = results_rgp/psf_size
     h,b,p = pylab.hist(results_size,bins=bins_size)
     pylab.xlabel('rgp/rp')    
-    filename_fig = 'figures/figure.hist.size.real.png'
-    pylab.savefig(filename_fig)
-    logger.info('saved %s' % filename_fig)
+    filename_fig = 'figures/figure.hist.size.real'
+    saveCurrentFig(filename_fig)
+    pylab.close()
 
-    # hlr distribution
+    # hlr distribution -----------------------------------------------------------------------------
 
     pylab.figure()
     results_hlr = results_stats['hlr']/pixel_scale
     h,b,p = pylab.hist(results_hlr,bins=bins_hlr)
     pylab.xlabel('hlr [pixels]')    
-    filename_fig = 'figures/figure.hist.hlr.real.png'
-    pylab.savefig(filename_fig)
-    logger.info('saved %s' % filename_fig)
+    filename_fig = 'figures/figure.hist.hlr.real'
+    saveCurrentFig(filename_fig)
+    pylab.close()
 
-    # redshift distribution
+    # redshift distribution ------------------------------------------------------------------------
 
     pylab.figure()
     h,b,p = pylab.hist(results_zphot,bins=n_bins)
     # h,b,p = pylab.hist(results_zphot,bins=bins_redshift)
     pylab.xlabel('photo-z')    
-    filename_fig = 'figures/figure.hist.redshift.real.png'
-    pylab.savefig(filename_fig)
-    logger.info('saved %s' % filename_fig)
+    filename_fig = 'figures/figure.hist.redshift.real'
+    saveCurrentFig(filename_fig)
+    pylab.close()
 
-    # modd distribution
+    # modd distribution ----------------------------------------------------------------------------
 
     pylab.figure()
     # bins_modd = [s for s in set(results_modd)]
@@ -810,12 +805,12 @@ def plotModelBias():
     # n_bins_modd = 31
     # h,b,p = pylab.hist(results_modd,bins=n_bins)
     pylab.xlabel('modd')    
-    filename_fig = 'figures/figure.hist.modd.real.png'
-    pylab.savefig(filename_fig)
-    logger.info('saved %s' % filename_fig)
+    filename_fig = 'figures/figure.hist.modd.real'
+    saveCurrentFig(filename_fig)
+    pylab.close()
 
 
-    # m1 vs snr
+    # m1 vs snr ------------------------------------------------------------------------------------
 
     digitized = numpy.digitize(results_snr, bins_snr)
     bin_mean1 = [results_m1[digitized == i].mean()      for i in range(0, len(bins_snr))]
@@ -834,33 +829,41 @@ def plotModelBias():
     pylab.xscale('log')
     pylab.xlabel('snr')
     pylab.ylabel('m1')
-    filename_fig = 'figures/figure.hist.M1M2vsSNR.real.png'
-    pylab.savefig(filename_fig)
-    logger.info('saved %s' % filename_fig)
+    filename_fig = 'figures/figure.hist.M1M2vsSNR.real'
+    saveCurrentFig(filename_fig)
+    pylab.close()
 
-    # m1 vs size
+    # m1 vs size -----------------------------------------------------------------------------------
 
-
-    digitized = numpy.digitize(results_size, bins_size)
-    bin_mean1 = [results_m1[digitized == i].mean()      for i in range(0, len(bins_size))]
-    bin_stdv1 = [results_m1[digitized == i].std(ddof=1) for i in range(0, len(bins_size))]
-    bin_stdm1 = [results_m1[digitized == i].std(ddof=1)/numpy.sqrt(len(results_m1[digitized == i])) for i in range(0, len(bins_size))]
-    bin_mean2 = [results_m2[digitized == i].mean()      for i in range(0, len(bins_size))]
-    bin_stdv2 = [results_m2[digitized == i].std(ddof=1) for i in range(0, len(bins_size))]
-    bin_stdm2 = [results_m2[digitized == i].std(ddof=1)/numpy.sqrt(len(results_m2[digitized == i])) for i in range(0, len(bins_size))]
+    # bins_size_use = = [1.0, 1.1 , 1.2 , 1.3 , 1.4 , 1.5 , 1.6 , 1.7 , 1.8, 1.9 , 2.0]
+    digitized = numpy.digitize(results_size, bins_size_nocut)
+    bin_mean1 = [results_m1[digitized == i].mean()      for i in range(1, len(bins_size_nocut))]
+    bin_stdv1 = [results_m1[digitized == i].std(ddof=1) for i in range(1, len(bins_size_nocut))]
+    bin_stdm1 = [results_m1[digitized == i].std(ddof=1)/numpy.sqrt(len(results_m1[digitized == i])) for i in range(1, len(bins_size_nocut))]
+    bin_mean2 = [results_m2[digitized == i].mean()      for i in range(1, len(bins_size_nocut))]
+    bin_stdv2 = [results_m2[digitized == i].std(ddof=1) for i in range(1, len(bins_size_nocut))]
+    bin_stdm2 = [results_m2[digitized == i].std(ddof=1)/numpy.sqrt(len(results_m2[digitized == i])) for i in range(1, len(bins_size_nocut))]
     
     pylab.figure()
-    # pylab.errorbar(bins_size,bin_mean1,yerr=bin_stdv1,fmt='r')
-    # pylab.errorbar(bins_size,bin_mean2,yerr=bin_stdv2,fmt='b')
-    pylab.errorbar(bins_size,bin_mean1,yerr=bin_stdm1,fmt='m')
-    pylab.errorbar(bins_size,bin_mean2,yerr=bin_stdm2,fmt='c')
-    pylab.xlabel('size')
-    pylab.ylabel('m1')
+    # pylab.errorbar(bins_size_nocut,bin_mean1,yerr=bin_stdv1,fmt='r')
+    # pylab.errorbar(bins_size_nocut,bin_mean2,yerr=bin_stdv2,fmt='b')
+    pylab.errorbar(_binCenters(bins_size_nocut),bin_mean1,yerr=bin_stdm1,fmt='+r-',label='m1')
+    pylab.errorbar(_binCenters(bins_size_nocut),bin_mean2,yerr=bin_stdm2,fmt='xb-',label='m2')
 
-    filename_fig = 'figures/figure.hist.M1M2vsSIZE.real.png'
-    pylab.savefig(filename_fig)
 
-    # snr vs redshifts
+
+    pylab.xlabel('size    Rgp/Rp')
+    pylab.ylabel('m')
+    pylab.legend()
+    pylab.grid()
+
+    plotAddReq()
+
+    filename_fig = 'figures/figure.hist.M1M2vsSIZE.real'
+    saveCurrentFig(filename_fig)
+    pylab.close()
+
+    # snr vs redshifts -----------------------------------------------------------------------------
 
     pylab.figure() 
     digitized = numpy.digitize(results_zphot, bins_redshift)
@@ -873,11 +876,11 @@ def plotModelBias():
     pylab.ylabel('normalised hist')
 
 
-    filename_fig = 'figures/figure.hist.SNRvsREDSHIFT.real.png'
-    pylab.savefig(filename_fig)
-    logger.info('saved %s' % filename_fig)
+    filename_fig = 'figures/figure.hist.SNRvsREDSHIFT.real'
+    saveCurrentFig(filename_fig)
+    pylab.close()
 
-    # size vs redshifts
+    # size vs redshifts ----------------------------------------------------------------------------
 
     pylab.figure() 
     bins_size_extra = numpy.linspace(1,4,20)
@@ -890,11 +893,11 @@ def plotModelBias():
     pylab.xlabel('Rgp/Rp')
     pylab.ylabel('normalised hist')
 
-    filename_fig = 'figures/figure.hist.SIZEvsREDSHIFT.real.png'
-    pylab.savefig(filename_fig)
-    logger.info('saved %s' % filename_fig)
+    filename_fig = 'figures/figure.hist.SIZEvsREDSHIFT.real'
+    saveCurrentFig(filename_fig)
+    pylab.close()
 
-    # redshifts vs redshifts
+    # redshifts vs redshifts -----------------------------------------------------------------------
 
     pylab.figure() 
     digitized = numpy.digitize(results_zphot, bins_redshift)
@@ -905,7 +908,7 @@ def plotModelBias():
     pylab.xlabel('zphot - control')
     pylab.ylabel('normalised hist')
 
-    # m1 vs modd
+    # m1 vs modd -----------------------------------------------------------------------------------
 
     digitized = numpy.digitize(results_modd , bins_modd)
     bin_mean1 = [results_m1[digitized == i].mean()      for i in range(1, len(bins_modd))]
@@ -922,41 +925,45 @@ def plotModelBias():
     pylab.errorbar(bins_modd[1:],bin_mean2,yerr=bin_stdm2)
     pylab.xlabel('modd')
     pylab.ylabel('m1')
-    filename_fig = 'figures/figure.hist.M1M2vsMODD.real.png'
-    pylab.savefig(filename_fig)
-    logger.info('saved %s' % filename_fig)
+    
+    saveCurrentFig(filename_fig)
+    pylab.close()
 
     pylab.figure() 
-    digitized = numpy.digitize(results_modd, bins_modd)
+
+    bins_modd_use = [0,9,32]
+
+    digitized = numpy.digitize(results_modd, bins_modd_use)
     n_bins_m = 100
 
 
-    colors_modd_m1 = getColorMap(len(bins_modd))
-    colors_modd_m2 = getColorMap(len(bins_modd))
+    colors_modd_m1 = ['m','c']
+    colors_modd_m2 = ['r','b']
 
     # colors_modd_m1 = ['r','b']
     # colors_modd_m2 = ['m','c']
-    for i in range(1, len(bins_modd)):
+    for i in range(1, len(bins_modd_use)):
         m1= results_m1[digitized == i]
         m2= results_m2[digitized == i]
-
-        h,b,p = pylab.hist(m1,bins=n_bins_m,normed=True,histtype='step',label='m1 Hubble Seq %d-%d' % (bins_modd[i-1],bins_modd[i]),color=colors_modd_m1[i-1])
-        h,b,p = pylab.hist(m2,bins=n_bins_m,normed=True,histtype='step',label='m2 Hubble Seq %d-%d' % (bins_modd[i-1],bins_modd[i]),color=colors_modd_m2[i-1])
+        weights = numpy.ones_like(m1)/len(m1)
+        h,b,p = pylab.hist(m1,weights=weights,bins=n_bins_m,histtype='step',label='m1 Hubble Seq %d-%d' % (bins_modd_use[i-1],bins_modd_use[i]),color=colors_modd_m1[i-1])
+        h,b,p = pylab.hist(m2,weights=weights,bins=n_bins_m,histtype='step',label='m2 Hubble Seq %d-%d' % (bins_modd_use[i-1],bins_modd_use[i]),color=colors_modd_m2[i-1])
         pylab.axvline(linewidth=2, color='k')
         pylab.axvline(x=m1.mean(),linewidth=1, color=colors_modd_m1[i-1])
         pylab.axvline(x=m2.mean(),linewidth=1, color=colors_modd_m2[i-1])
 
     pylab.grid()
-    pylab.legend()
-    pylab.xlabel('m1m2')
+    pylab.legend(ncol=2,loc='upper center',mode='expand')
+    pylab.xlabel('m')
     pylab.xticks([-0.1 , -0.05 , -0.01 ,   0.01 , 0.05 , 0.1])
-    pylab.ylabel('normalised hist')
+    pylab.ylabel('normalised histogram')
+    pylab.ylim([0,0.1])
 
-    filename_fig = 'figures/figure.hist.M1M2forMODD.real.eps'
-    pylab.savefig(filename_fig)
-    logger.info('saved %s' % filename_fig)
+    filename_fig = 'figures/figure.hist.M1M2forMODD.real'
+    saveCurrentFig(filename_fig)
+    pylab.close()
 
-    # m1 vs redshift
+    # m1 vs redshift -------------------------------------------------------------------------------
 
     digitized = numpy.digitize(results_zphot, bins_redshift)
     bin_mean1 = [results_m1[digitized == i].mean()      for i in range(1, len(bins_redshift))]
@@ -969,19 +976,24 @@ def plotModelBias():
     pylab.figure()
     # pylab.errorbar(bins_redshift[1:],bin_mean1,yerr=bin_stdv1)
     # pylab.errorbar(bins_redshift[1:],bin_mean2,yerr=bin_stdv2)
-    pylab.errorbar(bins_redshift[1:],bin_mean1,yerr=bin_stdm1)
-    pylab.errorbar(bins_redshift[1:],bin_mean2,yerr=bin_stdm2)
-    pylab.xlabel('redshift')
-    pylab.ylabel('m1')
+    pylab.errorbar(bins_redshift[1:],bin_mean1,yerr=bin_stdm1,label='m1',fmt='+r-')
+    pylab.errorbar(bins_redshift[1:],bin_mean2,yerr=bin_stdm2,label='m2',fmt='xb-')
+    pylab.xlabel('redshift   z-phot')
+    pylab.ylabel('m')
+
+    pylab.grid()
+    pylab.legend(loc='upper left')
+
+    plotAddReq()
     
-    filename_fig = 'figures/figure.hist.M1M2vsREDSHIFT.real.png'
-    pylab.savefig(filename_fig)
-    logger.info('saved %s' % filename_fig)
+    filename_fig = 'figures/figure.hist.M1M2vsREDSHIFT.real'
+    saveCurrentFig(filename_fig)
+    pylab.close()
 
     print len(results_stats)
     print len(results_size[results_size > 1.2])
 
-    # redshift cross - sections
+    # redshift cross - sections --------------------------------------------------------------------
 
     pylab.figure()
     n_bins_m = 32
@@ -1003,11 +1015,11 @@ def plotModelBias():
     pylab.xticks([-0.1 , -0.05 , -0.01 ,   0.01 , 0.05 , 0.1])
     pylab.ylabel('normalised hist')
 
-    filename_fig = 'figures/figure.hist.M1M2forREDSHIFT.real.png'
-    pylab.savefig(filename_fig,dpi=200)
-    logger.info('saved %s' % filename_fig)
+    filename_fig = 'figures/figure.hist.M1M2forREDSHIFT.real'
+    saveCurrentFig(filename_fig)
+    pylab.close()
 
-    # modd vs redshift
+    # modd vs redshift -----------------------------------------------------------------------------
 
     pylab.figure() 
     digitized = numpy.digitize(results_modd, bins_modd)
@@ -1022,11 +1034,11 @@ def plotModelBias():
     pylab.xlabel('redshift')
     pylab.ylabel('normalised hist')
 
-    filename_fig = 'figures/figure.hist.MMODforREDSHIFT.real.png'
-    pylab.savefig(filename_fig)
-    logger.info('saved %s' % filename_fig)
+    filename_fig = 'figures/figure.hist.MMODforREDSHIFT.real'
+    saveCurrentFig(filename_fig)
+    pylab.close()
 
-    # modd vs size
+    # modd vs size ---------------------------------------------------------------------------------
 
     pylab.figure() 
     digitized = numpy.digitize(results_modd, bins_modd)
@@ -1044,9 +1056,58 @@ def plotModelBias():
     pylab.ylabel('normalised hist')
     pylab.xlim([1,1.8])
 
-    filename_fig = 'figures/figure.hist.MMODforSIZE.real.png'
-    pylab.savefig(filename_fig)
-    logger.info('saved %s' % filename_fig)
+    filename_fig = 'figures/figure.hist.MMODforSIZE.real'
+    saveCurrentFig(filename_fig)
+    pylab.close()
+
+
+    # m1 m2 histograms in size bins ----------------------------------------------------------------
+
+    pylab.figure()
+    n_bins_m = 32
+
+    bins_size_few = [1.3,1.5,1.7,2.0]    
+
+    size_color_tuples = ['r','b','g']
+
+    for i in range(1, len(bins_size_few)):
+        m1= results_m1[digitized == i]
+        m2= results_m2[digitized == i]
+        h,b,p = pylab.hist(m1,bins=n_bins_m,normed=True,histtype='step',label='m1 Rgp/Rp=%2.1f-%2.1f' % (bins_size_few[i-1],bins_size_few[i]),color=size_color_tuples[i-1])
+        # h,b,p = pylab.hist(m2,bins=n_bins_m,normed=True,histtype='step', color=size_color_tuples[i-1])
+        pylab.axvline(linewidth=2, color='k')
+        pylab.axvline(x=m1.mean(),linewidth=1, color=size_color_tuples[i-1])
+        # pylab.axvline(x=m2.mean(),linewidth=1, color=size_color_tuples[i-1])        
+
+    pylab.grid()
+    pylab.legend()
+    pylab.xlabel('m1m2')
+    pylab.xticks([-0.1 , -0.05 , -0.01 ,   0.01 , 0.05 , 0.1])
+    pylab.ylabel('normalised hist')
+
+    filename_fig = 'figures/figure.hist.M1M2forSIZE.real'
+    saveCurrentFig(filename_fig)
+    pylab.close()
+
+    # modd vs redshift -----------------------------------------------------------------------------
+
+    pylab.figure() 
+    digitized = numpy.digitize(results_modd, bins_modd)
+    for i in range(1, len(bins_modd)):
+        # h,b,p = pylab.hist(results_zphot[digitized == i],bins=bins_size_few,normed=True,histtype='step',label='type=%d' % i )
+        h,b = pylab.histogram(results_zphot[digitized == i],bins=bins_size_few,normed=True)
+        pylab.plot(_binCenters(b),h,'-x',label='Hubble Seq=%d-%d' % (bins_modd[i-1],bins_modd[i]))
+
+        
+    pylab.grid()
+    pylab.legend()
+    pylab.xlabel('redshift')
+    pylab.ylabel('normalised hist')
+
+    filename_fig = 'figures/figure.hist.MMODforREDSHIFT.real'
+    saveCurrentFig(filename_fig)
+    pylab.close()
+
 
 def plotTime():
 
@@ -1246,6 +1307,7 @@ def main():
     # saveBiasForBins()
     # plotBiasForBins()
     # plotTime()
+    # plotModelBias
 
     eval(args.command + '()')
 
