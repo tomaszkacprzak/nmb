@@ -53,7 +53,7 @@ def saveCurrentFig(filename_noext):
 
     filename_fig_png = filename_noext + '.eps'
     pylab.savefig(filename_fig_png)
-    filename_fig_pdf = filename_noext + '.pdf'
+    filename_fig_pdf = filename_noext + '.png'
     pylab.savefig(filename_fig_pdf)
     logger.info('saved %s %s' % (filename_fig_pdf,filename_fig_png))
 
