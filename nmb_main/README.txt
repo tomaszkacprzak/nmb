@@ -365,3 +365,5 @@ redoing plots
     zupcx32$ python $CODE/nmb/nmb_main/nmb_main_plots.py plotBiasForBins -v 2
         
 
+copy the binstats results to precise
+    precise$ scp $STAR/projects/130515*/bins* .
