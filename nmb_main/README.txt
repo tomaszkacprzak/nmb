@@ -364,6 +364,24 @@ redoing plots
     zupcx32$ python $CODE/nmb/nmb_main/nmb_main_plots.py saveBiasForBins -v 2
     zupcx32$ python $CODE/nmb/nmb_main/nmb_main_plots.py plotBiasForBins -v 2
         
+rsynced the folders to get the missing files:
+
+    merged bfit and real again,
+
+zupcx32$ python $CODE/nmb/nmb_main/nmb_main_plots.py saveBiasForBins -v 2
 
 copy the binstats results to precise
     precise$ scp $STAR/projects/130515*/bins* .
+
+
+130709 
+
+got new series of results run4/rep4..
+rsyncing with zupcx32
+        zupcx32$ rsync -v --ignore-existing $LEGION:Scratch/130515*/202*/results/* results
+
+202 -- all ok
+302 -- all ok
+
+redo plots
+zupcx32$ python $CODE/nmb/nmb_main/nmb_main_plots.py saveBiasForBins -v 2
