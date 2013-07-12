@@ -64,7 +64,7 @@ def getTotalBias():
     getBiasForResults(results_array,truth_array,logger)
 
 
-def getBiasForResults(results_array,truth_array,n_gals_per_mean=20000,bin_param='test',bin_id=0,logger=default_logger):
+def getBiasForResults(results_array,truth_array,n_means=5,bin_param='test',bin_id=0,logger=default_logger):
 
     
 
@@ -90,6 +90,7 @@ def getBiasForResults(results_array,truth_array,n_gals_per_mean=20000,bin_param=
     # loop over shears
     for sid in range(n_shears):
 
+        # select shear
         if 'id_cosmos' in results_array.dtype.names:
             select = getShearIDfromUniqueID(results_array['id_unique'])  == sid
         elif 'identifier' in  results_array.dtype.names:
@@ -97,8 +98,11 @@ def getBiasForResults(results_array,truth_array,n_gals_per_mean=20000,bin_param=
 
         results_sid = results_array[select]
         n_gals = len(results_sid)
-        n_means = numpy.ceil(float(n_gals) / float(n_gals_per_mean)).astype(numpy.int64) 
+        n_gals_per_mean = n_gals/n_means
+        # n_means = numpy.ceil(float(n_gals) / float(n_gals_per_mean)).astype(numpy.int64) 
         logger.debug('shear %d n_gals %d n_means %d' % (sid,n_gals,n_means))
+
+
 
         for idm in range(n_means):          
 
@@ -138,7 +142,7 @@ def getBiasForResults(results_array,truth_array,n_gals_per_mean=20000,bin_param=
     c1,m1,cov1 = _getLineFit(tg1,bg1,sg1)
     lg1 = tg1*m1 + c1
     zg1 = numpy.ones(sg1.shape)*numpy.std(lg1 - bg1,ddof=1)
-    # c1,m1,cov1 = _getLineFit(tg1,bg1,zg1)
+    c1,m1,cov1 = _getLineFit(tg1,bg1,zg1)
     std_m1 = numpy.sqrt(cov1[1,1])
     std_c1 = numpy.sqrt(cov1[0,0])
 
@@ -149,7 +153,7 @@ def getBiasForResults(results_array,truth_array,n_gals_per_mean=20000,bin_param=
     c2,m2,cov2 = _getLineFit(tg2,bg2,sg2)
     lg2 = tg2*m2 + c2
     zg2 = numpy.ones(sg2.shape)*numpy.std(lg2 - bg2,ddof=1)
-    # c2,m2,cov2 = _getLineFit(tg2,bg2,zg2)
+    c2,m2,cov2 = _getLineFit(tg2,bg2,zg2)
     std_m2 = numpy.sqrt(cov2[1,1])
     std_c2 = numpy.sqrt(cov2[0,0])    
 

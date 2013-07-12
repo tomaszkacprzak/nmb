@@ -366,13 +366,12 @@ redoing plots
         
 rsynced the folders to get the missing files:
 
-    merged bfit and real again,
+    zupcx32$ rsync -v --ignore-existing $LEGION:Scratch/130515*/202*/results/* results
+
+
+merged bfit and real again,
 
 zupcx32$ python $CODE/nmb/nmb_main/nmb_main_plots.py saveBiasForBins -v 2
-
-copy the binstats results to precise
-    precise$ scp $STAR/projects/130515*/bins* .
-
 
 130709 
 
@@ -385,3 +384,22 @@ rsyncing with zupcx32
 
 redo plots
 zupcx32$ python $CODE/nmb/nmb_main/nmb_main_plots.py saveBiasForBins -v 2
+
+130711
+submitted run 5 to legion
+
+130712
+202 finished
+
+rsync
+    zupcx32$ rsync -v --ignore-existing $LEGION:Scratch/130515*/202*/results/* results
+    ucabtok@legion.rc.ucl.ac.uk's password: 
+    results.nmb_main.bfit.noisy.000008061440.cat
+    results.nmb_main.bfit.noisy.000008072960.cat
+    results.nmb_main.bfit.noisy.000008092800.cat
+    results.nmb_main.bfit.noisy.000008102400.cat
+
+merge
+    zupcx32$ python ~/code/nmb/nmb_main/nmb_main_analyse.py mergeResults nmb_main.bfit.noisy.yaml --filepath_truth truth.25880.fits -v3 --n_reps 5
+
+c

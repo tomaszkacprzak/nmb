@@ -26,21 +26,35 @@ filepath_results_real       = 'results.nmb_main.real.pp'
 # filepath_results_real_noisy = 'results.nmb_main.real.noisy.fits'
 filepath_results_real_noisy = 'results.nmb_main.real.noisy.rep4.fits'
 # filepath_results_bfit_noisy = 'results.nmb_main.bfit.noisy.fits'
-filepath_results_bfit_noisy = 'results.nmb_main.bfit.noisy.rep4.fits'
+filepath_results_bfit_noisy = 'results.nmb_main.bfit.noisy.rep5.fits'
 
 NO_RESULT_FLAG = 666
 
 
-bins_redshift = [0 , 0.35, 0.6, 0.8, 1.1 , 1.5]    
-bins_size     = [1.3 , 1.4 , 1.5 , 1.6 , 1.7 , 1.8, 1.9 , 2.0]
+bins_redshift = [0 , 0.3 , 0.6 , 0.9 , 1.2 , 2.0]    
+bins_size     = [1.3 , 1.4 , 1.5 , 1.6 , 1.8 ,  2.0]
 bins_size_nocut= [1.0, 1.1 , 1.2, 1.3 , 1.4 , 1.5 , 1.6 , 1.7 , 1.8, 1.9 , 2.0]
 bins_modd     = [0 ,  9 , 16, 20, 32 ]
 bins_snr = numpy.logspace(2,4,20)
 bins_hlr = numpy.linspace(0,5,5)
+bins_model_bias = [-0.03,-0.02,-0.01,0.0,0.01,0.02,0.03]
+bins_model_bias_additive = [-0.003,-0.002,-0.001,0.0,0.001,0.002,0.003]
 # 1->8 Ell-S0, 9->15 Sa-Sc, 16->19 Sd-Sdm from Polletta et al., >=20 starburst from BC03
 
 req1_m = 0.02
 req2_m = 0.004
+req1_c = 0.001
+req2_c = 0.0006
+
+margin_left    = 0.14
+margin_right   = 0.97
+margin_top     = 0.97
+margin_bottom  = 0.1
+
+fig_size      = (7.5,4)
+fig_dpi       = 80
+fig_facecolor = 'w'
+fig_edgecolor = 'k'
 
 
 def plotAddReq():
@@ -49,6 +63,14 @@ def plotAddReq():
     length = abs(pylab.xlim()[1]) + abs(pylab.xlim()[0])
     pylab.gca().add_patch(pylab.Rectangle(  (corner,-req1_m), length , 2*req1_m , facecolor = '0.9' , edgecolor='k' ))
     pylab.gca().add_patch(pylab.Rectangle(  (corner,-req2_m), length , 2*req2_m , facecolor = '0.7' , edgecolor='k' ))
+
+def plotAddReqAdditive():
+
+    corner = pylab.xlim()[0]
+    length = abs(pylab.xlim()[1]) + abs(pylab.xlim()[0])
+    pylab.gca().add_patch(pylab.Rectangle(  (corner,-req1_c), length , 2*req1_c , facecolor = '0.9' , edgecolor='k' ))
+    pylab.gca().add_patch(pylab.Rectangle(  (corner,-req2_c), length , 2*req2_c , facecolor = '0.7' , edgecolor='k' ))
+
 
 def plotAddReqToAxis(axis):
 
@@ -111,7 +133,7 @@ def plotBiasForBins():
     logger.info( 'm2 bfit noisy sum check %2.5f' % numpy.inner(binstats_bfit_noisy['m2'] , weights ))
 
 
-    pylab.figure()
+    pylab.figure(figsize=fig_size, dpi=fig_dpi, facecolor=fig_facecolor, edgecolor=fig_edgecolor)
     pylab.clf()
 
     bins_centered = _binCentersSameLen(binstats_real_clear['bin_value'])
@@ -119,11 +141,11 @@ def plotBiasForBins():
     pylab.errorbar(bins_centered,binstats_real_clear['m1'],yerr=binstats_real_clear['m1_std'], fmt='-g+', label = 'm1 model')
     pylab.errorbar(bins_centered,binstats_real_clear['m2'],yerr=binstats_real_clear['m2_std'], fmt='-yx', label = 'm2 model')
 
-    pylab.errorbar(bins_centered,binstats_bfit_noisy['m1'],yerr=binstats_bfit_noisy['m1_std'], fmt='-r+', label = 'm1 noise+model')
-    pylab.errorbar(bins_centered,binstats_bfit_noisy['m2'],yerr=binstats_bfit_noisy['m2_std'], fmt='-bx', label = 'm2 noise+model')
+    pylab.errorbar(bins_centered,binstats_real_noisy['m1'],yerr=binstats_real_noisy['m1_std'], fmt='-r+', label = 'm1 noise+model+interact')
+    pylab.errorbar(bins_centered,binstats_real_noisy['m2'],yerr=binstats_real_noisy['m2_std'], fmt='-bx', label = 'm2 noise+model+interact')
     
-    pylab.errorbar(bins_centered,binstats_real_noisy['m1'],yerr=binstats_real_noisy['m1_std'], fmt='-m+', label = 'm1 noise+model+interact')
-    pylab.errorbar(bins_centered,binstats_real_noisy['m2'],yerr=binstats_real_noisy['m2_std'], fmt='-cx', label = 'm2 noise+model+interact')
+    pylab.errorbar(bins_centered,binstats_bfit_noisy['m1'],yerr=binstats_bfit_noisy['m1_std'], fmt='-m+', label = 'm1 noise+model')
+    pylab.errorbar(bins_centered,binstats_bfit_noisy['m2'],yerr=binstats_bfit_noisy['m2_std'], fmt='-cx', label = 'm2 noise+model')
 
     std_m1 = (binstats_real_noisy['m1_std']**2 + binstats_bfit_noisy['m1_std']**2)**(0.5)
     std_m2 = (binstats_real_noisy['m2_std']**2 + binstats_bfit_noisy['m2_std']**2)**(0.5)
@@ -137,18 +159,20 @@ def plotBiasForBins():
     pylab.xlim([0,1.5])
     # pylab.ylim([-0.1, 0.1])
 
-    pylab.yscale('symlog',linthreshy=0.05)
+    # pylab.yscale('symlog',linthreshy=0.05)
     pylab.xlabel('galaxy redshift    z-phot')
-    pylab.ylabel('m')
+    pylab.ylabel('multiplicative bias    m')
 
-    yticks = [-0.1,-0.05,-req2_m,-0.01,-req1_m,0.,req1_m,0.01,req2_m,0.05,0.1]
+    yticks = [-0.1,-0.05,-req2_m,-0.01,-req1_m,0.,req1_m,0.01,req2_m,0.05]
     pylab.yticks(yticks,[str(x) for x in  yticks ])
-    pylab.ylim([-0.01,0.07])
+    pylab.ylim([-0.02,0.05])
 
     pylab.grid()
-    pylab.legend(loc='upper left',ncol=2,mode='expand')
+    # pylab.legend(loc='lower left',ncol=2,mode='expand')
 
     plotAddReq()
+
+    pylab.subplots_adjust(left=margin_left, right=margin_right, top=margin_top, bottom=margin_bottom)
 
     filename_fig = 'figures/fig.bins.redshift'
     saveCurrentFig(filename_fig)
@@ -171,7 +195,7 @@ def plotBiasForBins():
     logger.info( 'm1 bfit noisy sum check %2.5f' % numpy.inner(binstats_bfit_noisy['m1'] , weights ))
     logger.info( 'm2 bfit noisy sum check %2.5f' % numpy.inner(binstats_bfit_noisy['m2'] , weights ))
 
-    pylab.figure()
+    pylab.figure(figsize=fig_size, dpi=fig_dpi, facecolor=fig_facecolor, edgecolor=fig_edgecolor)
     pylab.clf()
 
     bins_centered = _binCentersSameLen(binstats_real_clear['bin_value'])
@@ -198,19 +222,21 @@ def plotBiasForBins():
 
     pylab.yscale('symlog',linthreshy=0.05)
     pylab.xlabel('galaxy size    Rgp/Rp')
-    pylab.ylabel('m')
+    pylab.ylabel('multiplicative bias    m')
 
     yticks = [-0.9,-0.1,-0.05,-req1_m,0.,req1_m,0.05,0.1]
     pylab.yticks(yticks,[str(x) for x in  yticks ])
 
     pylab.grid()
-    pylab.legend(loc='lower right')
+    # pylab.legend(loc='lower right')
 
 
     pylab.xlim([1.,2.])
     # pylab.ylim([-1., 1.])
 
     plotAddReq()
+
+    pylab.subplots_adjust(left=margin_left, right=margin_right, top=margin_top, bottom=margin_bottom)
 
     filename_fig = 'figures/fig.bins.size_nocut'
     saveCurrentFig(filename_fig)
@@ -232,7 +258,7 @@ def plotBiasForBins():
     logger.info( 'm1 bfit noisy sum check %2.5f' % numpy.inner(binstats_bfit_noisy['m1'] , weights ))
     logger.info( 'm2 bfit noisy sum check %2.5f' % numpy.inner(binstats_bfit_noisy['m2'] , weights ))
 
-    pylab.figure()
+    pylab.figure(figsize=fig_size, dpi=fig_dpi, facecolor=fig_facecolor, edgecolor=fig_edgecolor)
     pylab.clf()
 
     bins_centered = _binCentersSameLen(binstats_real_clear['bin_value'])
@@ -259,18 +285,21 @@ def plotBiasForBins():
 
     # pylab.yscale('symlog',linthreshy=0.05)
     pylab.xlabel('galaxy size    Rgp/Rp')
-    pylab.ylabel('m')
+    pylab.ylabel('multiplicative bias    m')
 
     yticks = [-0.1,-0.05,-req2_m,-0.01,-req1_m,0.,req1_m,0.01,req2_m,0.05,0.1]
     pylab.yticks(yticks,[str(x) for x in  yticks ])
 
-    pylab.xlim([1.3,2.])
-    pylab.ylim([-0.04, 0.06])
+    pylab.xlim([1.3,1.95])
+    pylab.ylim([-0.01, 0.05])
 
     pylab.grid()
-    pylab.legend(loc='lower right',ncol=2,mode='expand')
+    # pylab.legend(loc='lower right',ncol=2,mode='expand')
+    # pylab.legend(loc='upper center', bbox_to_anchor=(0.5,1.5),ncol=2)
 
     plotAddReq()
+
+    pylab.subplots_adjust(left=margin_left, right=margin_right, top=margin_top, bottom=margin_bottom)
 
     filename_fig = 'figures/fig.bins.size'
     saveCurrentFig(filename_fig)
@@ -291,8 +320,7 @@ def plotBiasForBins():
     logger.info( 'm1 bfit noisy sum check %2.5f' % numpy.inner(binstats_bfit_noisy['m1'] , weights ))
     logger.info( 'm2 bfit noisy sum check %2.5f' % numpy.inner(binstats_bfit_noisy['m2'] , weights ))
 
-
-    pylab.figure()
+    pylab.figure(figsize=fig_size, dpi=fig_dpi, facecolor=fig_facecolor, edgecolor=fig_edgecolor)
     pylab.clf()
 
     bins_centered = _binCentersSameLen(binstats_real_clear['bin_value'])
@@ -316,21 +344,23 @@ def plotBiasForBins():
     xadd = max( [ abs(binstats_real_noisy['bin_value'].min()) , abs(binstats_real_noisy['bin_value'].max()) ] ) *0.1
     # pylab.xlim(binstats_real_noisy['bin_value'].min()-xadd,binstats_real_noisy['bin_value'].max()+xadd)
 
-    pylab.xlim([0.,27.5])
+    pylab.xlim([3.,23])
     # pylab.ylim([-0.1, 0.1])
 
     # pylab.yscale('symlog',linthreshy=0.05)
     pylab.xlabel('Hubble seqence index')
-    pylab.ylabel('m')
+    pylab.ylabel('multiplicative bias    m')
 
     yticks = [-0.15,-0.1,-0.05,-req2_m,-0.01,-req1_m,0.,req1_m,0.01,req2_m,0.05,0.1]
     pylab.yticks(yticks,[str(x) for x in  yticks ])
-    pylab.ylim([-0.03,0.04])
+    pylab.ylim([-0.01,0.03])
 
     pylab.grid()
-    pylab.legend(loc='lower right',ncol=2,mode='expand')
+    # pylab.legend(loc='lower right',ncol=2,mode='expand')
 
     plotAddReq()
+
+    pylab.subplots_adjust(left=margin_left, right=margin_right, top=margin_top, bottom=margin_bottom)
 
     filename_fig = 'figures/fig.bins.modd'
     saveCurrentFig(filename_fig)
@@ -354,7 +384,7 @@ def plotBiasForBins():
     logger.info( 'm1 bfit noisy sum check %2.5f' % numpy.inner(binstats_bfit_noisy['m1'] , weights ))
     logger.info( 'm2 bfit noisy sum check %2.5f' % numpy.inner(binstats_bfit_noisy['m2'] , weights ))
 
-    pylab.figure()
+    pylab.figure(figsize=fig_size, dpi=fig_dpi, facecolor=fig_facecolor, edgecolor=fig_edgecolor)
     pylab.clf()
 
     bins_centered = _binCentersSameLen(binstats_real_clear['bin_value'])
@@ -371,38 +401,392 @@ def plotBiasForBins():
     std_m1 = (binstats_real_noisy['m1_std']**2 + binstats_bfit_noisy['m1_std']**2)**(0.5)
     std_m2 = (binstats_real_noisy['m2_std']**2 + binstats_bfit_noisy['m2_std']**2)**(0.5)
 
-    pylab.errorbar(bins_centered,binstats_real_noisy['m1']-binstats_bfit_noisy['m1'],yerr=std_m1, fmt='k--+', label = 'm1 interact')
-    pylab.errorbar(bins_centered,binstats_real_noisy['m2']-binstats_bfit_noisy['m2'],yerr=std_m2, fmt='k:x',  label = 'm2 interact')
+    pylab.errorbar(bins_centered,binstats_bfit_noisy['m1']-binstats_real_noisy['m1'],yerr=std_m1, fmt='k--+', label = 'm1 interact')
+    pylab.errorbar(bins_centered,binstats_bfit_noisy['m2']-binstats_real_noisy['m2'],yerr=std_m2, fmt='k:x',  label = 'm2 interact')
 
     xadd = max( [ abs(binstats_real_noisy['bin_value'].min()) , abs(binstats_real_noisy['bin_value'].max()) ] ) *0.1
     # pylab.xlim(binstats_real_noisy['bin_value'].min()-xadd,binstats_real_noisy['bin_value'].max()+xadd)
 
-    pylab.xlim([0.0,0.025])
-    # pylab.ylim([-0.1, 0.1])
-
     # pylab.yscale('symlog',linthreshy=0.05)
-    pylab.xlabel('model bias |m|')
-    pylab.ylabel('m')
+    pylab.xlabel('model bias m1')
+    pylab.ylabel('multiplicative bias    m')
 
-    yticks = [-0.15,-0.1,-0.05,-req2_m,-0.01,-req1_m,0.,req1_m,0.01,req2_m,0.05,0.1]
+    yticks = [-req1_m,-req2_m,0.,req1_m,0.01,req2_m,0.05,0.1]
     pylab.yticks(yticks,[str(x) for x in  yticks ])
-    pylab.ylim([-0.03,0.04])
+    pylab.ylim([-0.01,0.05])
+
+    xticks = bins_model_bias
+    pylab.xticks(xticks,[str(x) for x in  xticks ])
+    pylab.xlim([-0.03,0.03])
 
     pylab.grid()
-    pylab.legend(loc='lower right',ncol=2,mode='expand')
+    # pylab.legend(loc='lower right',ncol=2,mode='expand')
 
     plotAddReq()
 
+    pylab.subplots_adjust(left=margin_left, right=margin_right, top=margin_top, bottom=margin_bottom)
+
     filename_fig = 'figures/fig.bins.model_bias'
     saveCurrentFig(filename_fig)
+    # pylab.close()
+
+    # plot the legend
+
+    ax = pylab.gca()
+
+    # create a second figure for the legend
+    fig_size_legend = ( fig_size[0] , fig_size[1] * 0.35 )
+    figLegend = pylab.figure(figsize = fig_size_legend)
+
+    # produce a legend for the objects in the other figure
+    pylab.figlegend(*ax.get_legend_handles_labels(), loc = 'upper center' , ncol=2)
+        
+    filename_fig = 'figures/fig.bins.m.legend'
+    saveCurrentFig(filename_fig)
+
+    figLegend.savefig("legend.png")
+
+
+def plotBiasForBinsAdditive():
+
+    global req2_c, req1_c
+
+    
+# redshift ------------------------------------------------------------------------------------------------------------
+
+    binstats_real_noisy = tabletools.loadTable(filepath='bins.redshift.real.noisy.cat',dtype=dtype_table_binstats)
+    binstats_bfit_noisy = tabletools.loadTable(filepath='bins.redshift.bfit.noisy.cat',dtype=dtype_table_binstats)
+    binstats_real_clear = tabletools.loadTable(filepath='bins.redshift.real.clear.cat',dtype=dtype_table_binstats)
+
+    weights = binstats_real_noisy['bin_ngals'].astype(numpy.float64) / float(sum(binstats_real_noisy['bin_ngals']))
+    logger.info( 'c1 real noisy sum check %2.5f' % numpy.inner(binstats_real_noisy['c1'] , weights ))
+    logger.info( 'c2 real noisy sum check %2.5f' % numpy.inner(binstats_real_noisy['c2'] , weights ))
+
+    weights = binstats_bfit_noisy['bin_ngals'].astype(numpy.float64) / float(sum(binstats_bfit_noisy['bin_ngals']))
+    logger.info( 'c1 bfit noisy sum check %2.5f' % numpy.inner(binstats_bfit_noisy['c1'] , weights ))
+    logger.info( 'c2 bfit noisy sum check %2.5f' % numpy.inner(binstats_bfit_noisy['c2'] , weights ))
+
+
+    pylab.figure(figsize=fig_size, dpi=fig_dpi, facecolor=fig_facecolor, edgecolor=fig_edgecolor)
+    pylab.clf()
+
+    bins_centered = _binCentersSameLen(binstats_real_clear['bin_value'])
+
+    pylab.errorbar(bins_centered,binstats_real_clear['c1'],yerr=binstats_real_clear['c1_std'], fmt='-g+', label = 'c1 model')
+    pylab.errorbar(bins_centered,binstats_real_clear['c2'],yerr=binstats_real_clear['c2_std'], fmt='-yx', label = 'c2 model')
+
+    pylab.errorbar(bins_centered,binstats_real_noisy['c1'],yerr=binstats_real_noisy['c1_std'], fmt='-r+', label = 'c1 noise+model+interact')
+    pylab.errorbar(bins_centered,binstats_real_noisy['c2'],yerr=binstats_real_noisy['c2_std'], fmt='-bx', label = 'c2 noise+model+interact')
+    
+    pylab.errorbar(bins_centered,binstats_bfit_noisy['c1'],yerr=binstats_bfit_noisy['c1_std'], fmt='-m+', label = 'c1 noise+model')
+    pylab.errorbar(bins_centered,binstats_bfit_noisy['c2'],yerr=binstats_bfit_noisy['c2_std'], fmt='-cx', label = 'c2 noise+model')
+
+    std_c1 = (binstats_real_noisy['c1_std']**2 + binstats_bfit_noisy['c1_std']**2)**(0.5)
+    std_c2 = (binstats_real_noisy['c2_std']**2 + binstats_bfit_noisy['c2_std']**2)**(0.5)
+
+    pylab.errorbar(bins_centered,binstats_real_noisy['c1']-binstats_bfit_noisy['c1'],yerr=std_c1, fmt='k--+', label = 'c1 interact')
+    pylab.errorbar(bins_centered,binstats_real_noisy['c2']-binstats_bfit_noisy['c2'],yerr=std_c2, fmt='k:x',  label = 'c2 interact')
+
+    xadd = max( [ abs(binstats_real_noisy['bin_value'].min()) , abs(binstats_real_noisy['bin_value'].max()) ] ) *0.1
+    # pylab.xlim(binstats_real_noisy['bin_value'].min()-xadd,binstats_real_noisy['bin_value'].max()+xadd)
+
+    # pylab.yscale('symlog',linthreshy=0.05)
+    pylab.xlabel('galaxy redshift    z-phot')
+    pylab.ylabel('additive bias   c')
+
+    yticks = [-req1_c,0.,req1_c, 0.002, 0.004, 0.006, 0.008 , 0.01]
+    pylab.yticks(yticks,[str(x) for x in  yticks ])
+    # pylab.ylim([-0.04,0.07])
+    pylab.xlim([0,1.5])
+
+    pylab.grid()
+    # pylab.legend(loc='lower left',ncol=2,mode='expand')
+
+    plotAddReqAdditive()
+
+    pylab.subplots_adjust(left=margin_left, right=margin_right, top=margin_top, bottom=margin_bottom)
+
+    filename_fig = 'figures/fig.bins_additive.redshift'
+    saveCurrentFig(filename_fig)
     pylab.close()
+
+
+
+# size no cut ------------------------------------------------------------------------------------------------------------------
+
+
+    binstats_real_noisy = tabletools.loadTable(filepath='bins.size_nocut.real.noisy.cat',dtype=dtype_table_binstats)
+    binstats_bfit_noisy = tabletools.loadTable(filepath='bins.size_nocut.bfit.noisy.cat',dtype=dtype_table_binstats)
+    binstats_real_clear = tabletools.loadTable(filepath='bins.size_nocut.real.clear.cat',dtype=dtype_table_binstats)
+
+    weights = binstats_real_noisy['bin_ngals'].astype(numpy.float64) / float(sum(binstats_real_noisy['bin_ngals']))
+    logger.info( 'c1 real noisy sum check %2.5f' % numpy.inner(binstats_real_noisy['c1'] , weights ))
+    logger.info( 'c2 real noisy sum check %2.5f' % numpy.inner(binstats_real_noisy['c2'] , weights ))
+
+    weights = binstats_bfit_noisy['bin_ngals'].astype(numpy.float64) / float(sum(binstats_bfit_noisy['bin_ngals']))
+    logger.info( 'c1 bfit noisy sum check %2.5f' % numpy.inner(binstats_bfit_noisy['c1'] , weights ))
+    logger.info( 'c2 bfit noisy sum check %2.5f' % numpy.inner(binstats_bfit_noisy['c2'] , weights ))
+
+    pylab.figure(figsize=fig_size, dpi=fig_dpi, facecolor=fig_facecolor, edgecolor=fig_edgecolor)
+    pylab.clf()
+
+    bins_centered = _binCentersSameLen(binstats_real_clear['bin_value'])
+
+    pylab.errorbar(bins_centered,binstats_real_clear['c1'],yerr=binstats_real_clear['c1_std'], fmt='-g+', label = 'c1 model')
+    pylab.errorbar(bins_centered,binstats_real_clear['c2'],yerr=binstats_real_clear['c2_std'], fmt='-yx', label = 'c2 model')
+
+    pylab.errorbar(bins_centered,binstats_real_noisy['c1'],yerr=binstats_real_noisy['c1_std'], fmt='-r+', label = 'c1 noise+model+interact')
+    pylab.errorbar(bins_centered,binstats_real_noisy['c2'],yerr=binstats_real_noisy['c2_std'], fmt='-bx', label = 'c2 noise+model+interact')
+
+    pylab.errorbar(bins_centered,binstats_bfit_noisy['c1'],yerr=binstats_bfit_noisy['c1_std'], fmt='-m+', label = 'c1 noise+model')
+    pylab.errorbar(bins_centered,binstats_bfit_noisy['c2'],yerr=binstats_bfit_noisy['c2_std'], fmt='-cx', label = 'c2 noise+model')
+
+    std_c1 = (binstats_real_noisy['c1_std']**2 + binstats_bfit_noisy['c1_std']**2)**(0.5)
+    std_c2 = (binstats_real_noisy['c2_std']**2 + binstats_bfit_noisy['c2_std']**2)**(0.5)
+
+    pylab.errorbar(bins_centered,binstats_real_noisy['c1']-binstats_bfit_noisy['c1'],yerr=std_c1, fmt='k--+', label = 'c1 interact')
+    pylab.errorbar(bins_centered,binstats_real_noisy['c2']-binstats_bfit_noisy['c2'],yerr=std_c2, fmt='k:x',  label = 'c2 interact')
+
+    xadd = max( [ abs(binstats_real_noisy['bin_value'].min()) , abs(binstats_real_noisy['bin_value'].max()) ] ) *0.1
+    # print xadd
+    # pylab.xlim(binstats_real_noisy['bin_value'].min()-xadd,binstats_real_noisy['bin_value'].max()+xadd)
+    # print pylab.xlim()
+
+    pylab.yscale('symlog',linthreshy=0.05)
+    pylab.xlabel('galaxy size    Rgp/Rp')
+    pylab.ylabel('additive bias c')
+
+    # yticks = [-0.9,-0.1,-0.05,-req1_c,0.,req1_c,0.05,0.1]
+    # pylab.yticks(yticks,[str(x) for x in  yticks ])
+
+    pylab.grid()
+    # pylab.legend(loc='lower right')
+
+
+    # pylab.xlim([1.,2.])
+    # pylab.ylim([-1., 1.])
+
+    plotAddReq()
+
+    pylab.subplots_adjust(left=margin_left, right=margin_right, top=margin_top, bottom=margin_bottom)
+
+    filename_fig = 'figures/fig.bins_additive.size_nocut'
+    saveCurrentFig(filename_fig)
+    pylab.close()
+
+# size ------------------------------------------------------------------------------------------------------------------
+
+
+
+    binstats_real_noisy = tabletools.loadTable(filepath='bins.size.real.noisy.cat',dtype=dtype_table_binstats)
+    binstats_bfit_noisy = tabletools.loadTable(filepath='bins.size.bfit.noisy.cat',dtype=dtype_table_binstats)
+    binstats_real_clear = tabletools.loadTable(filepath='bins.size.real.clear.cat',dtype=dtype_table_binstats)
+
+    weights = binstats_real_noisy['bin_ngals'].astype(numpy.float64) / float(sum(binstats_real_noisy['bin_ngals']))
+    logger.info( 'c1 real noisy sum check %2.5f' % numpy.inner(binstats_real_noisy['c1'] , weights ))
+    logger.info( 'c2 real noisy sum check %2.5f' % numpy.inner(binstats_real_noisy['c2'] , weights ))
+
+    weights = binstats_bfit_noisy['bin_ngals'].astype(numpy.float64) / float(sum(binstats_bfit_noisy['bin_ngals']))
+    logger.info( 'c1 bfit noisy sum check %2.5f' % numpy.inner(binstats_bfit_noisy['c1'] , weights ))
+    logger.info( 'c2 bfit noisy sum check %2.5f' % numpy.inner(binstats_bfit_noisy['c2'] , weights ))
+
+    pylab.figure(figsize=fig_size, dpi=fig_dpi, facecolor=fig_facecolor, edgecolor=fig_edgecolor)
+    pylab.clf()
+
+    bins_centered = _binCentersSameLen(binstats_real_clear['bin_value'])
+
+    pylab.errorbar(bins_centered,binstats_real_clear['c1'],yerr=binstats_real_clear['c1_std'], fmt='-g+', label = 'c1 model')
+    pylab.errorbar(bins_centered,binstats_real_clear['c2'],yerr=binstats_real_clear['c2_std'], fmt='-yx', label = 'c2 model')
+
+    pylab.errorbar(bins_centered,binstats_bfit_noisy['c1'],yerr=binstats_bfit_noisy['c1_std'], fmt='-m+', label = 'c1 noise+model')
+    pylab.errorbar(bins_centered,binstats_bfit_noisy['c2'],yerr=binstats_bfit_noisy['c2_std'], fmt='-cx', label = 'c2 noise+model')
+
+    pylab.errorbar(bins_centered,binstats_real_noisy['c1'],yerr=binstats_real_noisy['c1_std'], fmt='-r+', label = 'c1 noise+model+interact')
+    pylab.errorbar(bins_centered,binstats_real_noisy['c2'],yerr=binstats_real_noisy['c2_std'], fmt='-bx', label = 'c2 noise+model+interact')
+
+    std_c1 = (binstats_real_noisy['c1_std']**2 + binstats_bfit_noisy['c1_std']**2)**(0.5)
+    std_c2 = (binstats_real_noisy['c2_std']**2 + binstats_bfit_noisy['c2_std']**2)**(0.5)
+
+    pylab.errorbar(bins_centered,binstats_real_noisy['c1']-binstats_bfit_noisy['c1'],yerr=std_c1, fmt='k--+', label = 'c1 interact')
+    pylab.errorbar(bins_centered,binstats_real_noisy['c2']-binstats_bfit_noisy['c2'],yerr=std_c2, fmt='k:x',  label = 'c2 interact')
+
+    xadd = max( [ abs(binstats_real_noisy['bin_value'].min()) , abs(binstats_real_noisy['bin_value'].max()) ] ) *0.1
+    # print xadd
+    # pylab.xlim(binstats_real_noisy['bin_value'].min()-xadd,binstats_real_noisy['bin_value'].max()+xadd)
+    # print pylab.xlim()
+
+    # pylab.yscale('symlog',linthreshy=0.05)
+    pylab.xlabel('galaxy size    Rgp/Rp')
+    pylab.ylabel('additive bias c')
+
+    yticks = [-req2_c,0.,req1_c,req2_c,0.003]
+    pylab.yticks(yticks,[str(x) for x in  yticks ])
+
+    pylab.xlim([1.3,1.95])
+    pylab.ylim([-0.0008, 0.003])
+
+    pylab.grid()
+    # pylab.legend(loc='lower right',ncol=2,mode='expand')
+
+    plotAddReqAdditive()
+
+    pylab.subplots_adjust(left=margin_left, right=margin_right, top=margin_top, bottom=margin_bottom)
+
+    filename_fig = 'figures/fig.bins_additive.size'
+    saveCurrentFig(filename_fig)
+    pylab.close()
+
+# morphology ------------------------------------------------------------------------------------------------------------
+
+
+    binstats_real_noisy = tabletools.loadTable(filepath='bins.modd.real.noisy.cat',dtype=dtype_table_binstats)
+    binstats_bfit_noisy = tabletools.loadTable(filepath='bins.modd.bfit.noisy.cat',dtype=dtype_table_binstats)
+    binstats_real_clear = tabletools.loadTable(filepath='bins.modd.real.clear.cat',dtype=dtype_table_binstats)
+
+    weights = binstats_real_noisy['bin_ngals'].astype(numpy.float64) / float(sum(binstats_real_noisy['bin_ngals']))
+    logger.info( 'c1 real noisy sum check %2.5f' % numpy.inner(binstats_real_noisy['c1'] , weights ))
+    logger.info( 'c2 real noisy sum check %2.5f' % numpy.inner(binstats_real_noisy['c2'] , weights ))
+
+    weights = binstats_bfit_noisy['bin_ngals'].astype(numpy.float64) / float(sum(binstats_bfit_noisy['bin_ngals']))
+    logger.info( 'c1 bfit noisy sum check %2.5f' % numpy.inner(binstats_bfit_noisy['c1'] , weights ))
+    logger.info( 'c2 bfit noisy sum check %2.5f' % numpy.inner(binstats_bfit_noisy['c2'] , weights ))
+
+
+    pylab.figure(figsize=fig_size, dpi=fig_dpi, facecolor=fig_facecolor, edgecolor=fig_edgecolor)
+    pylab.clf()
+
+    bins_centered = _binCentersSameLen(binstats_real_clear['bin_value'])
+
+
+    pylab.errorbar(bins_centered,binstats_real_clear['c1'],yerr=binstats_real_clear['c1_std'], fmt='-g+', label = 'c1 model')
+    pylab.errorbar(bins_centered,binstats_real_clear['c2'],yerr=binstats_real_clear['c2_std'], fmt='-yx', label = 'c2 model')
+
+    pylab.errorbar(bins_centered,binstats_bfit_noisy['c1'],yerr=binstats_bfit_noisy['c1_std'], fmt='-m+', label = 'c1 noise+model')
+    pylab.errorbar(bins_centered,binstats_bfit_noisy['c2'],yerr=binstats_bfit_noisy['c2_std'], fmt='-cx', label = 'c2 noise+model')
+
+    pylab.errorbar(bins_centered,binstats_real_noisy['c1'],yerr=binstats_real_noisy['c1_std'], fmt='-r+', label = 'c1 noise+model+interact')
+    pylab.errorbar(bins_centered,binstats_real_noisy['c2'],yerr=binstats_real_noisy['c2_std'], fmt='-bx', label = 'c2 noise+model+interact')
+
+    std_c1 = (binstats_real_noisy['c1_std']**2 + binstats_bfit_noisy['c1_std']**2)**(0.5)
+    std_c2 = (binstats_real_noisy['c2_std']**2 + binstats_bfit_noisy['c2_std']**2)**(0.5)
+
+    pylab.errorbar(bins_centered,binstats_real_noisy['c1']-binstats_bfit_noisy['c1'],yerr=std_c1, fmt='k--+', label = 'c1 interact')
+    pylab.errorbar(bins_centered,binstats_real_noisy['c2']-binstats_bfit_noisy['c2'],yerr=std_c2, fmt='k:x',  label = 'c2 interact')
+
+    xadd = max( [ abs(binstats_real_noisy['bin_value'].min()) , abs(binstats_real_noisy['bin_value'].max()) ] ) *0.1
+    # pylab.xlim(binstats_real_noisy['bin_value'].min()-xadd,binstats_real_noisy['bin_value'].max()+xadd)
+
+    pylab.xlim([0.,27.5])
+    # pylab.ylim([-0.1, 0.1])
+
+    # pylab.yscale('symlog',linthreshy=0.05)
+    pylab.xlabel('Hubble seqence index')
+    pylab.ylabel('additive bias    c')
+
+    yticks = [-req2_c,-req1_c,0.,req1_c,req2_c, 0.002, 0.003, 0.004]
+    pylab.yticks(yticks,[str(x) for x in  yticks ])
+    pylab.ylim([-0.0006,0.004])
+
+    pylab.grid()
+    # pylab.legend(loc='lower right',ncol=2,mode='expand')
+
+    plotAddReqAdditive()
+
+    pylab.subplots_adjust(left=margin_left, right=margin_right, top=margin_top, bottom=margin_bottom)
+
+    filename_fig = 'figures/fig.bins_additive.modd'
+    saveCurrentFig(filename_fig)
+    pylab.close()
+
+# model bias ------------------------------------------------------------------------------------------------------------
+
+    req1_m = 0.02
+    req2_m = 0.004
+
+
+    binstats_real_noisy = tabletools.loadTable(filepath='bins.model_bias_additive.real.noisy.cat',dtype=dtype_table_binstats)
+    binstats_bfit_noisy = tabletools.loadTable(filepath='bins.model_bias_additive.bfit.noisy.cat',dtype=dtype_table_binstats)
+    binstats_real_clear = tabletools.loadTable(filepath='bins.model_bias_additive.real.clear.cat',dtype=dtype_table_binstats)
+
+    weights = binstats_real_noisy['bin_ngals'].astype(numpy.float64) / float(sum(binstats_real_noisy['bin_ngals']))
+    logger.info( 'c1 real noisy sum check %2.5f' % numpy.inner(binstats_real_noisy['c1'] , weights ))
+    logger.info( 'c2 real noisy sum check %2.5f' % numpy.inner(binstats_real_noisy['c2'] , weights ))
+
+    weights = binstats_bfit_noisy['bin_ngals'].astype(numpy.float64) / float(sum(binstats_bfit_noisy['bin_ngals']))
+    logger.info( 'c1 bfit noisy sum check %2.5f' % numpy.inner(binstats_bfit_noisy['c1'] , weights ))
+    logger.info( 'c2 bfit noisy sum check %2.5f' % numpy.inner(binstats_bfit_noisy['c2'] , weights ))
+
+    pylab.figure(figsize=fig_size, dpi=fig_dpi, facecolor=fig_facecolor, edgecolor=fig_edgecolor)
+    pylab.clf()
+
+    bins_centered = _binCentersSameLen(binstats_real_clear['bin_value'])
+
+    pylab.errorbar(bins_centered,abs(binstats_real_clear['c1']),yerr=binstats_real_clear['c1_std'], fmt='-g+', label = 'c1 model')
+    pylab.errorbar(bins_centered,abs(binstats_real_clear['c2']),yerr=binstats_real_clear['c2_std'], fmt='-yx', label = 'c2 model')
+
+    pylab.errorbar(bins_centered,binstats_bfit_noisy['c1'],yerr=binstats_bfit_noisy['c1_std'], fmt='-m+', label = 'c1 noise+model')
+    pylab.errorbar(bins_centered,binstats_bfit_noisy['c2'],yerr=binstats_bfit_noisy['c2_std'], fmt='-cx', label = 'c2 noise+model')
+
+    pylab.errorbar(bins_centered,binstats_real_noisy['c1'],yerr=binstats_real_noisy['c1_std'], fmt='-r+', label = 'c1 noise+model+interact')
+    pylab.errorbar(bins_centered,binstats_real_noisy['c2'],yerr=binstats_real_noisy['c2_std'], fmt='-bx', label = 'c2 noise+model+interact')
+
+    std_c1 = (binstats_real_noisy['c1_std']**2 + binstats_bfit_noisy['c1_std']**2)**(0.5)
+    std_c2 = (binstats_real_noisy['c2_std']**2 + binstats_bfit_noisy['c2_std']**2)**(0.5)
+
+    pylab.errorbar(bins_centered,binstats_bfit_noisy['c1']-binstats_real_noisy['c1'],yerr=std_c1, fmt='k--+', label = 'c1 interact')
+    pylab.errorbar(bins_centered,binstats_bfit_noisy['c2']-binstats_real_noisy['c2'],yerr=std_c2, fmt='k:x',  label = 'c2 interact')
+
+    xadd = max( [ abs(binstats_real_noisy['bin_value'].min()) , abs(binstats_real_noisy['bin_value'].max()) ] ) *0.1
+    # pylab.xlim(binstats_real_noisy['bin_value'].min()-xadd,binstats_real_noisy['bin_value'].max()+xadd)
+
+    # pylab.yscale('symlog',linthreshy=0.05)
+    pylab.xlabel('model bias c1')
+    pylab.ylabel('additive bias     c')
+
+    yticks = [-0.005,0.,0.005,0.01, 0.015, 0.02]
+    pylab.yticks(yticks,[str(x) for x in  yticks ])
+    pylab.ylim([-0.007,0.02])
+
+    xticks = bins_model_bias_additive
+    pylab.xticks(xticks,[str(x) for x in  xticks ])
+    pylab.xlim([-0.003,0.003])
+
+    pylab.grid()
+    # pylab.legend(loc='lower right',ncol=2,mode='expand')
+
+    plotAddReqAdditive()
+
+    pylab.subplots_adjust(left=margin_left, right=margin_right, top=margin_top, bottom=margin_bottom)
+
+    filename_fig = 'figures/fig.bins_additive.model_bias'
+    saveCurrentFig(filename_fig)
+    # pylab.close()
+
+    # plot the legend
+
+    ax = pylab.gca()
+
+    # create a second figure for the legend
+    fig_size_legend = ( fig_size[0] , fig_size[1] * 0.35 )
+    figLegend = pylab.figure(figsize = fig_size_legend)
+
+    # produce a legend for the objects in the other figure
+    pylab.figlegend(*ax.get_legend_handles_labels(), loc = 'upper center' , ncol=2)
+        
+    pylab.subplots_adjust(left=margin_left, right=margin_right, top=margin_top, bottom=margin_bottom)
+
+    filename_fig = 'figures/fig.bins.c.legend'
+    saveCurrentFig(filename_fig)
+
+    figLegend.savefig("legend.png")
+
 
 
 def getCuts():
 
     cut_rgprp_min = 1.3
     cut_rgprp_max = 1000
-    cut_snr_min = 40
+    cut_snr_min = 100
     cut_snr_max = 100000
 
     stats_array        = tabletools.loadTable(table_name='stats_array',        filepath = filepath_stats,              logger=logger)
@@ -569,34 +953,38 @@ def saveBiasForBins():
     ajs_array          = tabletools.loadTable(table_name='ajs_array',          filepath = filepath_acs_join_stats,     logger=logger)
     acs_array          = tabletools.loadTable(table_name='acs_array',          filepath = filepath_acs,                logger=logger)
 
+    # bin_types = ['size_nocut', 'size', 'redshift', 'morphology', 'model_bias', 'model_bias_additive' , 'abse']
+    bin_types = ['model_bias_additive']
 
 
-### ------------------------ galaxy size --- full (no cuts)
+## ------------------------ galaxy size --- full (no cuts)
 
-    logging.info('galaxy size -- nocut')
+    if 'size_nocut' in bin_types:
+
+        logging.info('galaxy size -- nocut')
 
 
-    psf_size = 0.7695
-    bin_column = stats_array['rgp']/psf_size
+        psf_size = 0.7695
+        bin_column = stats_array['rgp']/psf_size
 
-    # do the real noisy case
+        # do the real noisy case
 
-    logging.info('--------------------------- getting results for real noisy galaxies ---------------------------')
-    mc_results = getBiasForBins(results_real_noisy,truth_array_25880,bin_column=bin_column,bin_ids=stats_array['cosmos_id'],bin_values=bins_size_nocut,bin_column_name='size_nocut_real_noisy')
-    filename_results = 'bins.size_nocut.real.noisy.cat'
-    tabletools.saveTable(filename_results,mc_results)
+        logging.info('--------------------------- getting results for real noisy galaxies ---------------------------')
+        mc_results = getBiasForBins(results_real_noisy,truth_array_25880,bin_column=bin_column,bin_ids=stats_array['cosmos_id'],bin_values=bins_size_nocut,bin_column_name='size_nocut_real_noisy')
+        filename_results = 'bins.size_nocut.real.noisy.cat'
+        tabletools.saveTable(filename_results,mc_results)
 
-    # do the bfit noisy case
-    logging.info('--------------------------- getting results for bfit noisy galaxies ---------------------------')
-    mc_results = getBiasForBins(results_bfit_noisy,truth_array_25880,bin_column=bin_column, bin_ids=stats_array['cosmos_id'],bin_values=bins_size_nocut,bin_column_name='size_nocut_bfit_noisy')
-    filename_results = 'bins.size_nocut.bfit.noisy.cat'
-    tabletools.saveTable(filename_results,mc_results)
+        # do the bfit noisy case
+        logging.info('--------------------------- getting results for bfit noisy galaxies ---------------------------')
+        mc_results = getBiasForBins(results_bfit_noisy,truth_array_25880,bin_column=bin_column, bin_ids=stats_array['cosmos_id'],bin_values=bins_size_nocut,bin_column_name='size_nocut_bfit_noisy')
+        filename_results = 'bins.size_nocut.bfit.noisy.cat'
+        tabletools.saveTable(filename_results,mc_results)
 
-    # # do the real noiseless case
-    logging.info('--------------------------- getting results for real galaxies ---------------------------')
-    mc_results = getBiasForBins(results_real,truth_array_26000,bin_column=bin_column, bin_ids=stats_array['cosmos_id'],bin_values=bins_size_nocut,bin_column_name='size_nocut_real_clear')
-    filename_results = 'bins.size_nocut.real.clear.cat'
-    tabletools.saveTable(filename_results,mc_results)
+        # # do the real noiseless case
+        logging.info('--------------------------- getting results for real galaxies ---------------------------')
+        mc_results = getBiasForBins(results_real,truth_array_26000,bin_column=bin_column, bin_ids=stats_array['cosmos_id'],bin_values=bins_size_nocut,bin_column_name='size_nocut_real_clear')
+        filename_results = 'bins.size_nocut.real.clear.cat'
+        tabletools.saveTable(filename_results,mc_results)
 
 
 ### ------------------------ size cut
@@ -607,120 +995,152 @@ def saveBiasForBins():
 
 ### ------------------------ redshift
 
-    logging.info('galaxy redshift')
+    if 'redshift' in bin_types:
 
-    # bins_redshift = [0 , 0.35, 0.6, 0.8, 1.1 , 1.5]    
+        logging.info('galaxy redshift')
 
-    # do the real noisy case
-    logging.info('--------------------------- getting results for real noisy galaxies ---------------------------')
-    mc_results_real_noisy = getBiasForBins(results_real_noisy,truth_array_25880,bin_column=ajs_array['ZPHOT'], bin_ids=ajs_array['IDENT'],bin_values=bins_redshift,bin_column_name='zphot_real_noisy')
-    filename_results = 'bins.redshift.real.noisy.cat'
-    tabletools.saveTable(filename_results,mc_results_real_noisy)
+        # bins_redshift = [0 , 0.35, 0.6, 0.8, 1.1 , 1.5]    
 
-    # do the bfit noisy case
-    logging.info('--------------------------- getting results for bfit noisy galaxies ---------------------------')
-    mc_results_bfit_noisy = getBiasForBins(results_bfit_noisy,truth_array_25880,bin_column=ajs_array['ZPHOT'], bin_ids=ajs_array['IDENT'],bin_values=bins_redshift,bin_column_name='zphot_bfit_noisy')
-    filename_results = 'bins.redshift.bfit.noisy.cat'
-    tabletools.saveTable(filename_results,mc_results_bfit_noisy)
+        # do the real noisy case
+        logging.info('--------------------------- getting results for real noisy galaxies ---------------------------')
+        mc_results_real_noisy = getBiasForBins(results_real_noisy,truth_array_25880,bin_column=ajs_array['ZPHOT'], bin_ids=ajs_array['IDENT'],bin_values=bins_redshift,bin_column_name='zphot_real_noisy')
+        filename_results = 'bins.redshift.real.noisy.cat'
+        tabletools.saveTable(filename_results,mc_results_real_noisy)
 
-    # do the real noiseless case
-    logging.info('--------------------------- getting results for real galaxies ---------------------------')
-    mc_results_real_clear = getBiasForBins(results_real,truth_array_26000,bin_column=ajs_array['ZPHOT'], bin_ids=ajs_array['IDENT'],bin_values=bins_redshift,bin_column_name='zphot_bfit_clear')
-    filename_results = 'bins.redshift.real.clear.cat'
-    tabletools.saveTable(filename_results,mc_results_real_clear)
+        # do the bfit noisy case
+        logging.info('--------------------------- getting results for bfit noisy galaxies ---------------------------')
+        mc_results_bfit_noisy = getBiasForBins(results_bfit_noisy,truth_array_25880,bin_column=ajs_array['ZPHOT'], bin_ids=ajs_array['IDENT'],bin_values=bins_redshift,bin_column_name='zphot_bfit_noisy')
+        filename_results = 'bins.redshift.bfit.noisy.cat'
+        tabletools.saveTable(filename_results,mc_results_bfit_noisy)
+
+        # do the real noiseless case
+        logging.info('--------------------------- getting results for real galaxies ---------------------------')
+        mc_results_real_clear = getBiasForBins(results_real,truth_array_26000,bin_column=ajs_array['ZPHOT'], bin_ids=ajs_array['IDENT'],bin_values=bins_redshift,bin_column_name='zphot_bfit_clear')
+        filename_results = 'bins.redshift.real.clear.cat'
+        tabletools.saveTable(filename_results,mc_results_real_clear)
 
 
 ### ------------------------ galaxy size -- cut
 
-    logging.info('galaxy size -- cut')
+    if 'size' in bin_types:
+
+        logging.info('galaxy size -- cut')
 
 
-    psf_size = 0.7695
-    bin_column = stats_array['rgp']/psf_size
+        psf_size = 0.7695
+        bin_column = stats_array['rgp']/psf_size
 
-    # do the real noisy case
+        # do the real noisy case
 
-    logging.info('--------------------------- getting results for real noisy galaxies ---------------------------')
-    mc_results = getBiasForBins(results_real_noisy,truth_array_25880,bin_column=bin_column,bin_ids=stats_array['cosmos_id'],bin_values=bins_size,bin_column_name='size_real_noisy')
-    filename_results = 'bins.size.real.noisy.cat'
-    tabletools.saveTable(filename_results,mc_results)
+        logging.info('--------------------------- getting results for real noisy galaxies ---------------------------')
+        mc_results = getBiasForBins(results_real_noisy,truth_array_25880,bin_column=bin_column,bin_ids=stats_array['cosmos_id'],bin_values=bins_size,bin_column_name='size_real_noisy')
+        filename_results = 'bins.size.real.noisy.cat'
+        tabletools.saveTable(filename_results,mc_results)
 
-    # do the bfit noisy case
-    logging.info('--------------------------- getting results for bfit noisy galaxies ---------------------------')
-    mc_results = getBiasForBins(results_bfit_noisy,truth_array_25880,bin_column=bin_column, bin_ids=stats_array['cosmos_id'],bin_values=bins_size,bin_column_name='size_bfit_noisy')
-    filename_results = 'bins.size.bfit.noisy.cat'
-    tabletools.saveTable(filename_results,mc_results)
+        # do the bfit noisy case
+        logging.info('--------------------------- getting results for bfit noisy galaxies ---------------------------')
+        mc_results = getBiasForBins(results_bfit_noisy,truth_array_25880,bin_column=bin_column, bin_ids=stats_array['cosmos_id'],bin_values=bins_size,bin_column_name='size_bfit_noisy')
+        filename_results = 'bins.size.bfit.noisy.cat'
+        tabletools.saveTable(filename_results,mc_results)
 
-    # # do the real noiseless case
-    logging.info('--------------------------- getting results for real galaxies ---------------------------')
-    mc_results = getBiasForBins(results_real,truth_array_26000,bin_column=bin_column, bin_ids=stats_array['cosmos_id'],bin_values=bins_size,bin_column_name='size_real_clear')
-    filename_results = 'bins.size.real.clear.cat'
-    tabletools.saveTable(filename_results,mc_results)
-
-
+        # # do the real noiseless case
+        logging.info('--------------------------- getting results for real galaxies ---------------------------')
+        mc_results = getBiasForBins(results_real,truth_array_26000,bin_column=bin_column, bin_ids=stats_array['cosmos_id'],bin_values=bins_size,bin_column_name='size_real_clear')
+        filename_results = 'bins.size.real.clear.cat'
+        tabletools.saveTable(filename_results,mc_results)
 
 
 ### ------------------------ galaxy morphology
 
+    if 'morphology' in bin_types:
 
-    logging.info('galaxy morphology')
+        logging.info('galaxy morphology')
 
 
-    # bins_modd = [0 , 5 ,  9 , 20, 32]
-    bin_column = ajs_array['MODD']
-    bin_ids = stats_array['cosmos_id']
+        # bins_modd = [0 , 5 ,  9 , 20, 32]
+        bin_column = ajs_array['MODD']
+        bin_ids = stats_array['cosmos_id']
 
-        # do the real noisy case
+            # do the real noisy case
 
-    logging.info('--------------------------- getting results for %d real noisy galaxies ---------------------------' % len(bin_ids))
-    mc_results = getBiasForBins(results_real_noisy,truth_array_25880,bin_column=bin_column,bin_ids=bin_ids,bin_values=bins_modd,bin_column_name='modd_real_noisy')
-    filename_results = 'bins.modd.real.noisy.cat'
-    tabletools.saveTable(filename_results,mc_results)
+        logging.info('--------------------------- getting results for %d real noisy galaxies ---------------------------' % len(bin_ids))
+        mc_results = getBiasForBins(results_real_noisy,truth_array_25880,bin_column=bin_column,bin_ids=bin_ids,bin_values=bins_modd,bin_column_name='modd_real_noisy')
+        filename_results = 'bins.modd.real.noisy.cat'
+        tabletools.saveTable(filename_results,mc_results)
 
-    # do the bfit noisy case
-    logging.info('--------------------------- getting results for %d bfit noisy galaxies ---------------------------'  % len(bin_ids))
-    mc_results = getBiasForBins(results_bfit_noisy,truth_array_25880,bin_column=bin_column, bin_ids=bin_ids,bin_values=bins_modd,bin_column_name='modd_bfit_noisy')
-    filename_results = 'bins.modd.bfit.noisy.cat'
-    tabletools.saveTable(filename_results,mc_results)
+        # do the bfit noisy case
+        logging.info('--------------------------- getting results for %d bfit noisy galaxies ---------------------------'  % len(bin_ids))
+        mc_results = getBiasForBins(results_bfit_noisy,truth_array_25880,bin_column=bin_column, bin_ids=bin_ids,bin_values=bins_modd,bin_column_name='modd_bfit_noisy')
+        filename_results = 'bins.modd.bfit.noisy.cat'
+        tabletools.saveTable(filename_results,mc_results)
 
-    # # do the real noiseless case
-    logging.info('--------------------------- getting results for %d real galaxies ---------------------------'  % len(bin_ids))
-    mc_results = getBiasForBins(results_real,truth_array_26000,bin_column=bin_column, bin_ids=bin_ids,bin_values=bins_modd,bin_column_name='modd_real_clear')
-    filename_results = 'bins.modd.real.clear.cat'
-    tabletools.saveTable(filename_results,mc_results)
+        # # do the real noiseless case
+        logging.info('--------------------------- getting results for %d real galaxies ---------------------------'  % len(bin_ids))
+        mc_results = getBiasForBins(results_real,truth_array_26000,bin_column=bin_column, bin_ids=bin_ids,bin_values=bins_modd,bin_column_name='modd_real_clear')
+        filename_results = 'bins.modd.real.clear.cat'
+        tabletools.saveTable(filename_results,mc_results)
 
 
 
 ### ------------------------ galaxy model bias
-
-    logging.info('galaxy model bias')
-
-    cut_stats,cut_ajs = getCuts()
-    stats_array = cut_stats;
-    ajs_array   = cut_ajs;
-
-    bin_column = abs(stats_array['m1']+1j*stats_array['m2'])
-    bins_model_bias = [0.0, 0.005, 0.01, 0.015, 0.02 , 0.025] 
-
     
-    # do the real noisy case
-    logging.info('--------------------------- getting results for real noisy galaxies ---------------------------')
-    mc_results = getBiasForBins(results_real_noisy,truth_array_25880,bin_column=bin_column,bin_ids=stats_array['cosmos_id'],bin_values=bins_model_bias,bin_column_name='bins_model_bias')
-    filename_results = 'bins.model_bias.real.noisy.cat'
-    tabletools.saveTable(filename_results,mc_results)
+    if 'model_bias' in bin_types:
 
-    # do the bfit noisy case
-    logging.info('--------------------------- getting results for bfit noisy galaxies ---------------------------')
-    mc_results = getBiasForBins(results_bfit_noisy,truth_array_25880,bin_column=bin_column, bin_ids=stats_array['cosmos_id'],bin_values=bins_model_bias,bin_column_name='bins_model_bias')
-    filename_results = 'bins.model_bias.bfit.noisy.cat'
-    tabletools.saveTable(filename_results,mc_results)
+        logging.info('galaxy model bias')
 
-    # do the real noiseless case
-    logging.info('--------------------------- getting results for real galaxies ---------------------------')
-    mc_results = getBiasForBins(results_real,truth_array_26000,bin_column=bin_column, bin_ids=stats_array['cosmos_id'],bin_values=bins_model_bias,bin_column_name='bins_model_bias')
-    filename_results = 'bins.model_bias.real.clear.cat'
-    tabletools.saveTable(filename_results,mc_results)
+        cut_stats,cut_ajs = getCuts()
+        stats_array = cut_stats;
+        ajs_array   = cut_ajs;
 
+        bin_column = stats_array['m1']
+            
+        # do the real noisy case
+        logging.info('--------------------------- getting results for real noisy galaxies ---------------------------')
+        mc_results = getBiasForBins(results_real_noisy,truth_array_25880,bin_column=bin_column,bin_ids=stats_array['cosmos_id'],bin_values=bins_model_bias,bin_column_name='bins_m1_real_noisy')
+        filename_results = 'bins.model_bias.real.noisy.cat'
+        tabletools.saveTable(filename_results,mc_results)
+
+        # do the bfit noisy case
+        logging.info('--------------------------- getting results for bfit noisy galaxies ---------------------------')
+        mc_results = getBiasForBins(results_bfit_noisy,truth_array_25880,bin_column=bin_column, bin_ids=stats_array['cosmos_id'],bin_values=bins_model_bias,bin_column_name='bins_m1_bfit_noisy')
+        filename_results = 'bins.model_bias.bfit.noisy.cat'
+        tabletools.saveTable(filename_results,mc_results)
+
+        # do the real noiseless case
+        logging.info('--------------------------- getting results for real galaxies ---------------------------')
+        mc_results = getBiasForBins(results_real,truth_array_26000,bin_column=bin_column, bin_ids=stats_array['cosmos_id'],bin_values=bins_model_bias,bin_column_name='bins_m1_real_clear')
+        filename_results = 'bins.model_bias.real.clear.cat'
+        tabletools.saveTable(filename_results,mc_results)
+
+### ------------------------ galaxy model bias additive
+    
+    if 'model_bias_additive' in bin_types:
+        
+        logging.info('galaxy model bias additive')
+
+        cut_stats,cut_ajs = getCuts()
+        stats_array = cut_stats;
+        ajs_array   = cut_ajs;
+
+        bin_column = stats_array['c1']
+            
+        # do the real noisy case
+        logging.info('--------------------------- getting results for real noisy galaxies ---------------------------')
+        mc_results = getBiasForBins(results_real_noisy,truth_array_25880,bin_column=bin_column,bin_ids=stats_array['cosmos_id'],bin_values=bins_model_bias_additive,bin_column_name='bins_c1_real_noisy')
+        filename_results = 'bins.model_bias_additive.real.noisy.cat'
+        tabletools.saveTable(filename_results,mc_results)
+
+        # do the bfit noisy case
+        logging.info('--------------------------- getting results for bfit noisy galaxies ---------------------------')
+        mc_results = getBiasForBins(results_bfit_noisy,truth_array_25880,bin_column=bin_column, bin_ids=stats_array['cosmos_id'],bin_values=bins_model_bias_additive,bin_column_name='bins_c1_bfit_noisy')
+        filename_results = 'bins.model_bias_additive.bfit.noisy.cat'
+        tabletools.saveTable(filename_results,mc_results)
+
+        # do the real noiseless case
+        logging.info('--------------------------- getting results for real galaxies ---------------------------')
+        mc_results = getBiasForBins(results_real,truth_array_26000,bin_column=bin_column, bin_ids=stats_array['cosmos_id'],bin_values=bins_model_bias_additive,bin_column_name='bins_c1_real_clear')
+        filename_results = 'bins.model_bias_additive.real.clear.cat'
+        tabletools.saveTable(filename_results,mc_results)
 
 
 
@@ -758,6 +1178,8 @@ def plotModelBias():
     select = numpy.logical_and(select , results_stats['zphot'] > 0) 
     results_m1 = results_stats[select]['m1']
     results_m2 = results_stats[select]['m2']
+    results_c1 = results_stats[select]['c1']
+    results_c2 = results_stats[select]['c2']
     results_rgp = results_stats[select]['rgp']
     results_snr = results_stats[select]['snr']
     results_zphot = results_stats[select]['zphot']
@@ -792,6 +1214,57 @@ def plotModelBias():
     filename_fig = 'figures/figure.hist.m1m2.real'
     saveCurrentFig(filename_fig)
     pylab.close()
+
+
+    # c1 c2 hist -----------------------------------------------------------------------------------
+
+    pylab.figure(figsize=(5,4))
+    pylab.clf()
+    n_bins = 50
+    h1,b1,_ = pylab.hist(results_c1,n_bins,color='r',histtype='step',label='c1')
+    h2,b2,_ = pylab.hist(results_c2,n_bins,color='b',histtype='step',label='c2')
+    # pylab.plot(_binCenters(b1),h1,'r+-')
+    # pylab.plot(_binCenters(b2),h2,'bx-')
+    pylab.axvline(x=results_c1.mean(),linewidth=1, color='r')
+    pylab.axvline(x=results_c2.mean(),linewidth=1, color='b')
+
+    pylab.xlabel('multiplicative bias')
+    pylab.grid()
+    pylab.legend()
+    print "mean" , numpy.mean(results_c1)
+    print "mean" , numpy.mean(results_c2)
+    print "stdv" , numpy.std(results_c1,ddof=1)
+    print "stdv" , numpy.std(results_c2,ddof=1)
+    print "stdm" , numpy.std(results_c1,ddof=1)/numpy.sqrt(len(results_c1))
+    print "stdm" , numpy.std(results_c2,ddof=1)/numpy.sqrt(len(results_c2))
+    print 'nans?' , any(numpy.isnan(results_c1))
+
+    filename_fig = 'figures/figure.hist.c1c2.real'
+    saveCurrentFig(filename_fig)
+    pylab.close()
+
+    # scatter m1 vs c1
+
+    pylab.figure()
+    pylab.clf()
+
+    # pylab.scatter(results_m1, results_c1, label='m1,c1')  
+    # pylab.scatter(results_m2, results_c2)
+
+    hist,xedges,yedges = pylab.histogram2d(results_m1, results_c1,bins=100)
+    extent = [xedges[0], xedges[-1], yedges[0], yedges[-1] ]
+    pylab.imshow(hist.T,interpolation='nearest')
+    
+
+    pylab.xlabel('m')
+    pylab.ylabel('c')
+    pylab.grid()
+    # pylab.legend()
+
+    filename_fig = 'figures/figure.scatter.MvsC.real'
+    saveCurrentFig(filename_fig)
+    pylab.close()
+
 
     # snr distribution -----------------------------------------------------------------------------
 
@@ -965,6 +1438,7 @@ def plotModelBias():
     pylab.xlabel('modd')
     pylab.ylabel('m1')
     
+    filename_fig = 'figures/figure.hist.M1vsMODD.real'
     saveCurrentFig(filename_fig)
     pylab.close()
 
@@ -1001,6 +1475,64 @@ def plotModelBias():
     filename_fig = 'figures/figure.hist.M1M2forMODD.real'
     saveCurrentFig(filename_fig)
     pylab.close()
+
+    # c1 vs modd -----------------------------------------------------------------------------------
+
+    digitized = numpy.digitize(results_modd , bins_modd)
+    bin_mean1 = [results_c1[digitized == i].mean()      for i in range(1, len(bins_modd))]
+    bin_stdv1 = [results_c1[digitized == i].std(ddof=1) for i in range(1, len(bins_modd))]
+    bin_stdm1 = [results_c1[digitized == i].std(ddof=1)/numpy.sqrt(len(results_m1[digitized == i])) for i in range(1, len(bins_modd))]
+    bin_mean2 = [results_c2[digitized == i].mean()      for i in range(1, len(bins_modd))]
+    bin_stdv2 = [results_c2[digitized == i].std(ddof=1) for i in range(1, len(bins_modd))]
+    bin_stdm2 = [results_c2[digitized == i].std(ddof=1)/numpy.sqrt(len(results_m2[digitized == i])) for i in range(1, len(bins_modd))]
+    
+    pylab.figure()
+    pylab.errorbar(bins_modd[1:],bin_mean1,yerr=bin_stdv1)
+    pylab.errorbar(bins_modd[1:],bin_mean2,yerr=bin_stdv2)
+    pylab.errorbar(bins_modd[1:],bin_mean1,yerr=bin_stdm1)
+    pylab.errorbar(bins_modd[1:],bin_mean2,yerr=bin_stdm2)
+    pylab.xlabel('modd')
+    pylab.ylabel('c1')
+    
+    filename_fig = 'figures/figure.hist.C1C2vsMODD'
+    saveCurrentFig(filename_fig)
+    pylab.close()
+
+    pylab.figure() 
+
+    bins_modd_use = [0,9,32]
+
+    digitized = numpy.digitize(results_modd, bins_modd_use)
+    n_bins_m = 100
+    n_bins_c = 100
+
+
+    colors_modd_c1 = ['m','c']
+    colors_modd_c2 = ['r','b']
+
+    # colors_modd_m1 = ['r','b']
+    # colors_modd_m2 = ['m','c']
+    for i in range(1, len(bins_modd_use)):
+        c1= results_c1[digitized == i]
+        c2= results_c2[digitized == i]
+        weights = numpy.ones_like(c1)/len(c1)
+        h,b,p = pylab.hist(c1,weights=weights,bins=n_bins_c,histtype='step',label='c1 Hubble Seq %d-%d' % (bins_modd_use[i-1],bins_modd_use[i]),color=colors_modd_c1[i-1])
+        h,b,p = pylab.hist(c2,weights=weights,bins=n_bins_c,histtype='step',label='c2 Hubble Seq %d-%d' % (bins_modd_use[i-1],bins_modd_use[i]),color=colors_modd_c2[i-1])
+        pylab.axvline(linewidth=2, color='k')
+        pylab.axvline(x=c1.mean(),linewidth=1, color=colors_modd_c1[i-1])
+        pylab.axvline(x=c2.mean(),linewidth=1, color=colors_modd_c2[i-1])
+
+    pylab.grid()
+    pylab.legend(ncol=2,loc='upper center',mode='expand')
+    pylab.xlabel('c')
+    # pylab.xticks([-0.1 , -0.05 , -0.01 ,   0.01 , 0.05 , 0.1])
+    pylab.ylabel('normalised histogram')
+    # pylab.ylim([0,0.1])
+
+    filename_fig = 'figures/figure.hist.C1C2forMODD.real'
+    saveCurrentFig(filename_fig)
+    pylab.close()
+
 
     # m1 vs redshift -------------------------------------------------------------------------------
 
@@ -1120,13 +1652,129 @@ def plotModelBias():
 
     pylab.grid()
     pylab.legend()
-    pylab.xlabel('m1m2')
+    pylab.xlabel('m')
     pylab.xticks([-0.1 , -0.05 , -0.01 ,   0.01 , 0.05 , 0.1])
     pylab.ylabel('normalised hist')
 
     filename_fig = 'figures/figure.hist.M1M2forSIZE.real'
     saveCurrentFig(filename_fig)
     pylab.close()
+
+    # c1 vs redshift -------------------------------------------------------------------------------
+
+    digitized = numpy.digitize(results_zphot, bins_redshift)
+    bin_mean1 = [results_c1[digitized == i].mean()      for i in range(1, len(bins_redshift))]
+    bin_stdv1 = [results_c1[digitized == i].std(ddof=1) for i in range(1, len(bins_redshift))]
+    bin_stdm1 = [results_c1[digitized == i].std(ddof=1)/numpy.sqrt(len(results_m1[digitized == i])) for i in range(1, len(bins_redshift))]
+    bin_mean2 = [results_c2[digitized == i].mean()      for i in range(1, len(bins_redshift))]
+    bin_stdv2 = [results_c2[digitized == i].std(ddof=1) for i in range(1, len(bins_redshift))]
+    bin_stdm2 = [results_c2[digitized == i].std(ddof=1)/numpy.sqrt(len(results_m2[digitized == i])) for i in range(1, len(bins_redshift))]
+    
+    pylab.figure()
+    # pylab.errorbar(bins_redshift[1:],bin_mean1,yerr=bin_stdv1)
+    # pylab.errorbar(bins_redshift[1:],bin_mean2,yerr=bin_stdv2)
+    pylab.errorbar(bins_redshift[1:],bin_mean1,yerr=bin_stdm1,label='c1',fmt='+r-')
+    pylab.errorbar(bins_redshift[1:],bin_mean2,yerr=bin_stdm2,label='c2',fmt='xb-')
+    pylab.xlabel('redshift   z-phot')
+    pylab.ylabel('c')
+
+    pylab.grid()
+    pylab.legend(loc='upper left')
+
+    plotAddReqAdditive()
+    
+    filename_fig = 'figures/figure.hist.C1C2vsREDSHIFT.real'
+    saveCurrentFig(filename_fig)
+    pylab.close()
+
+    print len(results_stats)
+    print len(results_size[results_size > 1.2])
+
+    # redshift cross - sections --------------------------------------------------------------------
+
+    pylab.figure()
+    n_bins_m = 32
+    n_bins_c = 32
+
+    redshift_color_tuples = getColorMap(len(bins_redshift))
+
+    for i in range(1, len(bins_redshift)):
+        c1= results_c1[digitized == i]
+        c2= results_c2[digitized == i]
+        h,b,p = pylab.hist(c1,bins=n_bins_c,normed=True,histtype='step',label='m1,2 z=%2.2f' % (bins_redshift[i]),color=redshift_color_tuples[i-1])
+        h,b,p = pylab.hist(c2,bins=n_bins_c,normed=True,histtype='step', color=redshift_color_tuples[i-1])
+        pylab.axvline(linewidth=2, color='k')
+        pylab.axvline(x=c1.mean(),linewidth=1, color=redshift_color_tuples[i-1])
+        pylab.axvline(x=c2.mean(),linewidth=1, color=redshift_color_tuples[i-1])        
+
+    pylab.grid()
+    pylab.legend()
+    pylab.xlabel('c1c2')
+    pylab.xticks([-0.1 , -0.05 , -0.01 ,   0.01 , 0.05 , 0.1])
+    pylab.ylabel('normalised hist')
+
+    filename_fig = 'figures/figure.hist.C1C2forREDSHIFT.real'
+    saveCurrentFig(filename_fig)
+    pylab.close()
+
+
+
+    # c1 vs redshift -------------------------------------------------------------------------------
+
+    digitized = numpy.digitize(results_zphot, bins_redshift)
+    bin_mean1 = [results_m1[digitized == i].mean()      for i in range(1, len(bins_redshift))]
+    bin_stdv1 = [results_m1[digitized == i].std(ddof=1) for i in range(1, len(bins_redshift))]
+    bin_stdm1 = [results_m1[digitized == i].std(ddof=1)/numpy.sqrt(len(results_m1[digitized == i])) for i in range(1, len(bins_redshift))]
+    bin_mean2 = [results_m2[digitized == i].mean()      for i in range(1, len(bins_redshift))]
+    bin_stdv2 = [results_m2[digitized == i].std(ddof=1) for i in range(1, len(bins_redshift))]
+    bin_stdm2 = [results_m2[digitized == i].std(ddof=1)/numpy.sqrt(len(results_m2[digitized == i])) for i in range(1, len(bins_redshift))]
+    
+    pylab.figure()
+    # pylab.errorbar(bins_redshift[1:],bin_mean1,yerr=bin_stdv1)
+    # pylab.errorbar(bins_redshift[1:],bin_mean2,yerr=bin_stdv2)
+    pylab.errorbar(bins_redshift[1:],bin_mean1,yerr=bin_stdm1,label='m1',fmt='+r-')
+    pylab.errorbar(bins_redshift[1:],bin_mean2,yerr=bin_stdm2,label='m2',fmt='xb-')
+    pylab.xlabel('redshift   z-phot')
+    pylab.ylabel('m')
+
+    pylab.grid()
+    pylab.legend(loc='upper left')
+
+    plotAddReq()
+    
+    filename_fig = 'figures/figure.hist.M1M2vsREDSHIFT.real'
+    saveCurrentFig(filename_fig)
+    pylab.close()
+
+    print len(results_stats)
+    print len(results_size[results_size > 1.2])
+
+    # redshift cross - sections --------------------------------------------------------------------
+
+    pylab.figure()
+    n_bins_m = 32
+
+    redshift_color_tuples = getColorMap(len(bins_redshift))
+
+    for i in range(1, len(bins_redshift)):
+        m1= results_m1[digitized == i]
+        m2= results_m2[digitized == i]
+        h,b,p = pylab.hist(m1,bins=n_bins_m,normed=True,histtype='step',label='m1,2 z=%2.2f' % (bins_redshift[i]),color=redshift_color_tuples[i-1])
+        h,b,p = pylab.hist(m2,bins=n_bins_m,normed=True,histtype='step', color=redshift_color_tuples[i-1])
+        pylab.axvline(linewidth=2, color='k')
+        pylab.axvline(x=m1.mean(),linewidth=1, color=redshift_color_tuples[i-1])
+        pylab.axvline(x=m2.mean(),linewidth=1, color=redshift_color_tuples[i-1])        
+
+    pylab.grid()
+    pylab.legend()
+    pylab.xlabel('m1m2')
+    pylab.xticks([-0.1 , -0.05 , -0.01 ,   0.01 , 0.05 , 0.1])
+    pylab.ylabel('normalised hist')
+
+    filename_fig = 'figures/figure.hist.M1M2forREDSHIFT.real'
+    saveCurrentFig(filename_fig)
+    pylab.close()
+
 
     # modd vs redshift -----------------------------------------------------------------------------
 
@@ -1146,6 +1794,9 @@ def plotModelBias():
     filename_fig = 'figures/figure.hist.MMODforREDSHIFT.real'
     saveCurrentFig(filename_fig)
     pylab.close()
+
+
+
 
 
 def plotTime():
@@ -1223,18 +1874,18 @@ def getBiasForBins(results_array,truth_array,bin_column, bin_ids,bin_values , bi
     bins_ids_split = []
     digitized = numpy.digitize(bin_column, bin_values)
     bins_ids_split = [bin_ids[digitized == i] for i in range(1, len(bin_values))] 
-    
+
     mc_results = []
 
     n_gals_in_all_bins = 0
-
-
+    
     # loop over bins
     for i,ids in enumerate(bins_ids_split):
+        logger.info('bin %d, number of ids in this bin %5d' % (i,len(ids)))
         results_bin,truth_bin,_ = analyse.selectByIDs(ids,results_array,truth_array,logger)
         n_gals_in_all_bins += len(results_bin)
         logger.info('bin %d, number of galaxies in sample %5d, n_gals_in_all_bins=%d' % (i,len(results_bin),n_gals_in_all_bins))
-        mcr = analyse.getBiasForResults(results_bin,truth_bin,logger=logger,bin_param=bin_column_name,bin_id=i, n_gals_per_mean=10000)
+        mcr = analyse.getBiasForResults(results_bin,truth_bin,logger=logger,bin_param=bin_column_name,bin_id=i)
         mcr['bin_id'] = i
         mcr['bin_value'] = bin_values[i]
         mc_results.append(mcr)
@@ -1250,7 +1901,7 @@ def getBiasForBins(results_array,truth_array,bin_column, bin_ids,bin_values , bi
             pylab.xlabel('e1,e2')
             pylab.ylabel('count')
             pylab.title('bins pe %s %02d %f ' % (bin_column_name,i,bin_values[i]))
-            filename_fig = './debug/fig.bins.pe.%s.%02d.png' % (bin_column_name,i)
+            filename_fig = './debug/fig.bins_pe.%s.%02d.png' % (bin_column_name,i)
             pylab.savefig(filename_fig)
             pylab.close()
 
