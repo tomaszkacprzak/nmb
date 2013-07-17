@@ -352,6 +352,12 @@ def saveResult(file_results,i3_result,idg,ido,idu,idc):
     pixel_scale = config['image']['pixel_scale']
     n_pix = config['image']['size']
 
+    # get the FWHM only if the result is valid:
+    if i3_result.sersic_parameter_e1 < 1.:
+        fwhm = getFWHM(i3_result)
+    else:
+        fwhm = 666
+
     fmt = '%d\t%d\t%d\t%d\t% e\t% 2.2f\t' + '% e\t'*5 + '%2.2f\t' + '% e\t'*8 + '% 5d'*3 + '\n'
     line = fmt % (
                  idg,
@@ -365,7 +371,7 @@ def saveResult(file_results,i3_result,idg,ido,idu,idc):
                  i3_result.sersic_parameter_e1,
                  i3_result.sersic_parameter_e2,
                  i3_result.sersic_parameter_radius*pixel_scale,
-                 getFWHM(i3_result),
+                 fwhm,
                  i3_result.sersic_bulge_flux,
                  i3_result.sersic_disc_flux,
                  i3_result.sersic_flux_ratio,
