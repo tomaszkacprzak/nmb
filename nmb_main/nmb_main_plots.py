@@ -119,7 +119,7 @@ def getBinSupplement():
     numpy.savetxt(filename_suppl,numpy.array(all_ids),fmt='%d')
 
     print all_ids
-    
+
     logger.info('saved %s' % filename_suppl)
 
 
@@ -2237,6 +2237,58 @@ def getBiasForBins(results_array,truth_array,bin_column, bin_ids,bin_values , bi
     mc_results = numpy.concatenate(mc_results)
 
     return mc_results
+
+def ellipDistr():
+
+    filepath_results_real_noisy_use = 'results.nmb_main.real.noisy.fits'
+    
+    truth_array_25880  = tabletools.loadTable(table_name='truth_array_25880',  filepath = filepath_truth_25880,        dtype = dtype_table_truth,       logger=logger)
+    truth_array_26000  = tabletools.loadTable(table_name='truth_array_26000',  filepath = filepath_truth_26000,        dtype = dtype_table_truth,       logger=logger)
+    # ajs_array = tabletools.loadTable(table_name='ajs_array', filepath = filepath_acs_join_stats, logger=logger)
+    results_real_noisy = tabletools.loadTable(table_name='results_real_noisy', filepath = filepath_results_real_noisy_use, dtype = dtype_table_results2,    logger=logger)
+    # results_bfit_noisy = tabletools.loadTable(table_name='results_bfit_noisy', filepath = filepath_results_bfit_noisy, dtype = dtype_table_results2,    logger=logger)   
+    results_real       = tabletools.loadTable(table_name='results_real',       filepath = filepath_results_real,       dtype = dtype_table_results,     logger=logger)
+
+
+    import pylab
+    select = numpy.logical_and(results_real['e1']<1. , truth_array_26000['id_shear']==0)
+    e1 = results_real[select]['e1']
+    select = numpy.logical_and(results_real['e2']<1. , truth_array_26000['id_shear']==0)
+    e2 = results_real[select]['e2']
+
+    abse_clear=abs(e1+e2*1j)
+    # abse_clear=e1
+
+    select = numpy.logical_and(results_real_noisy['e1']<1. , truth_array_25880['id_shear']==0)
+    e1 = results_real_noisy[select]['e1']
+    select = numpy.logical_and(results_real_noisy['e2']<1. , truth_array_25880['id_shear']==0)
+    e2 = results_real_noisy[select]['e2']
+    abse_noisy=abs(e1+1j*e2)
+
+    select = numpy.logical_and(results_real['e1']<1. , results_real['e2']<1.)
+    e1 = results_real[select]['e1']
+    e2 = results_real[select]['e2']
+    abse_clear_sheared=abs(e1+1j*e2)
+
+    select = numpy.logical_and(results_real_noisy['e1']<1. , results_real_noisy['e2']<1.)
+    e1 = results_real_noisy[select]['e1']
+    e2 = results_real_noisy[select]['e2']
+    abse_noisy_sheared=abs(e1+1j*e2)
+
+    pylab.hist(abse_clear,bins=100,histtype='step',normed=True,color='b',label='noiseless')
+    pylab.hist(abse_noisy,bins=100,histtype='step',normed=True,color='r',label='SNR=20')
+    # pylab.hist(abse_clear_sheared,bins=100,histtype='step',normed=True,color='c',label='noiseless')
+    # pylab.hist(abse_noisy_sheared,bins=100,histtype='step',normed=True,color='m',label='noisy, SNR=20')
+    pylab.xlabel('lensed ellipticity measured by Im3shape, true shear g1=0.1 , g2=0.2')
+    pylab.ylabel('normalised histogram')
+
+    pylab.legend()
+
+    filename_fig = 'fig.hist.abse'
+    saveCurrentFig(filename_fig)
+
+
+
 
    
 def main():

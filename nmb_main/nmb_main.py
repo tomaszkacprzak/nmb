@@ -410,7 +410,7 @@ def printResult(i3_result,id_global):
                  i3_result.sersic_bulge_flux,
                  i3_result.sersic_disc_flux,
                  i3_result.stats_signal_to_noise,
-                 fwhm,
+                 fwhm
                  )
     
     logger.debug(line)
