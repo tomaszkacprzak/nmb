@@ -24,7 +24,7 @@ filepath_truth_26000        = 'truth.26000.pp'
 filepath_acs                = 'cosmos_acs_shera_may2011.fits.gz'
 filepath_results_real       = 'results.nmb_main.real.pp' 
 # filepath_results_real_noisy = 'results.nmb_main.real.noisy.fits'
-filepath_results_real_noisy = 'results.nmb_main.real.noisy.rep4.fits'
+filepath_results_real_noisy = 'results.nmb_main.real.noisy.rep5.fits'
 # filepath_results_bfit_noisy = 'results.nmb_main.bfit.noisy.fits'
 filepath_results_bfit_noisy = 'results.nmb_main.bfit.noisy.rep5.fits'
 
