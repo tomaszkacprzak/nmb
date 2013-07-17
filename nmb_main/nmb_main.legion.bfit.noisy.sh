@@ -1,17 +1,17 @@
 #!/bin/bash -l
 #$ -S /bin/bash
-#$ -l h_rt=2:0:0
+#$ -l h_rt=6:0:0
 #$ -l mem=2G
 #$ -t 1-2588
-#$ -N nmb_bfit
+#$ -N nmb_bfit_noisy
 #$ -P CosmicShear
-#$ -wd /scratch/scratch/ucabtok/130515_nmb_main/201/
-#$ -o  /scratch/scratch/ucabtok/130515_nmb_main/201/output/
-#$ -e  /scratch/scratch/ucabtok/130515_nmb_main/201/output/
+#$ -wd /scratch/scratch/ucabtok/130515_nmb_main/202_bfit_noisy/
+#$ -o  /scratch/scratch/ucabtok/130515_nmb_main/202_bfit_noisy/output/
+#$ -e  /scratch/scratch/ucabtok/130515_nmb_main/202_bfit_noisy/output/
 #Local2Scratch
 
-WDIR=~/Scratch/130515_nmb_main/201/
-SCP_OUT=kacprzak@star.ucl.ac.uk:/import/zupcx32/kacprzak/projects/130515_nmb_main/201/results/
+WDIR=~/Scratch/130515_nmb_main/202_bfit_noisy/
+SCP_OUT=kacprzak@star.ucl.ac.uk:/import/zupcx32/kacprzak/projects/130515_nmb_main/202_bfit_noisy/results/
 FILENAME_CONFIG=nmb_main.bfit.noisy.yaml
 FILENAME_TRUTH=bfit.nmb_main.real.fits
 FILENAME_INI=nmb.ini
@@ -50,17 +50,11 @@ echo OBJ_NUM $OBJ_NUM
 echo N_OBJ $N_OBJ
 echo TMPDIR $TMPDIR
 
-# load modules
-echo $TASK_ID `date` "loading modules"
-source ~/source_all.sh
-source ~/source_paths.sh
-
 # check if files are available
 ls $DIR_BIN/nmb_main.py 
 ls $WDIR/$FILENAME_CONFIG
 ls $WDIR/$FILENAME_INI
 ls $WDIR/$FILENAME_TRUTH
-
 
 # load modules
 echo $TASK_ID `date` "loading modules"
@@ -80,4 +74,3 @@ cp $TMPDIR/results.* $WDIR/$DIR_RESULTS/
 scp $TMPDIR/results.* $SCP_OUT/
 
 echo `date` "exiting submission script"
-

@@ -2,19 +2,21 @@
 #$ -S /bin/bash
 #$ -l h_rt=6:0:0
 #$ -l mem=2G
-#$ -t 10355-12943
-#$ -N nmb_real_noisy
+#$ -t 12944-15532
+#$ -N nmb_bfit_noisy
 #$ -P CosmicShear
-#$ -wd /scratch/scratch/ucabtok/130515_nmb_main/302_real_noisy/
-#$ -o  /scratch/scratch/ucabtok/130515_nmb_main/302_real_noisy/output/
-#$ -e  /scratch/scratch/ucabtok/130515_nmb_main/302_real_noisy/output/
+#$ -wd /scratch/scratch/ucabtok/130515_nmb_main/202_bfit_noisy/
+#$ -o  /scratch/scratch/ucabtok/130515_nmb_main/202_bfit_noisy/output/
+#$ -e  /scratch/scratch/ucabtok/130515_nmb_main/202_bfit_noisy/output/
+#Local2Scratch
 
-WDIR=~/Scratch/130515_nmb_main/302_real_noisy/
-SCP_OUT=kacprzak@star.ucl.ac.uk:/import/zupcx32/kacprzak/projects/130515_nmb_main/302_real_noisy/results/
-FILENAME_CONFIG=nmb_main.real.noisy.yaml
-FILENAME_TRUTH=truth.25880.fits
+WDIR=~/Scratch/130515_nmb_main/202_bfit_noisy/
+SCP_OUT=kacprzak@star.ucl.ac.uk:/import/zupcx32/kacprzak/projects/130515_nmb_main/202_bfit_noisy/results/
+FILENAME_CONFIG=nmb_main.bfit.noisy.yaml
+FILENAME_TRUTH=bfit.nmb_main.real.fits
 FILENAME_INI=nmb.ini
 FILENAME_GIT=gitversion.txt
+FILENAME_SUPP=suppl.cat
 DIR_RESULTS=results
 DIR_OUTPUT=output
 N_OBJ=640
@@ -49,20 +51,21 @@ echo OBJ_NUM $OBJ_NUM
 echo N_OBJ $N_OBJ
 echo TMPDIR $TMPDIR
 
-# load modules
-echo $TASK_ID `date` "loading modules"
-source ~/source_all.sh
-source ~/source_paths.sh
-
 # check if files are available
 ls $DIR_BIN/nmb_main.py 
 ls $WDIR/$FILENAME_CONFIG
 ls $WDIR/$FILENAME_INI
 ls $WDIR/$FILENAME_TRUTH
- 
+ls $WDIR/$FILENAME_SUPP
+
+# load modules
+echo $TASK_ID `date` "loading modules"
+source ~/source_all.sh
+source ~/source_paths.sh
+
 # create command
 echo $TASK_ID `date` "creating command"
-CMD="python $DIR_BIN/nmb_main.py $WDIR/$FILENAME_CONFIG --filepath_ini $WDIR/$FILENAME_INI -v 1 --obj_num $OBJ_NUM --nimages $N_OBJ --filepath_truth $WDIR/$FILENAME_TRUTH"
+CMD="python $DIR_BIN/nmb_main.py $WDIR/$FILENAME_CONFIG --filepath_ini $WDIR/$FILENAME_INI -v 1 --obj_num $OBJ_NUM --nimages $N_OBJ --filepath_truth $WDIR/$FILENAME_TRUTH --filepath_idslist $WDIR/$FILENAME_SUPP"
 echo $CMD
 echo $TASK_ID `date` "running command"
 $CMD
@@ -73,4 +76,3 @@ cp $TMPDIR/results.* $WDIR/$DIR_RESULTS/
 scp $TMPDIR/results.* $SCP_OUT/
 
 echo `date` "exiting submission script"
-
