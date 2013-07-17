@@ -402,4 +402,26 @@ rsync
 merge
     zupcx32$ python ~/code/nmb/nmb_main/nmb_main_analyse.py mergeResults nmb_main.bfit.noisy.yaml --filepath_truth truth.25880.fits -v3 --n_reps 5
 
-c
+130713
+
+found a bug in mc_results struct:
+
+    # dtype_table_binstats = { 'names'   : ['bin_id', 'bin_value' , 'bin_ngals' ,'m1','m2','m1_std','m2_std','c1','c2','c1_std','c2_std'],
+    mc_results = numpy.array([(0,0,len(results_array),m1,m2,std_m1,std_m2,c1,c2,std_c1,std_c2)],dtype=dtype_table_binstats)
+
+all runs finished
+
+130714
+
+rsync 302
+    zupcx32$ rsync -v --ignore-existing $LEGION:Scratch/130515*/302*/results/* results
+
+merge 5 rep of 302
+        python ~/code/nmb/nmb_main/nmb_main_analyse.py mergeResults nmb_main.real.noisy.yaml --filepath_truth truth.25880.fits -v3 --n_reps 5
+
+        ok
+get stats
+    zupcx32$ python $CODE/nmb/nmb_main/nmb_main_plots.py saveBiasForBins -v 3
+
+    
+

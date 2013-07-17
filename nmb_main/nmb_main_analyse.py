@@ -191,7 +191,8 @@ def getBiasForResults(results_array,truth_array,n_means=5,bin_param='test',bin_i
     logger.info('c1 = % 2.4f \t +/- % 2.4f' % ( c1, std_c1))
     logger.info('c2 = % 2.4f \t +/- % 2.4f' % ( c2, std_c2))
 
-    mc_results = numpy.array([(0,0,len(results_array),m1,m2,c1,c2,std_m1,std_m2,std_c1,std_c2)],dtype=dtype_table_binstats)
+    # dtype_table_binstats = { 'names'   : ['bin_id', 'bin_value' , 'bin_ngals' ,'m1','m2','m1_std','m2_std','c1','c2','c1_std','c2_std'],
+    mc_results = numpy.array([(0,0,len(results_array),m1,m2,std_m1,std_m2,c1,c2,std_c1,std_c2)],dtype=dtype_table_binstats)
 
     return mc_results
 
