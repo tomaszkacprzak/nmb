@@ -216,6 +216,137 @@ def runIm3shape():
     logger.info('saved %s' % filename_results)
 
 
+def runIm3shape2():
+
+    # open the RGC
+    if 'real_catalog' in config['input']:
+        filepath_rgc = os.path.join(config['input']['real_catalog']['dir'],config['input']['real_catalog']['file_name'])
+        rgc = pyfits.open(filepath_rgc)[1]
+
+    # open the ring test catalog
+    filename_cat = os.path.join(config['input']['catalog']['dir'],config['input']['catalog']['file_name'])
+    # truth_cat = numpy.loadtxt(filename_cat,dtype=dtype_table_truth)
+    truth_cat = tabletools.loadTable(filepath=filename_cat,table_name='truth_cat',dtype=dtype_table_truth,logger=logger)
+    logger.info('loaded %s' % filename_cat)
+
+    n_objects = truth_cat.shape[0]
+
+    # get im3shape
+    dirpath_im3shape = os.path.join(os.environ['IM3SHAPE'],'python')
+    sys.path.append(dirpath_im3shape)
+    import im3shape
+
+    # load the idslist
+    ids_list = numpy.loadtxt(args.filepath_idslist)
+
+    # get images
+    img_gals = getGalaxyImages()
+
+    # get options
+    n_pix = config['image']['size']
+    pixel_scale = config['image']['pixel_scale']
+    i3_options = im3shape.I3_options()
+    i3_options.read_ini_file(config['args'].filepath_ini)
+    logger.info('loaded im3shape ini file %s' % config['args'].filepath_ini)  
+    i3_options.stamp_size = n_pix
+
+    # get the file 
+    filename_results = 'results.%s.%012d.cat' % (config['args'].name_config,config['args'].obj_num)
+    file_results = open(filename_results,'w')
+
+    # create PSF from Moffat parameters
+    # get i3 images - get first i3_galaxy to initialise the PSF - kind of strange, but hey..
+    i3_galaxy = im3shape.I3_image(n_pix, n_pix)
+    psf_beta = float(config['psf']['beta'])
+    psf_fwhm = float(config['psf']['fwhm'])/float(pixel_scale)
+    psf_e1 = float(config['psf']['ellip']['g1'])
+    psf_e2 = float(config['psf']['ellip']['g2'])
+    i3_psf = i3_galaxy.make_great10_psf(psf_beta, psf_fwhm, psf_e1, psf_e2, i3_options)
+
+    obj_num = config['args'].obj_num
+
+    # loop over all created images
+    for ig,img_gal in enumerate(img_gals):
+
+        # get i3 images
+        i3_galaxy = im3shape.I3_image(n_pix, n_pix)
+        scale = img_gal.array.sum()
+        i3_galaxy.from_array(img_gal.array)  
+        i3_galaxy.scale(1.0/scale)
+
+
+        # this is a workaround - the array for model bias real images had id_unique,
+        # but the results files have 'identifier' - so we use one or the other id they exist
+        # get the unique_id
+        if 'id_unique' in truth_cat.dtype.names:
+
+            id_global = ig
+            id_object = (obj_num+ig) % n_objects
+            id_cosmos = truth_cat['id_cosmos'][ id_object ]
+            id_unique = truth_cat['id_unique'][ id_object ]
+
+        elif 'identifier' in truth_cat.dtype.names:
+            
+            id_global = ig
+            id_object = (obj_num+ig) % n_objects
+            id_unique = truth_cat['identifier'][ id_object ]
+            id_cosmos = int(truth_cat['identifier'][ id_object ]//10000)
+
+        if id_cosmos in ids_list:
+
+            i3_result, i3_best_fit = im3shape.i3_analyze(i3_galaxy, i3_psf, i3_options, ID=id_unique)
+            
+        else:
+
+            i3_result = im3shape.I3_result()
+            i3_result.sersic_parameter_e1 = 666
+            i3_result.sersic_parameter_e2 = 666
+            i3_result.time_taken = 666
+
+
+        saveResult(file_results,i3_result,id_global,id_object,id_unique,id_cosmos)
+        printResult(i3_result,id_global)
+        if 'e1' in truth_cat.dtype.names: printTruth(i3_result,truth_cat[ig])
+
+
+        # save residual plots
+        if config['args'].verbosity > 2:
+
+            i1 = i3_best_fit.array/sum(i3_best_fit.array.flatten())
+            i2 = img_gal.array/sum(img_gal.array.flatten())          
+
+            import pylab
+            pylab.subplot(1,5,1)
+            pylab.imshow(i1,interpolation='nearest')
+            pylab.title('best fit')
+
+            pylab.subplot(1,5,2)
+            pylab.imshow(i2,interpolation='nearest')
+            pylab.title('galaxy')
+
+            pylab.subplot(1,5,3)
+            pylab.imshow(i1-i2,interpolation='nearest')
+            pylab.title('residuals')
+
+            pylab.subplot(1,5,4)
+            pylab.imshow(i3_psf.array,interpolation='nearest')
+            pylab.title('PSF')
+
+            pylab.subplot(1,5,5)
+            pylab.imshow(img_gal.array,interpolation='nearest')
+            pylab.colorbar()
+            pylab.title('best fit')
+
+
+            filename_fig = 'debug/fig.residual.%09d.png' % id_unique
+            pylab.savefig(filename_fig)
+            logger.info('saved %s' % filename_fig)
+            pylab.close()
+
+    file_results.close()
+    logger.info('saved %s' % filename_results)
+
+
 def saveResult(file_results,i3_result,idg,ido,idu,idc):
 
     pixel_scale = config['image']['pixel_scale']
@@ -305,6 +436,7 @@ if __name__ == "__main__":
     parser.add_argument('-snr', '--signal_to_noise', type=float, action='store', default=None, help='signal to noise at which to run the test')
     parser.add_argument('--obj_num',  type=int, action='store', default= 0, help= 'first obj_num in config to process (starts from 1)') 
     parser.add_argument('--nimages',  type=int, action='store', default=-1, help= 'number of images to process, starting with obj_num')
+    parser.add_argument('--filepath_idslist', type=str, default=None, help='list of ids to run and number of noise realisations')
     
     args = parser.parse_args()
     args.name_config = os.path.basename(args.filepath_config).replace('.yaml','')
@@ -345,7 +477,11 @@ if __name__ == "__main__":
             logger.info('truth catalog set to be in %s %s' % (config['input']['catalog']['dir'],config['input']['catalog']['file_name']))
 
     # run the main driver
-    runIm3shape()
+    if args.filepath_idslist == None:
+        runIm3shape()
+    else:      
+        runIm3shape2()
+
 
 
 

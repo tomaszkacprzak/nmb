@@ -56,6 +56,73 @@ fig_dpi       = 80
 fig_facecolor = 'w'
 fig_edgecolor = 'k'
 
+label_c1_m   = 'c1 model'
+label_c2_m   = 'c2 model'
+label_c1_nm  = 'c1 noise+model'
+label_c2_nm  = 'c2 noise+model'
+label_c1_nmi = 'c1 noise+model+interact'
+label_c2_nmi = 'c2 noise+model+interact'
+label_c1_i   = 'c1 interact'
+label_c2_i   = 'c2 interact'
+
+label_m1_m   = 'm1 model'
+label_m2_m   = 'm1 model'
+label_m1_nm  = 'm1 noise+model'
+label_m2_nm  = 'm2 noise+model'
+label_m1_nmi = 'm1 noise+model+interact'
+label_m2_nmi = 'm2 noise+model+interact'
+label_m1_i   = 'm1 interact'
+label_m2_i   = 'm2 interact'
+
+label_m_m   = 'm model'
+label_m_nm  = 'm noise+model'
+label_m_nmi = 'm noise+model+interact'
+label_m_i   = 'm interact'
+
+label_c_m   = 'c model'
+label_c_nm  = 'c noise+model'
+label_c_nmi = 'c noise+model+interact'
+label_c_i   = 'c interact'
+
+
+fmt_m    = '-c'
+fmt_nm   = '-r'
+fmt_nmi  = '-b'
+fmt_i    = 'k--'
+
+fmt1_m   =  'g+-'
+fmt2_m   =  'yx-'
+fmt1_nm  =  'm+-'
+fmt2_nm  =  'cx-'
+fmt1_nmi =  'r+-'
+fmt2_nmi =  'bx-'
+fmt1_i   =  'k--+'
+fmt2_i   =  'k:x'
+
+
+def getBinSupplement():
+
+
+    all_ids = []
+
+    # last redshift bin
+    ajs_array          = tabletools.loadTable(table_name='ajs_array',          filepath = filepath_acs_join_stats,     logger=logger)
+    select = ajs_array['ZPHOT'] > 0.9
+    ids = ajs_array[select]['IDENT']
+    all_ids.extend(ids)
+
+    select = ajs_array['MODD'] <20
+    ids = ajs_array[select]['IDENT']
+    all_ids.extend(ids)
+
+    filename_suppl = 'suppl1.cat'    
+    numpy.savetxt(filename_suppl,numpy.array(all_ids),fmt='%d')
+
+    print all_ids
+    
+    logger.info('saved %s' % filename_suppl)
+
+
 
 def plotAddReq():
 
@@ -144,39 +211,39 @@ def plotBiasForBins(combine12=False):
         filename_fig = 'figures/fig.bins.comb.redshift'
 
         mean_real_clear_m = (binstats_real_clear['m1']     + binstats_real_clear['m2'])/2.
-        stdm_real_clear_m = ((binstats_real_clear['m1_std']**2 + binstats_real_clear['m1_std']**2)**(0.5))/2.
-        pylab.errorbar(bins_centered,mean_real_clear_m,yerr=stdm_real_clear_m, fmt='-g+', label = 'm model')
+        stdm_real_clear_m = ((binstats_real_clear['m1_std']**2 + binstats_real_clear['m2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_real_clear_m,yerr=stdm_real_clear_m, fmt=fmt_m, label = label_m_m)
 
         mean_real_noisy_m = (binstats_real_noisy['m1']     + binstats_real_noisy['m2'])/2.
-        stdm_real_noisy_m = ((binstats_real_noisy['m1_std']**2 + binstats_real_noisy['m1_std']**2)**(0.5))/2.
-        pylab.errorbar(bins_centered,mean_real_noisy_m,yerr=stdm_real_noisy_m, fmt='-r+', label = 'm1 noise+model+interact')
+        stdm_real_noisy_m = ((binstats_real_noisy['m1_std']**2 + binstats_real_noisy['m2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_real_noisy_m,yerr=stdm_real_noisy_m, fmt=fmt_nmi, label = label_m_nmi)
         
         mean_bfit_noisy_m = (binstats_bfit_noisy['m1']     + binstats_bfit_noisy['m2'])/2.
-        stdm_bfit_noisy_m = ((binstats_bfit_noisy['m1_std']**2 + binstats_bfit_noisy['m1_std']**2)**(0.5))/2.
-        pylab.errorbar(bins_centered,mean_bfit_noisy_m,yerr=stdm_bfit_noisy_m, fmt='-m+', label = 'm1 noise+model')
+        stdm_bfit_noisy_m = ((binstats_bfit_noisy['m1_std']**2 + binstats_bfit_noisy['m2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_bfit_noisy_m,yerr=stdm_bfit_noisy_m, fmt=fmt_nm, label = label_m_nm)
 
         mean_diff_noisy_m = mean_real_noisy_m - mean_bfit_noisy_m
         stdm_diff_noisy_m = (stdm_real_noisy_m**2 + stdm_bfit_noisy_m**2)**(0.5)
-        pylab.errorbar(bins_centered,mean_diff_noisy_m,yerr=stdm_diff_noisy_m, fmt='k--+', label = 'm1 interact')
+        pylab.errorbar(bins_centered,mean_diff_noisy_m,yerr=stdm_diff_noisy_m, fmt=fmt_i, label = label_m_i)
 
     else:
 
         filename_fig = 'figures/fig.bins.redshift'
 
-        pylab.errorbar(bins_centered,binstats_real_clear['m1'],yerr=binstats_real_clear['m1_std'], fmt='-g+', label = 'm1 model')
-        pylab.errorbar(bins_centered,binstats_real_clear['m2'],yerr=binstats_real_clear['m2_std'], fmt='-yx', label = 'm2 model')
+        pylab.errorbar(bins_centered,binstats_real_clear['m1'],yerr=binstats_real_clear['m1_std'], fmt=fmt1_m, label = label_m1_m)
+        pylab.errorbar(bins_centered,binstats_real_clear['m2'],yerr=binstats_real_clear['m2_std'], fmt=fmt2_m, label = label_m2_m)
 
-        pylab.errorbar(bins_centered,binstats_real_noisy['m1'],yerr=binstats_real_noisy['m1_std'], fmt='-r+', label = 'm1 noise+model+interact')
-        pylab.errorbar(bins_centered,binstats_real_noisy['m2'],yerr=binstats_real_noisy['m2_std'], fmt='-bx', label = 'm2 noise+model+interact')
+        pylab.errorbar(bins_centered,binstats_real_noisy['m1'],yerr=binstats_real_noisy['m1_std'], fmt=fmt1_nmi, label = label_m1_nmi)
+        pylab.errorbar(bins_centered,binstats_real_noisy['m2'],yerr=binstats_real_noisy['m2_std'], fmt=fmt2_nmi, label = label_m2_nmi)
         
-        pylab.errorbar(bins_centered,binstats_bfit_noisy['m1'],yerr=binstats_bfit_noisy['m1_std'], fmt='-m+', label = 'm1 noise+model')
-        pylab.errorbar(bins_centered,binstats_bfit_noisy['m2'],yerr=binstats_bfit_noisy['m2_std'], fmt='-cx', label = 'm2 noise+model')
+        pylab.errorbar(bins_centered,binstats_bfit_noisy['m1'],yerr=binstats_bfit_noisy['m1_std'], fmt=fmt1_nm, label = label_m1_nm)
+        pylab.errorbar(bins_centered,binstats_bfit_noisy['m2'],yerr=binstats_bfit_noisy['m2_std'], fmt=fmt2_nm, label = label_m2_nm)
 
         std_m1 = (binstats_real_noisy['m1_std']**2 + binstats_bfit_noisy['m1_std']**2)**(0.5)
         std_m2 = (binstats_real_noisy['m2_std']**2 + binstats_bfit_noisy['m2_std']**2)**(0.5)
 
-        pylab.errorbar(bins_centered,binstats_real_noisy['m1']-binstats_bfit_noisy['m1'],yerr=std_m1, fmt='k--+', label = 'm1 interact')
-        pylab.errorbar(bins_centered,binstats_real_noisy['m2']-binstats_bfit_noisy['m2'],yerr=std_m2, fmt='k:x',  label = 'm2 interact')
+        pylab.errorbar(bins_centered,binstats_real_noisy['m1']-binstats_bfit_noisy['m1'],yerr=std_m1, fmt=fmt1_i, label = label_m1_i)
+        pylab.errorbar(bins_centered,binstats_real_noisy['m2']-binstats_bfit_noisy['m2'],yerr=std_m2, fmt=fmt2_i,  label = label_m2_i)
 
 
 
@@ -231,39 +298,39 @@ def plotBiasForBins(combine12=False):
         filename_fig = 'figures/fig.bins.comb.size_nocut'
 
         mean_real_clear_m = (binstats_real_clear['m1']     + binstats_real_clear['m2'])/2.
-        stdm_real_clear_m = ((binstats_real_clear['m1_std']**2 + binstats_real_clear['m1_std']**2)**(0.5))/2.
-        pylab.errorbar(bins_centered,mean_real_clear_m,yerr=stdm_real_clear_m, fmt='-g+', label = 'm model')
+        stdm_real_clear_m = ((binstats_real_clear['m1_std']**2 + binstats_real_clear['m2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_real_clear_m,yerr=stdm_real_clear_m, fmt=fmt_m, label = label_m_m)
 
         mean_real_noisy_m = (binstats_real_noisy['m1']     + binstats_real_noisy['m2'])/2.
-        stdm_real_noisy_m = ((binstats_real_noisy['m1_std']**2 + binstats_real_noisy['m1_std']**2)**(0.5))/2.
-        pylab.errorbar(bins_centered,mean_real_noisy_m,yerr=stdm_real_noisy_m, fmt='-r+', label = 'm1 noise+model+interact')
+        stdm_real_noisy_m = ((binstats_real_noisy['m1_std']**2 + binstats_real_noisy['m2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_real_noisy_m,yerr=stdm_real_noisy_m, fmt=fmt_nmi, label = label_m_nmi)
         
         mean_bfit_noisy_m = (binstats_bfit_noisy['m1']     + binstats_bfit_noisy['m2'])/2.
-        stdm_bfit_noisy_m = ((binstats_bfit_noisy['m1_std']**2 + binstats_bfit_noisy['m1_std']**2)**(0.5))/2.
-        pylab.errorbar(bins_centered,mean_bfit_noisy_m,yerr=stdm_bfit_noisy_m, fmt='-m+', label = 'm1 noise+model')
+        stdm_bfit_noisy_m = ((binstats_bfit_noisy['m1_std']**2 + binstats_bfit_noisy['m2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_bfit_noisy_m,yerr=stdm_bfit_noisy_m, fmt=fmt_nm, label = label_m_nm)
 
         mean_diff_noisy_m = mean_real_noisy_m - mean_bfit_noisy_m
         stdm_diff_noisy_m = (stdm_real_noisy_m**2 + stdm_bfit_noisy_m**2)**(0.5)
-        pylab.errorbar(bins_centered,mean_diff_noisy_m,yerr=stdm_diff_noisy_m, fmt='k--+', label = 'm1 interact')
+        pylab.errorbar(bins_centered,mean_diff_noisy_m,yerr=stdm_diff_noisy_m, fmt=fmt_i, label = label_m_i)
 
     else:
 
         filename_fig = 'figures/fig.bins.size_nocut'
 
-        pylab.errorbar(bins_centered,binstats_real_clear['m1'],yerr=binstats_real_clear['m1_std'], fmt='-g+', label = 'm1 model')
-        pylab.errorbar(bins_centered,binstats_real_clear['m2'],yerr=binstats_real_clear['m2_std'], fmt='-yx', label = 'm2 model')
+        pylab.errorbar(bins_centered,binstats_real_clear['m1'],yerr=binstats_real_clear['m1_std'], fmt=fmt1_m, label = label_m1_m)
+        pylab.errorbar(bins_centered,binstats_real_clear['m2'],yerr=binstats_real_clear['m2_std'], fmt=fmt2_m, label = label_m2_m)
 
-        pylab.errorbar(bins_centered,binstats_real_noisy['m1'],yerr=binstats_real_noisy['m1_std'], fmt='-r+', label = 'm1 noise+model+interact')
-        pylab.errorbar(bins_centered,binstats_real_noisy['m2'],yerr=binstats_real_noisy['m2_std'], fmt='-bx', label = 'm2 noise+model+interact')
+        pylab.errorbar(bins_centered,binstats_real_noisy['m1'],yerr=binstats_real_noisy['m1_std'], fmt=fmt1_nmi, label = label_m1_nmi)
+        pylab.errorbar(bins_centered,binstats_real_noisy['m2'],yerr=binstats_real_noisy['m2_std'], fmt=fmt2_nmi, label = label_m2_nmi)
 
-        pylab.errorbar(bins_centered,binstats_bfit_noisy['m1'],yerr=binstats_bfit_noisy['m1_std'], fmt='-m+', label = 'm1 noise+model')
-        pylab.errorbar(bins_centered,binstats_bfit_noisy['m2'],yerr=binstats_bfit_noisy['m2_std'], fmt='-cx', label = 'm2 noise+model')
+        pylab.errorbar(bins_centered,binstats_bfit_noisy['m1'],yerr=binstats_bfit_noisy['m1_std'], fmt=fmt1_nm, label = label_m1_nm)
+        pylab.errorbar(bins_centered,binstats_bfit_noisy['m2'],yerr=binstats_bfit_noisy['m2_std'], fmt=fmt2_nm, label = label_m2_nm)
 
         std_m1 = (binstats_real_noisy['m1_std']**2 + binstats_bfit_noisy['m1_std']**2)**(0.5)
         std_m2 = (binstats_real_noisy['m2_std']**2 + binstats_bfit_noisy['m2_std']**2)**(0.5)
 
-        pylab.errorbar(bins_centered,binstats_real_noisy['m1']-binstats_bfit_noisy['m1'],yerr=std_m1, fmt='k--+', label = 'm1 interact')
-        pylab.errorbar(bins_centered,binstats_real_noisy['m2']-binstats_bfit_noisy['m2'],yerr=std_m2, fmt='k:x',  label = 'm2 interact')
+        pylab.errorbar(bins_centered,binstats_real_noisy['m1']-binstats_bfit_noisy['m1'],yerr=std_m1, fmt=fmt1_i, label = label_m1_i)
+        pylab.errorbar(bins_centered,binstats_real_noisy['m2']-binstats_bfit_noisy['m2'],yerr=std_m2, fmt=fmt2_i,  label = label_m2_i)
 
 
     xadd = max( [ abs(binstats_real_noisy['bin_value'].min()) , abs(binstats_real_noisy['bin_value'].max()) ] ) *0.1
@@ -318,39 +385,39 @@ def plotBiasForBins(combine12=False):
         filename_fig = 'figures/fig.bins.comb.size'
 
         mean_real_clear_m = (binstats_real_clear['m1']     + binstats_real_clear['m2'])/2.
-        stdm_real_clear_m = ((binstats_real_clear['m1_std']**2 + binstats_real_clear['m1_std']**2)**(0.5))/2.
-        pylab.errorbar(bins_centered,mean_real_clear_m,yerr=stdm_real_clear_m, fmt='-g+', label = 'm model')
+        stdm_real_clear_m = ((binstats_real_clear['m1_std']**2 + binstats_real_clear['m2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_real_clear_m,yerr=stdm_real_clear_m, fmt=fmt_m, label = label_m_m)
 
         mean_real_noisy_m = (binstats_real_noisy['m1']     + binstats_real_noisy['m2'])/2.
-        stdm_real_noisy_m = ((binstats_real_noisy['m1_std']**2 + binstats_real_noisy['m1_std']**2)**(0.5))/2.
-        pylab.errorbar(bins_centered,mean_real_noisy_m,yerr=stdm_real_noisy_m, fmt='-r+', label = 'm1 noise+model+interact')
+        stdm_real_noisy_m = ((binstats_real_noisy['m1_std']**2 + binstats_real_noisy['m2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_real_noisy_m,yerr=stdm_real_noisy_m, fmt=fmt_nmi, label = label_m_nmi)
         
         mean_bfit_noisy_m = (binstats_bfit_noisy['m1']     + binstats_bfit_noisy['m2'])/2.
-        stdm_bfit_noisy_m = ((binstats_bfit_noisy['m1_std']**2 + binstats_bfit_noisy['m1_std']**2)**(0.5))/2.
-        pylab.errorbar(bins_centered,mean_bfit_noisy_m,yerr=stdm_bfit_noisy_m, fmt='-m+', label = 'm1 noise+model')
+        stdm_bfit_noisy_m = ((binstats_bfit_noisy['m1_std']**2 + binstats_bfit_noisy['m2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_bfit_noisy_m,yerr=stdm_bfit_noisy_m, fmt=fmt_nm, label = label_m_nm)
 
         mean_diff_noisy_m = mean_real_noisy_m - mean_bfit_noisy_m
         stdm_diff_noisy_m = (stdm_real_noisy_m**2 + stdm_bfit_noisy_m**2)**(0.5)
-        pylab.errorbar(bins_centered,mean_diff_noisy_m,yerr=stdm_diff_noisy_m, fmt='k--+', label = 'm1 interact')
+        pylab.errorbar(bins_centered,mean_diff_noisy_m,yerr=stdm_diff_noisy_m, fmt=fmt_i, label = label_m_i)
 
     else:
 
         filename_fig = 'figures/fig.bins.size'
 
-        pylab.errorbar(bins_centered,binstats_real_clear['m1'],yerr=binstats_real_clear['m1_std'], fmt='-g+', label = 'm1 model')
-        pylab.errorbar(bins_centered,binstats_real_clear['m2'],yerr=binstats_real_clear['m2_std'], fmt='-yx', label = 'm2 model')
+        pylab.errorbar(bins_centered,binstats_real_clear['m1'],yerr=binstats_real_clear['m1_std'], fmt=fmt1_m, label = label_m1_m)
+        pylab.errorbar(bins_centered,binstats_real_clear['m2'],yerr=binstats_real_clear['m2_std'], fmt=fmt2_m, label = label_m2_m)
 
-        pylab.errorbar(bins_centered,binstats_bfit_noisy['m1'],yerr=binstats_bfit_noisy['m1_std'], fmt='-m+', label = 'm1 noise+model')
-        pylab.errorbar(bins_centered,binstats_bfit_noisy['m2'],yerr=binstats_bfit_noisy['m2_std'], fmt='-cx', label = 'm2 noise+model')
+        pylab.errorbar(bins_centered,binstats_bfit_noisy['m1'],yerr=binstats_bfit_noisy['m1_std'], fmt=fmt1_nm, label = label_m1_nm)
+        pylab.errorbar(bins_centered,binstats_bfit_noisy['m2'],yerr=binstats_bfit_noisy['m2_std'], fmt=fmt2_nm, label = label_m2_nm)
 
-        pylab.errorbar(bins_centered,binstats_real_noisy['m1'],yerr=binstats_real_noisy['m1_std'], fmt='-r+', label = 'm1 noise+model+interact')
-        pylab.errorbar(bins_centered,binstats_real_noisy['m2'],yerr=binstats_real_noisy['m2_std'], fmt='-bx', label = 'm2 noise+model+interact')
+        pylab.errorbar(bins_centered,binstats_real_noisy['m1'],yerr=binstats_real_noisy['m1_std'], fmt=fmt1_nmi, label = label_m1_nmi)
+        pylab.errorbar(bins_centered,binstats_real_noisy['m2'],yerr=binstats_real_noisy['m2_std'], fmt=fmt2_nmi, label = label_m2_nmi)
 
         std_m1 = (binstats_real_noisy['m1_std']**2 + binstats_bfit_noisy['m1_std']**2)**(0.5)
         std_m2 = (binstats_real_noisy['m2_std']**2 + binstats_bfit_noisy['m2_std']**2)**(0.5)
 
-        pylab.errorbar(bins_centered,binstats_real_noisy['m1']-binstats_bfit_noisy['m1'],yerr=std_m1, fmt='k--+', label = 'm1 interact')
-        pylab.errorbar(bins_centered,binstats_real_noisy['m2']-binstats_bfit_noisy['m2'],yerr=std_m2, fmt='k:x',  label = 'm2 interact')
+        pylab.errorbar(bins_centered,binstats_real_noisy['m1']-binstats_bfit_noisy['m1'],yerr=std_m1, fmt=fmt1_i, label = label_m1_i)
+        pylab.errorbar(bins_centered,binstats_real_noisy['m2']-binstats_bfit_noisy['m2'],yerr=std_m2, fmt=fmt2_i,  label = label_m2_i)
     
 
     xadd = max( [ abs(binstats_real_noisy['bin_value'].min()) , abs(binstats_real_noisy['bin_value'].max()) ] ) *0.1
@@ -404,39 +471,39 @@ def plotBiasForBins(combine12=False):
         filename_fig = 'figures/fig.bins.comb.modd'
 
         mean_real_clear_m = (binstats_real_clear['m1']     + binstats_real_clear['m2'])/2.
-        stdm_real_clear_m = ((binstats_real_clear['m1_std']**2 + binstats_real_clear['m1_std']**2)**(0.5))/2.
-        pylab.errorbar(bins_centered,mean_real_clear_m,yerr=stdm_real_clear_m, fmt='-g+', label = 'm model')
+        stdm_real_clear_m = ((binstats_real_clear['m1_std']**2 + binstats_real_clear['m2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_real_clear_m,yerr=stdm_real_clear_m, fmt=fmt_m, label = label_m_m)
 
         mean_real_noisy_m = (binstats_real_noisy['m1']     + binstats_real_noisy['m2'])/2.
-        stdm_real_noisy_m = ((binstats_real_noisy['m1_std']**2 + binstats_real_noisy['m1_std']**2)**(0.5))/2.
-        pylab.errorbar(bins_centered,mean_real_noisy_m,yerr=stdm_real_noisy_m, fmt='-r+', label = 'm1 noise+model+interact')
+        stdm_real_noisy_m = ((binstats_real_noisy['m1_std']**2 + binstats_real_noisy['m2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_real_noisy_m,yerr=stdm_real_noisy_m, fmt=fmt_nmi, label = label_m_nmi)
         
         mean_bfit_noisy_m = (binstats_bfit_noisy['m1']     + binstats_bfit_noisy['m2'])/2.
-        stdm_bfit_noisy_m = ((binstats_bfit_noisy['m1_std']**2 + binstats_bfit_noisy['m1_std']**2)**(0.5))/2.
-        pylab.errorbar(bins_centered,mean_bfit_noisy_m,yerr=stdm_bfit_noisy_m, fmt='-m+', label = 'm1 noise+model')
+        stdm_bfit_noisy_m = ((binstats_bfit_noisy['m1_std']**2 + binstats_bfit_noisy['m2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_bfit_noisy_m,yerr=stdm_bfit_noisy_m, fmt=fmt_nm, label = label_m_nm)
 
         mean_diff_noisy_m = mean_real_noisy_m - mean_bfit_noisy_m
         stdm_diff_noisy_m = (stdm_real_noisy_m**2 + stdm_bfit_noisy_m**2)**(0.5)
-        pylab.errorbar(bins_centered,mean_diff_noisy_m,yerr=stdm_diff_noisy_m, fmt='k--+', label = 'm1 interact')
+        pylab.errorbar(bins_centered,mean_diff_noisy_m,yerr=stdm_diff_noisy_m, fmt=fmt_i, label = label_m_i)
 
     else:
 
         filename_fig = 'figures/fig.bins.modd'
 
-        pylab.errorbar(bins_centered,binstats_real_clear['m1'],yerr=binstats_real_clear['m1_std'], fmt='-g+', label = 'm1 model')
-        pylab.errorbar(bins_centered,binstats_real_clear['m2'],yerr=binstats_real_clear['m2_std'], fmt='-yx', label = 'm2 model')
+        pylab.errorbar(bins_centered,binstats_real_clear['m1'],yerr=binstats_real_clear['m1_std'], fmt=fmt1_m, label = label_m1_m)
+        pylab.errorbar(bins_centered,binstats_real_clear['m2'],yerr=binstats_real_clear['m2_std'], fmt=fmt2_m, label = label_m2_m)
 
-        pylab.errorbar(bins_centered,binstats_bfit_noisy['m1'],yerr=binstats_bfit_noisy['m1_std'], fmt='-m+', label = 'm1 noise+model')
-        pylab.errorbar(bins_centered,binstats_bfit_noisy['m2'],yerr=binstats_bfit_noisy['m2_std'], fmt='-cx', label = 'm2 noise+model')
+        pylab.errorbar(bins_centered,binstats_bfit_noisy['m1'],yerr=binstats_bfit_noisy['m1_std'], fmt=fmt1_nm, label = label_m1_nm)
+        pylab.errorbar(bins_centered,binstats_bfit_noisy['m2'],yerr=binstats_bfit_noisy['m2_std'], fmt=fmt2_nm, label = label_m2_nm)
 
-        pylab.errorbar(bins_centered,binstats_real_noisy['m1'],yerr=binstats_real_noisy['m1_std'], fmt='-r+', label = 'm1 noise+model+interact')
-        pylab.errorbar(bins_centered,binstats_real_noisy['m2'],yerr=binstats_real_noisy['m2_std'], fmt='-bx', label = 'm2 noise+model+interact')
+        pylab.errorbar(bins_centered,binstats_real_noisy['m1'],yerr=binstats_real_noisy['m1_std'], fmt=fmt1_nmi, label = label_m1_nmi)
+        pylab.errorbar(bins_centered,binstats_real_noisy['m2'],yerr=binstats_real_noisy['m2_std'], fmt=fmt2_nmi, label = label_m2_nmi)
 
         std_m1 = (binstats_real_noisy['m1_std']**2 + binstats_bfit_noisy['m1_std']**2)**(0.5)
         std_m2 = (binstats_real_noisy['m2_std']**2 + binstats_bfit_noisy['m2_std']**2)**(0.5)
 
-        pylab.errorbar(bins_centered,binstats_real_noisy['m1']-binstats_bfit_noisy['m1'],yerr=std_m1, fmt='k--+', label = 'm1 interact')
-        pylab.errorbar(bins_centered,binstats_real_noisy['m2']-binstats_bfit_noisy['m2'],yerr=std_m2, fmt='k:x',  label = 'm2 interact')
+        pylab.errorbar(bins_centered,binstats_real_noisy['m1']-binstats_bfit_noisy['m1'],yerr=std_m1, fmt=fmt1_i, label = label_m1_i)
+        pylab.errorbar(bins_centered,binstats_real_noisy['m2']-binstats_bfit_noisy['m2'],yerr=std_m2, fmt=fmt2_i,  label = label_m2_i)
 
     xadd = max( [ abs(binstats_real_noisy['bin_value'].min()) , abs(binstats_real_noisy['bin_value'].max()) ] ) *0.1
     # pylab.xlim(binstats_real_noisy['bin_value'].min()-xadd,binstats_real_noisy['bin_value'].max()+xadd)
@@ -490,39 +557,39 @@ def plotBiasForBins(combine12=False):
         filename_fig = 'figures/fig.bins.comb.model_bias'
 
         mean_real_clear_m = (binstats_real_clear['m1']     + binstats_real_clear['m2'])/2.
-        stdm_real_clear_m = ((binstats_real_clear['m1_std']**2 + binstats_real_clear['m1_std']**2)**(0.5))/2.
-        pylab.errorbar(bins_centered,mean_real_clear_m,yerr=stdm_real_clear_m, fmt='-g+', label = 'm model')
+        stdm_real_clear_m = ((binstats_real_clear['m1_std']**2 + binstats_real_clear['m2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_real_clear_m,yerr=stdm_real_clear_m, fmt=fmt_m, label = label_m_m)
 
         mean_real_noisy_m = (binstats_real_noisy['m1']     + binstats_real_noisy['m2'])/2.
-        stdm_real_noisy_m = ((binstats_real_noisy['m1_std']**2 + binstats_real_noisy['m1_std']**2)**(0.5))/2.
-        pylab.errorbar(bins_centered,mean_real_noisy_m,yerr=stdm_real_noisy_m, fmt='-r+', label = 'm1 noise+model+interact')
+        stdm_real_noisy_m = ((binstats_real_noisy['m1_std']**2 + binstats_real_noisy['m2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_real_noisy_m,yerr=stdm_real_noisy_m, fmt=fmt_nmi, label = label_m_nmi)
         
         mean_bfit_noisy_m = (binstats_bfit_noisy['m1']     + binstats_bfit_noisy['m2'])/2.
-        stdm_bfit_noisy_m = ((binstats_bfit_noisy['m1_std']**2 + binstats_bfit_noisy['m1_std']**2)**(0.5))/2.
-        pylab.errorbar(bins_centered,mean_bfit_noisy_m,yerr=stdm_bfit_noisy_m, fmt='-m+', label = 'm1 noise+model')
+        stdm_bfit_noisy_m = ((binstats_bfit_noisy['m1_std']**2 + binstats_bfit_noisy['m2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_bfit_noisy_m,yerr=stdm_bfit_noisy_m, fmt=fmt_nm, label = label_m_nm)
 
         mean_diff_noisy_m = mean_real_noisy_m - mean_bfit_noisy_m
         stdm_diff_noisy_m = (stdm_real_noisy_m**2 + stdm_bfit_noisy_m**2)**(0.5)
-        pylab.errorbar(bins_centered,mean_diff_noisy_m,yerr=stdm_diff_noisy_m, fmt='k--+', label = 'm1 interact')
+        pylab.errorbar(bins_centered,mean_diff_noisy_m,yerr=stdm_diff_noisy_m, fmt=fmt_i, label = label_m_i)
 
     else:
 
         filename_fig = 'figures/fig.bins.model_bias'
 
-        pylab.errorbar(bins_centered,abs(binstats_real_clear['m1']),yerr=binstats_real_clear['m1_std'], fmt='-g+', label = 'm1 model')
-        pylab.errorbar(bins_centered,abs(binstats_real_clear['m2']),yerr=binstats_real_clear['m2_std'], fmt='-yx', label = 'm2 model')
+        pylab.errorbar(bins_centered,abs(binstats_real_clear['m1']),yerr=binstats_real_clear['m1_std'], fmt=fmt1_m, label = label_m1_m)
+        pylab.errorbar(bins_centered,abs(binstats_real_clear['m2']),yerr=binstats_real_clear['m2_std'], fmt=fmt2_m, label = label_m2_m)
 
-        pylab.errorbar(bins_centered,binstats_bfit_noisy['m1'],yerr=binstats_bfit_noisy['m1_std'], fmt='-m+', label = 'm1 noise+model')
-        pylab.errorbar(bins_centered,binstats_bfit_noisy['m2'],yerr=binstats_bfit_noisy['m2_std'], fmt='-cx', label = 'm2 noise+model')
+        pylab.errorbar(bins_centered,binstats_bfit_noisy['m1'],yerr=binstats_bfit_noisy['m1_std'], fmt=fmt1_nm, label = label_m1_nm)
+        pylab.errorbar(bins_centered,binstats_bfit_noisy['m2'],yerr=binstats_bfit_noisy['m2_std'], fmt=fmt2_nm, label = label_m2_nm)
 
-        pylab.errorbar(bins_centered,binstats_real_noisy['m1'],yerr=binstats_real_noisy['m1_std'], fmt='-r+', label = 'm1 noise+model+interact')
-        pylab.errorbar(bins_centered,binstats_real_noisy['m2'],yerr=binstats_real_noisy['m2_std'], fmt='-bx', label = 'm2 noise+model+interact')
+        pylab.errorbar(bins_centered,binstats_real_noisy['m1'],yerr=binstats_real_noisy['m1_std'], fmt=fmt1_nmi, label = label_m1_nmi)
+        pylab.errorbar(bins_centered,binstats_real_noisy['m2'],yerr=binstats_real_noisy['m2_std'], fmt=fmt2_nmi, label = label_m2_nmi)
 
         std_m1 = (binstats_real_noisy['m1_std']**2 + binstats_bfit_noisy['m1_std']**2)**(0.5)
         std_m2 = (binstats_real_noisy['m2_std']**2 + binstats_bfit_noisy['m2_std']**2)**(0.5)
 
-        pylab.errorbar(bins_centered,binstats_bfit_noisy['m1']-binstats_real_noisy['m1'],yerr=std_m1, fmt='k--+', label = 'm1 interact')
-        pylab.errorbar(bins_centered,binstats_bfit_noisy['m2']-binstats_real_noisy['m2'],yerr=std_m2, fmt='k:x',  label = 'm2 interact')
+        pylab.errorbar(bins_centered,binstats_bfit_noisy['m1']-binstats_real_noisy['m1'],yerr=std_m1, fmt=fmt1_i, label = label_m1_i)
+        pylab.errorbar(bins_centered,binstats_bfit_noisy['m2']-binstats_real_noisy['m2'],yerr=std_m2, fmt=fmt2_i,  label = label_m2_i)
 
 
 
@@ -535,7 +602,7 @@ def plotBiasForBins(combine12=False):
 
     yticks = [-req1_m,-req2_m,0.,req1_m,0.01,req2_m,0.05,0.1]
     pylab.yticks(yticks,[str(x) for x in  yticks ])
-    pylab.ylim([-0.01,0.05])
+    pylab.ylim([-0.03,0.05])
 
     xticks = bins_model_bias
     pylab.xticks(xticks,[str(x) for x in  xticks ])
@@ -597,20 +664,45 @@ def plotBiasForBinsAdditive(combine12=False):
 
     bins_centered = _binCentersSameLen(binstats_real_clear['bin_value'])
 
-    pylab.errorbar(bins_centered,binstats_real_clear['c1'],yerr=binstats_real_clear['c1_std'], fmt='-g+', label = 'c1 model')
-    pylab.errorbar(bins_centered,binstats_real_clear['c2'],yerr=binstats_real_clear['c2_std'], fmt='-yx', label = 'c2 model')
 
-    pylab.errorbar(bins_centered,binstats_real_noisy['c1'],yerr=binstats_real_noisy['c1_std'], fmt='-r+', label = 'c1 noise+model+interact')
-    pylab.errorbar(bins_centered,binstats_real_noisy['c2'],yerr=binstats_real_noisy['c2_std'], fmt='-bx', label = 'c2 noise+model+interact')
-    
-    pylab.errorbar(bins_centered,binstats_bfit_noisy['c1'],yerr=binstats_bfit_noisy['c1_std'], fmt='-m+', label = 'c1 noise+model')
-    pylab.errorbar(bins_centered,binstats_bfit_noisy['c2'],yerr=binstats_bfit_noisy['c2_std'], fmt='-cx', label = 'c2 noise+model')
+    if combine12:
 
-    std_c1 = (binstats_real_noisy['c1_std']**2 + binstats_bfit_noisy['c1_std']**2)**(0.5)
-    std_c2 = (binstats_real_noisy['c2_std']**2 + binstats_bfit_noisy['c2_std']**2)**(0.5)
+        filename_fig = 'figures/fig.bins_additive.comb.redshift'
 
-    pylab.errorbar(bins_centered,binstats_real_noisy['c1']-binstats_bfit_noisy['c1'],yerr=std_c1, fmt='k--+', label = 'c1 interact')
-    pylab.errorbar(bins_centered,binstats_real_noisy['c2']-binstats_bfit_noisy['c2'],yerr=std_c2, fmt='k:x',  label = 'c2 interact')
+        mean_real_clear_c = (binstats_real_clear['c1']     + binstats_real_clear['c2'])/2.
+        stdm_real_clear_c = ((binstats_real_clear['c1_std']**2 + binstats_real_clear['c2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_real_clear_c,yerr=stdm_real_clear_c, fmt=fmt_m, label = label_c_m)
+
+        mean_real_noisy_c = (binstats_real_noisy['c1']     + binstats_real_noisy['c2'])/2.
+        stdm_real_noisy_c = ((binstats_real_noisy['c1_std']**2 + binstats_real_noisy['c2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_real_noisy_c,yerr=stdm_real_noisy_c, fmt=fmt_nmi, label = label_c_nmi)
+        
+        mean_bfit_noisy_c = (binstats_bfit_noisy['c1']     + binstats_bfit_noisy['c2'])/2.
+        stdm_bfit_noisy_c = ((binstats_bfit_noisy['c1_std']**2 + binstats_bfit_noisy['c2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_bfit_noisy_c,yerr=stdm_bfit_noisy_c, fmt=fmt_nm, label = label_c_nm)
+
+        mean_diff_noisy_c = mean_real_noisy_c - mean_bfit_noisy_c
+        stdm_diff_noisy_c = (stdm_real_noisy_c**2 + stdm_bfit_noisy_c**2)**(0.5)
+        pylab.errorbar(bins_centered,mean_diff_noisy_c,yerr=stdm_diff_noisy_c, fmt=fmt_i, label = label_c_i)
+
+    else:
+
+        filename_fig = 'figures/fig.bins_additive.redshift'
+
+        pylab.errorbar(bins_centered,binstats_real_clear['c1'],yerr=binstats_real_clear['c1_std'], fmt=fmt1_m, label = label_c1_m )
+        pylab.errorbar(bins_centered,binstats_real_clear['c2'],yerr=binstats_real_clear['c2_std'], fmt=fmt2_m, label = label_c2_m)
+
+        pylab.errorbar(bins_centered,binstats_real_noisy['c1'],yerr=binstats_real_noisy['c1_std'], fmt=fmt1_nmi, label = label_c1_nmi)
+        pylab.errorbar(bins_centered,binstats_real_noisy['c2'],yerr=binstats_real_noisy['c2_std'], fmt=fmt2_nmi, label = label_c2_nmi)
+        
+        pylab.errorbar(bins_centered,binstats_bfit_noisy['c1'],yerr=binstats_bfit_noisy['c1_std'], fmt=fmt1_nm, label = label_c1_nm)
+        pylab.errorbar(bins_centered,binstats_bfit_noisy['c2'],yerr=binstats_bfit_noisy['c2_std'], fmt=fmt2_nm, label = label_c2_nm)
+
+        std_c1 = (binstats_real_noisy['c1_std']**2 + binstats_bfit_noisy['c1_std']**2)**(0.5)
+        std_c2 = (binstats_real_noisy['c2_std']**2 + binstats_bfit_noisy['c2_std']**2)**(0.5)
+
+        pylab.errorbar(bins_centered,binstats_real_noisy['c1']-binstats_bfit_noisy['c1'],yerr=std_c1, fmt=fmt1_i, label = label_c1_i)
+        pylab.errorbar(bins_centered,binstats_real_noisy['c2']-binstats_bfit_noisy['c2'],yerr=std_c2, fmt=fmt2_i,  label = label_c2_i)
 
     xadd = max( [ abs(binstats_real_noisy['bin_value'].min()) , abs(binstats_real_noisy['bin_value'].max()) ] ) *0.1
     # pylab.xlim(binstats_real_noisy['bin_value'].min()-xadd,binstats_real_noisy['bin_value'].max()+xadd)
@@ -619,9 +711,9 @@ def plotBiasForBinsAdditive(combine12=False):
     pylab.xlabel('galaxy redshift    z-phot')
     pylab.ylabel('additive bias   c')
 
-    yticks = [-req1_c,0.,req1_c, 0.002, 0.004, 0.006, 0.008 , 0.01]
+    yticks = [-0.003,-req1_c,0.,req1_c, 0.002, 0.004, 0.006, 0.008 , 0.01]
     pylab.yticks(yticks,[str(x) for x in  yticks ])
-    # pylab.ylim([-0.04,0.07])
+    pylab.ylim([-0.0031,req2_c])
     pylab.xlim([0,1.5])
 
     pylab.grid()
@@ -631,7 +723,6 @@ def plotBiasForBinsAdditive(combine12=False):
 
     pylab.subplots_adjust(left=margin_left, right=margin_right, top=margin_top, bottom=margin_bottom)
 
-    filename_fig = 'figures/fig.bins_additive.redshift'
     saveCurrentFig(filename_fig)
     pylab.close()
 
@@ -657,20 +748,44 @@ def plotBiasForBinsAdditive(combine12=False):
 
     bins_centered = _binCentersSameLen(binstats_real_clear['bin_value'])
 
-    pylab.errorbar(bins_centered,binstats_real_clear['c1'],yerr=binstats_real_clear['c1_std'], fmt='-g+', label = 'c1 model')
-    pylab.errorbar(bins_centered,binstats_real_clear['c2'],yerr=binstats_real_clear['c2_std'], fmt='-yx', label = 'c2 model')
+    if combine12:
 
-    pylab.errorbar(bins_centered,binstats_real_noisy['c1'],yerr=binstats_real_noisy['c1_std'], fmt='-r+', label = 'c1 noise+model+interact')
-    pylab.errorbar(bins_centered,binstats_real_noisy['c2'],yerr=binstats_real_noisy['c2_std'], fmt='-bx', label = 'c2 noise+model+interact')
+        filename_fig = 'figures/fig.bins_additive.comb.size_nocut'
 
-    pylab.errorbar(bins_centered,binstats_bfit_noisy['c1'],yerr=binstats_bfit_noisy['c1_std'], fmt='-m+', label = 'c1 noise+model')
-    pylab.errorbar(bins_centered,binstats_bfit_noisy['c2'],yerr=binstats_bfit_noisy['c2_std'], fmt='-cx', label = 'c2 noise+model')
+        mean_real_clear_c = (binstats_real_clear['c1']     + binstats_real_clear['c2'])/2.
+        stdm_real_clear_c = ((binstats_real_clear['c1_std']**2 + binstats_real_clear['c2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_real_clear_c,yerr=stdm_real_clear_c, fmt=fmt_m, label = label_c_m)
 
-    std_c1 = (binstats_real_noisy['c1_std']**2 + binstats_bfit_noisy['c1_std']**2)**(0.5)
-    std_c2 = (binstats_real_noisy['c2_std']**2 + binstats_bfit_noisy['c2_std']**2)**(0.5)
+        mean_real_noisy_c = (binstats_real_noisy['c1']     + binstats_real_noisy['c2'])/2.
+        stdm_real_noisy_c = ((binstats_real_noisy['c1_std']**2 + binstats_real_noisy['c2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_real_noisy_c,yerr=stdm_real_noisy_c, fmt=fmt_nmi, label = label_c_nmi)
+        
+        mean_bfit_noisy_c = (binstats_bfit_noisy['c1']     + binstats_bfit_noisy['c2'])/2.
+        stdm_bfit_noisy_c = ((binstats_bfit_noisy['c1_std']**2 + binstats_bfit_noisy['c2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_bfit_noisy_c,yerr=stdm_bfit_noisy_c, fmt=fmt_nm, label = label_c_nm)
 
-    pylab.errorbar(bins_centered,binstats_real_noisy['c1']-binstats_bfit_noisy['c1'],yerr=std_c1, fmt='k--+', label = 'c1 interact')
-    pylab.errorbar(bins_centered,binstats_real_noisy['c2']-binstats_bfit_noisy['c2'],yerr=std_c2, fmt='k:x',  label = 'c2 interact')
+        mean_diff_noisy_c = mean_real_noisy_c - mean_bfit_noisy_c
+        stdm_diff_noisy_c = (stdm_real_noisy_c**2 + stdm_bfit_noisy_c**2)**(0.5)
+        pylab.errorbar(bins_centered,mean_diff_noisy_c,yerr=stdm_diff_noisy_c, fmt=fmt_i, label = label_c_i)
+
+    else:
+
+        filename_fig = 'figures/fig.bins_additive.size_nocut'
+        
+        pylab.errorbar(bins_centered,binstats_real_clear['c1'],yerr=binstats_real_clear['c1_std'], fmt=fmt1_m, label = label_c1_m)
+        pylab.errorbar(bins_centered,binstats_real_clear['c2'],yerr=binstats_real_clear['c2_std'], fmt=fmt2_m, label = label_c2_m)
+
+        pylab.errorbar(bins_centered,binstats_real_noisy['c1'],yerr=binstats_real_noisy['c1_std'], fmt=fmt1_nmi, label = label_c1_nmi)
+        pylab.errorbar(bins_centered,binstats_real_noisy['c2'],yerr=binstats_real_noisy['c2_std'], fmt=fmt2_nmi, label = label_c2_nmi)
+
+        pylab.errorbar(bins_centered,binstats_bfit_noisy['c1'],yerr=binstats_bfit_noisy['c1_std'], fmt=fmt1_nm, label = label_c1_nm)
+        pylab.errorbar(bins_centered,binstats_bfit_noisy['c2'],yerr=binstats_bfit_noisy['c2_std'], fmt=fmt2_nm, label = label_c2_nm)
+
+        std_c1 = (binstats_real_noisy['c1_std']**2 + binstats_bfit_noisy['c1_std']**2)**(0.5)
+        std_c2 = (binstats_real_noisy['c2_std']**2 + binstats_bfit_noisy['c2_std']**2)**(0.5)
+
+        pylab.errorbar(bins_centered,binstats_real_noisy['c1']-binstats_bfit_noisy['c1'],yerr=std_c1, fmt=fmt1_i, label = label_c1_i)
+        pylab.errorbar(bins_centered,binstats_real_noisy['c2']-binstats_bfit_noisy['c2'],yerr=std_c2, fmt=fmt2_i,  label = label_c2_i)
 
     xadd = max( [ abs(binstats_real_noisy['bin_value'].min()) , abs(binstats_real_noisy['bin_value'].max()) ] ) *0.1
     # print xadd
@@ -695,7 +810,6 @@ def plotBiasForBinsAdditive(combine12=False):
 
     pylab.subplots_adjust(left=margin_left, right=margin_right, top=margin_top, bottom=margin_bottom)
 
-    filename_fig = 'figures/fig.bins_additive.size_nocut'
     saveCurrentFig(filename_fig)
     pylab.close()
 
@@ -720,20 +834,44 @@ def plotBiasForBinsAdditive(combine12=False):
 
     bins_centered = _binCentersSameLen(binstats_real_clear['bin_value'])
 
-    pylab.errorbar(bins_centered,binstats_real_clear['c1'],yerr=binstats_real_clear['c1_std'], fmt='-g+', label = 'c1 model')
-    pylab.errorbar(bins_centered,binstats_real_clear['c2'],yerr=binstats_real_clear['c2_std'], fmt='-yx', label = 'c2 model')
+    if combine12:
 
-    pylab.errorbar(bins_centered,binstats_bfit_noisy['c1'],yerr=binstats_bfit_noisy['c1_std'], fmt='-m+', label = 'c1 noise+model')
-    pylab.errorbar(bins_centered,binstats_bfit_noisy['c2'],yerr=binstats_bfit_noisy['c2_std'], fmt='-cx', label = 'c2 noise+model')
+        filename_fig = 'figures/fig.bins_additive.comb.size'
 
-    pylab.errorbar(bins_centered,binstats_real_noisy['c1'],yerr=binstats_real_noisy['c1_std'], fmt='-r+', label = 'c1 noise+model+interact')
-    pylab.errorbar(bins_centered,binstats_real_noisy['c2'],yerr=binstats_real_noisy['c2_std'], fmt='-bx', label = 'c2 noise+model+interact')
+        mean_real_clear_c = (binstats_real_clear['c1']     + binstats_real_clear['c2'])/2.
+        stdm_real_clear_c = ((binstats_real_clear['c1_std']**2 + binstats_real_clear['c2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_real_clear_c,yerr=stdm_real_clear_c, fmt=fmt_m, label = label_c_m)
 
-    std_c1 = (binstats_real_noisy['c1_std']**2 + binstats_bfit_noisy['c1_std']**2)**(0.5)
-    std_c2 = (binstats_real_noisy['c2_std']**2 + binstats_bfit_noisy['c2_std']**2)**(0.5)
+        mean_real_noisy_c = (binstats_real_noisy['c1']     + binstats_real_noisy['c2'])/2.
+        stdm_real_noisy_c = ((binstats_real_noisy['c1_std']**2 + binstats_real_noisy['c2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_real_noisy_c,yerr=stdm_real_noisy_c, fmt=fmt_nmi, label = label_c_nmi)
+        
+        mean_bfit_noisy_c = (binstats_bfit_noisy['c1']     + binstats_bfit_noisy['c2'])/2.
+        stdm_bfit_noisy_c = ((binstats_bfit_noisy['c1_std']**2 + binstats_bfit_noisy['c2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_bfit_noisy_c,yerr=stdm_bfit_noisy_c, fmt=fmt_nm, label = label_c_nm)
 
-    pylab.errorbar(bins_centered,binstats_real_noisy['c1']-binstats_bfit_noisy['c1'],yerr=std_c1, fmt='k--+', label = 'c1 interact')
-    pylab.errorbar(bins_centered,binstats_real_noisy['c2']-binstats_bfit_noisy['c2'],yerr=std_c2, fmt='k:x',  label = 'c2 interact')
+        mean_diff_noisy_c = mean_real_noisy_c - mean_bfit_noisy_c
+        stdm_diff_noisy_c = (stdm_real_noisy_c**2 + stdm_bfit_noisy_c**2)**(0.5)
+        pylab.errorbar(bins_centered,mean_diff_noisy_c,yerr=stdm_diff_noisy_c, fmt=fmt_i, label = label_c_i)
+
+    else:
+        
+        filename_fig = 'figures/fig.bins_additive.size'
+
+        pylab.errorbar(bins_centered,binstats_real_clear['c1'],yerr=binstats_real_clear['c1_std'], fmt=fmt1_m, label = label_c1_m)
+        pylab.errorbar(bins_centered,binstats_real_clear['c2'],yerr=binstats_real_clear['c2_std'], fmt=fmt2_m, label = label_c2_m)
+
+        pylab.errorbar(bins_centered,binstats_bfit_noisy['c1'],yerr=binstats_bfit_noisy['c1_std'], fmt=fmt1_nm, label = label_c1_nm)
+        pylab.errorbar(bins_centered,binstats_bfit_noisy['c2'],yerr=binstats_bfit_noisy['c2_std'], fmt=fmt2_nm, label = label_c2_nm)
+
+        pylab.errorbar(bins_centered,binstats_real_noisy['c1'],yerr=binstats_real_noisy['c1_std'], fmt=fmt1_nmi, label = label_c1_nmi)
+        pylab.errorbar(bins_centered,binstats_real_noisy['c2'],yerr=binstats_real_noisy['c2_std'], fmt=fmt2_nmi, label = label_c2_nmi)
+
+        std_c1 = (binstats_real_noisy['c1_std']**2 + binstats_bfit_noisy['c1_std']**2)**(0.5)
+        std_c2 = (binstats_real_noisy['c2_std']**2 + binstats_bfit_noisy['c2_std']**2)**(0.5)
+
+        pylab.errorbar(bins_centered,binstats_real_noisy['c1']-binstats_bfit_noisy['c1'],yerr=std_c1, fmt=fmt1_i, label = label_c1_i)
+        pylab.errorbar(bins_centered,binstats_real_noisy['c2']-binstats_bfit_noisy['c2'],yerr=std_c2, fmt=fmt2_i,  label = label_c2_i)
 
     xadd = max( [ abs(binstats_real_noisy['bin_value'].min()) , abs(binstats_real_noisy['bin_value'].max()) ] ) *0.1
     # print xadd
@@ -744,11 +882,11 @@ def plotBiasForBinsAdditive(combine12=False):
     pylab.xlabel('galaxy size    Rgp/Rp')
     pylab.ylabel('additive bias c')
 
-    yticks = [-req2_c,0.,req1_c,req2_c,0.003]
+    yticks = [-0.003,-req2_c,0.,req1_c,req2_c,0.003]
     pylab.yticks(yticks,[str(x) for x in  yticks ])
 
     pylab.xlim([1.3,1.95])
-    pylab.ylim([-0.0008, 0.003])
+    pylab.ylim([-0.0031, req2_c])
 
     pylab.grid()
     # pylab.legend(loc='lower right',ncol=2,mode='expand')
@@ -757,7 +895,6 @@ def plotBiasForBinsAdditive(combine12=False):
 
     pylab.subplots_adjust(left=margin_left, right=margin_right, top=margin_top, bottom=margin_bottom)
 
-    filename_fig = 'figures/fig.bins_additive.size'
     saveCurrentFig(filename_fig)
     pylab.close()
 
@@ -782,35 +919,56 @@ def plotBiasForBinsAdditive(combine12=False):
 
     bins_centered = _binCentersSameLen(binstats_real_clear['bin_value'])
 
+    if combine12:
 
-    pylab.errorbar(bins_centered,binstats_real_clear['c1'],yerr=binstats_real_clear['c1_std'], fmt='-g+', label = 'c1 model')
-    pylab.errorbar(bins_centered,binstats_real_clear['c2'],yerr=binstats_real_clear['c2_std'], fmt='-yx', label = 'c2 model')
+        filename_fig = 'figures/fig.bins_additive.comb.modd'
 
-    pylab.errorbar(bins_centered,binstats_bfit_noisy['c1'],yerr=binstats_bfit_noisy['c1_std'], fmt='-m+', label = 'c1 noise+model')
-    pylab.errorbar(bins_centered,binstats_bfit_noisy['c2'],yerr=binstats_bfit_noisy['c2_std'], fmt='-cx', label = 'c2 noise+model')
+        mean_real_clear_c = (binstats_real_clear['c1']     + binstats_real_clear['c2'])/2.
+        stdm_real_clear_c = ((binstats_real_clear['c1_std']**2 + binstats_real_clear['c2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_real_clear_c,yerr=stdm_real_clear_c, fmt=fmt_m, label = label_c_m)
 
-    pylab.errorbar(bins_centered,binstats_real_noisy['c1'],yerr=binstats_real_noisy['c1_std'], fmt='-r+', label = 'c1 noise+model+interact')
-    pylab.errorbar(bins_centered,binstats_real_noisy['c2'],yerr=binstats_real_noisy['c2_std'], fmt='-bx', label = 'c2 noise+model+interact')
+        mean_real_noisy_c = (binstats_real_noisy['c1']     + binstats_real_noisy['c2'])/2.
+        stdm_real_noisy_c = ((binstats_real_noisy['c1_std']**2 + binstats_real_noisy['c2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_real_noisy_c,yerr=stdm_real_noisy_c, fmt=fmt_nmi, label = label_c_nmi)
+        
+        mean_bfit_noisy_c = (binstats_bfit_noisy['c1']     + binstats_bfit_noisy['c2'])/2.
+        stdm_bfit_noisy_c = ((binstats_bfit_noisy['c1_std']**2 + binstats_bfit_noisy['c2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_bfit_noisy_c,yerr=stdm_bfit_noisy_c, fmt=fmt_nm, label = label_c_nm)
 
-    std_c1 = (binstats_real_noisy['c1_std']**2 + binstats_bfit_noisy['c1_std']**2)**(0.5)
-    std_c2 = (binstats_real_noisy['c2_std']**2 + binstats_bfit_noisy['c2_std']**2)**(0.5)
+        mean_diff_noisy_c = mean_real_noisy_c - mean_bfit_noisy_c
+        stdm_diff_noisy_c = (stdm_real_noisy_c**2 + stdm_bfit_noisy_c**2)**(0.5)
+        pylab.errorbar(bins_centered,mean_diff_noisy_c,yerr=stdm_diff_noisy_c, fmt=fmt_i, label = label_c_i)
 
-    pylab.errorbar(bins_centered,binstats_real_noisy['c1']-binstats_bfit_noisy['c1'],yerr=std_c1, fmt='k--+', label = 'c1 interact')
-    pylab.errorbar(bins_centered,binstats_real_noisy['c2']-binstats_bfit_noisy['c2'],yerr=std_c2, fmt='k:x',  label = 'c2 interact')
+    else:
+        
+        filename_fig = 'figures/fig.bins_additive.modd'
+
+        pylab.errorbar(bins_centered,binstats_real_clear['c1'],yerr=binstats_real_clear['c1_std'], fmt=fmt1_m, label = label_c1_m)
+        pylab.errorbar(bins_centered,binstats_real_clear['c2'],yerr=binstats_real_clear['c2_std'], fmt=fmt2_m, label = label_c2_m)
+
+        pylab.errorbar(bins_centered,binstats_bfit_noisy['c1'],yerr=binstats_bfit_noisy['c1_std'], fmt=fmt1_nm, label = label_c1_nm)
+        pylab.errorbar(bins_centered,binstats_bfit_noisy['c2'],yerr=binstats_bfit_noisy['c2_std'], fmt=fmt2_nm, label = label_c2_nm)
+
+        pylab.errorbar(bins_centered,binstats_real_noisy['c1'],yerr=binstats_real_noisy['c1_std'], fmt=fmt1_nmi, label = label_c1_nmi)
+        pylab.errorbar(bins_centered,binstats_real_noisy['c2'],yerr=binstats_real_noisy['c2_std'], fmt=fmt2_nmi, label = label_c2_nmi)
+
+        std_c1 = (binstats_real_noisy['c1_std']**2 + binstats_bfit_noisy['c1_std']**2)**(0.5)
+        std_c2 = (binstats_real_noisy['c2_std']**2 + binstats_bfit_noisy['c2_std']**2)**(0.5)
+
+        pylab.errorbar(bins_centered,binstats_real_noisy['c1']-binstats_bfit_noisy['c1'],yerr=std_c1, fmt=fmt1_i, label = label_c1_i)
+        pylab.errorbar(bins_centered,binstats_real_noisy['c2']-binstats_bfit_noisy['c2'],yerr=std_c2, fmt=fmt2_i,  label = label_c2_i)
 
     xadd = max( [ abs(binstats_real_noisy['bin_value'].min()) , abs(binstats_real_noisy['bin_value'].max()) ] ) *0.1
     # pylab.xlim(binstats_real_noisy['bin_value'].min()-xadd,binstats_real_noisy['bin_value'].max()+xadd)
-
-    pylab.xlim([0.,27.5])
-    # pylab.ylim([-0.1, 0.1])
 
     # pylab.yscale('symlog',linthreshy=0.05)
     pylab.xlabel('Hubble seqence index')
     pylab.ylabel('additive bias    c')
 
-    yticks = [-req2_c,-req1_c,0.,req1_c,req2_c, 0.002, 0.003, 0.004]
+    yticks = [-0.003,-req2_c,-req1_c,0.,req1_c,req2_c, 0.002, 0.003, 0.004]
     pylab.yticks(yticks,[str(x) for x in  yticks ])
-    pylab.ylim([-0.0006,0.004])
+    pylab.ylim([-0.0031,req2_c])
+    pylab.xlim([3.,23])
 
     pylab.grid()
     # pylab.legend(loc='lower right',ncol=2,mode='expand')
@@ -819,7 +977,6 @@ def plotBiasForBinsAdditive(combine12=False):
 
     pylab.subplots_adjust(left=margin_left, right=margin_right, top=margin_top, bottom=margin_bottom)
 
-    filename_fig = 'figures/fig.bins_additive.modd'
     saveCurrentFig(filename_fig)
     pylab.close()
 
@@ -846,20 +1003,45 @@ def plotBiasForBinsAdditive(combine12=False):
 
     bins_centered = _binCentersSameLen(binstats_real_clear['bin_value'])
 
-    pylab.errorbar(bins_centered,abs(binstats_real_clear['c1']),yerr=binstats_real_clear['c1_std'], fmt='-g+', label = 'c1 model')
-    pylab.errorbar(bins_centered,abs(binstats_real_clear['c2']),yerr=binstats_real_clear['c2_std'], fmt='-yx', label = 'c2 model')
 
-    pylab.errorbar(bins_centered,binstats_bfit_noisy['c1'],yerr=binstats_bfit_noisy['c1_std'], fmt='-m+', label = 'c1 noise+model')
-    pylab.errorbar(bins_centered,binstats_bfit_noisy['c2'],yerr=binstats_bfit_noisy['c2_std'], fmt='-cx', label = 'c2 noise+model')
+    if combine12:
 
-    pylab.errorbar(bins_centered,binstats_real_noisy['c1'],yerr=binstats_real_noisy['c1_std'], fmt='-r+', label = 'c1 noise+model+interact')
-    pylab.errorbar(bins_centered,binstats_real_noisy['c2'],yerr=binstats_real_noisy['c2_std'], fmt='-bx', label = 'c2 noise+model+interact')
+        filename_fig = 'figures/fig.bins_additive.comb.model_bias'
 
-    std_c1 = (binstats_real_noisy['c1_std']**2 + binstats_bfit_noisy['c1_std']**2)**(0.5)
-    std_c2 = (binstats_real_noisy['c2_std']**2 + binstats_bfit_noisy['c2_std']**2)**(0.5)
+        mean_real_clear_c = (binstats_real_clear['c1']     + binstats_real_clear['c2'])/2.
+        stdm_real_clear_c = ((binstats_real_clear['c1_std']**2 + binstats_real_clear['c2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_real_clear_c,yerr=stdm_real_clear_c, fmt=fmt_m, label = label_c_m)
 
-    pylab.errorbar(bins_centered,binstats_bfit_noisy['c1']-binstats_real_noisy['c1'],yerr=std_c1, fmt='k--+', label = 'c1 interact')
-    pylab.errorbar(bins_centered,binstats_bfit_noisy['c2']-binstats_real_noisy['c2'],yerr=std_c2, fmt='k:x',  label = 'c2 interact')
+        mean_real_noisy_c = (binstats_real_noisy['c1']     + binstats_real_noisy['c2'])/2.
+        stdm_real_noisy_c = ((binstats_real_noisy['c1_std']**2 + binstats_real_noisy['c2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_real_noisy_c,yerr=stdm_real_noisy_c, fmt=fmt_nmi, label = label_c_nmi)
+        
+        mean_bfit_noisy_c = (binstats_bfit_noisy['c1']     + binstats_bfit_noisy['c2'])/2.
+        stdm_bfit_noisy_c = ((binstats_bfit_noisy['c1_std']**2 + binstats_bfit_noisy['c2_std']**2)**(0.5))/2.
+        pylab.errorbar(bins_centered,mean_bfit_noisy_c,yerr=stdm_bfit_noisy_c, fmt=fmt_nm, label = label_c_nm)
+
+        mean_diff_noisy_c = mean_real_noisy_c - mean_bfit_noisy_c
+        stdm_diff_noisy_c = (stdm_real_noisy_c**2 + stdm_bfit_noisy_c**2)**(0.5)
+        pylab.errorbar(bins_centered,mean_diff_noisy_c,yerr=stdm_diff_noisy_c, fmt=fmt_i, label = label_c_i)
+
+    else:      
+
+        filename_fig = 'figures/fig.bins_additive.model_bias'
+
+        pylab.errorbar(bins_centered,abs(binstats_real_clear['c1']),yerr=binstats_real_clear['c1_std'], fmt=fmt1_m, label = label_c1_m)
+        pylab.errorbar(bins_centered,abs(binstats_real_clear['c2']),yerr=binstats_real_clear['c2_std'], fmt=fmt2_m, label = label_c2_m)
+
+        pylab.errorbar(bins_centered,binstats_bfit_noisy['c1'],yerr=binstats_bfit_noisy['c1_std'], fmt=fmt1_nm, label = label_c1_nm)
+        pylab.errorbar(bins_centered,binstats_bfit_noisy['c2'],yerr=binstats_bfit_noisy['c2_std'], fmt=fmt2_nm, label = label_c2_nm)
+
+        pylab.errorbar(bins_centered,binstats_real_noisy['c1'],yerr=binstats_real_noisy['c1_std'], fmt=fmt1_nmi, label = label_c1_nmi)
+        pylab.errorbar(bins_centered,binstats_real_noisy['c2'],yerr=binstats_real_noisy['c2_std'], fmt=fmt2_nmi, label = label_c2_nmi)
+
+        std_c1 = (binstats_real_noisy['c1_std']**2 + binstats_bfit_noisy['c1_std']**2)**(0.5)
+        std_c2 = (binstats_real_noisy['c2_std']**2 + binstats_bfit_noisy['c2_std']**2)**(0.5)
+
+        pylab.errorbar(bins_centered,binstats_bfit_noisy['c1']-binstats_real_noisy['c1'],yerr=std_c1, fmt=fmt1_i, label = label_c1_i)
+        pylab.errorbar(bins_centered,binstats_bfit_noisy['c2']-binstats_real_noisy['c2'],yerr=std_c2, fmt=fmt2_i,  label = label_c2_i)
 
     xadd = max( [ abs(binstats_real_noisy['bin_value'].min()) , abs(binstats_real_noisy['bin_value'].max()) ] ) *0.1
     # pylab.xlim(binstats_real_noisy['bin_value'].min()-xadd,binstats_real_noisy['bin_value'].max()+xadd)
@@ -868,13 +1050,13 @@ def plotBiasForBinsAdditive(combine12=False):
     pylab.xlabel('model bias c1')
     pylab.ylabel('additive bias     c')
 
-    yticks = [-0.005,0.,0.005,0.01, 0.015, 0.02]
-    pylab.yticks(yticks,[str(x) for x in  yticks ])
-    pylab.ylim([-0.007,0.02])
+    # yticks = [-0.005,0.,0.005,0.01, 0.015, 0.02]
+    # pylab.yticks(yticks,[str(x) for x in  yticks ])
+    # pylab.ylim([-0.007,0.02])
 
-    xticks = bins_model_bias_additive
-    pylab.xticks(xticks,[str(x) for x in  xticks ])
-    pylab.xlim([-0.003,0.003])
+    # xticks = bins_model_bias_additive
+    # pylab.xticks(xticks,[str(x) for x in  xticks ])
+    # pylab.xlim([-0.003,0.003])
 
     pylab.grid()
     # pylab.legend(loc='lower right',ncol=2,mode='expand')
@@ -883,7 +1065,6 @@ def plotBiasForBinsAdditive(combine12=False):
 
     pylab.subplots_adjust(left=margin_left, right=margin_right, top=margin_top, bottom=margin_bottom)
 
-    filename_fig = 'figures/fig.bins_additive.model_bias'
     saveCurrentFig(filename_fig)
     # pylab.close()
 
@@ -898,9 +1079,11 @@ def plotBiasForBinsAdditive(combine12=False):
     # produce a legend for the objects in the other figure
     pylab.figlegend(*ax.get_legend_handles_labels(), loc = 'upper center' , ncol=2)
         
-    pylab.subplots_adjust(left=margin_left, right=margin_right, top=margin_top, bottom=margin_bottom)
+    if combine12:
+        filename_fig = 'figures/fig.bins.comb.c.legend'
+    else:
+        filename_fig = 'figures/fig.bins.c.legend'
 
-    filename_fig = 'figures/fig.bins.c.legend'
     saveCurrentFig(filename_fig)
 
     figLegend.savefig("legend.png")
@@ -1042,14 +1225,14 @@ def testSaveBiasForBins():
 
     # bins_centered = _binCentersSameLen(binstats_real_clear['bin_value'])
 
-    # pylab.errorbar(bins_centered,abs(binstats_real_clear['m1']),yerr=binstats_real_clear['m1_std'], fmt='-g+', label = 'm1 model')
-    # pylab.errorbar(bins_centered,abs(binstats_real_clear['m2']),yerr=binstats_real_clear['m2_std'], fmt='-yx', label = 'm2 model')
+    # pylab.errorbar(bins_centered,abs(binstats_real_clear['m1']),yerr=binstats_real_clear['m1_std'], fmt=fmt1_m, label = label_m1_m)
+    # pylab.errorbar(bins_centered,abs(binstats_real_clear['m2']),yerr=binstats_real_clear['m2_std'], fmt=fmt2_m, label = label_m2_m)
 
-    # pylab.errorbar(bins_centered,binstats_bfit_noisy['m1'],yerr=binstats_bfit_noisy['m1_std'], fmt='-m+', label = 'm1 noise+model')
-    # pylab.errorbar(bins_centered,binstats_bfit_noisy['m2'],yerr=binstats_bfit_noisy['m2_std'], fmt='-cx', label = 'm2 noise+model')
+    # pylab.errorbar(bins_centered,binstats_bfit_noisy['m1'],yerr=binstats_bfit_noisy['m1_std'], fmt=fmt1_nm, label = label_m1_nm)
+    # pylab.errorbar(bins_centered,binstats_bfit_noisy['m2'],yerr=binstats_bfit_noisy['m2_std'], fmt=fmt2_nm, label = label_m2_nm)
 
-    # pylab.errorbar(bins_centered,binstats_real_noisy['m1'],yerr=binstats_real_noisy['m1_std'], fmt='-r+', label = 'm1 noise+model+interact')
-    # pylab.errorbar(bins_centered,binstats_real_noisy['m2'],yerr=binstats_real_noisy['m2_std'], fmt='-bx', label = 'm2 noise+model+interact')
+    # pylab.errorbar(bins_centered,binstats_real_noisy['m1'],yerr=binstats_real_noisy['m1_std'], fmt=fmt1_nmi, label = label_m1_nmi)
+    # pylab.errorbar(bins_centered,binstats_real_noisy['m2'],yerr=binstats_real_noisy['m2_std'], fmt=fmt2_nmi, label = label_m2_nmi)
 
     # xadd = max( [ abs(binstats_real_noisy['bin_value'].min()) , abs(binstats_real_noisy['bin_value'].max()) ] ) *0.1
     # # pylab.xlim(binstats_real_noisy['bin_value'].min()-xadd,binstats_real_noisy['bin_value'].max()+xadd)
@@ -1089,6 +1272,14 @@ def saveBiasForBins():
     stats_array        = tabletools.loadTable(table_name='stats_array',        filepath = filepath_stats,              logger=logger)
     ajs_array          = tabletools.loadTable(table_name='ajs_array',          filepath = filepath_acs_join_stats,     logger=logger)
     acs_array          = tabletools.loadTable(table_name='acs_array',          filepath = filepath_acs,                logger=logger)
+
+    if results_bfit_noisy['id_cosmos'][0] == 1000270:
+        logger.warning('fixing bugs with ID')
+        results_bfit_noisy_bug = tabletools.loadTable( filepath = filepath_results_bfit_noisy, dtype = dtype_table_results2,    logger=logger); 
+        results_bfit_noisy = results_bfit_noisy_bug.copy()
+        results_bfit_noisy['id_cosmos'] = results_bfit_noisy['id_cosmos'] / 10
+        tabletools.addTable(table_name='results_bfit_noisy',table=results_bfit_noisy)
+
 
     bin_types = ['size_nocut', 'size', 'redshift', 'morphology', 'model_bias', 'model_bias_additive' ]
     # bin_types = ['model_bias_additive']
@@ -2090,22 +2281,22 @@ def main():
 
     # get total bias
 
-    results_real       = tabletools.loadTable(table_name='results_real',       filepath = filepath_results_real,       dtype = dtype_table_results,     logger=logger)
-    stats_array        = tabletools.loadTable(table_name='stats_array',        filepath = filepath_stats,              logger=logger)
-    ajs_array          = tabletools.loadTable(table_name='ajs_array',          filepath = filepath_acs_join_stats,     logger=logger)
-    acs_array          = tabletools.loadTable(table_name='acs_array',          filepath = filepath_acs,                logger=logger)
-    truth_array_25880  = tabletools.loadTable(table_name='truth_array_25880',  filepath = filepath_truth_25880,        dtype = dtype_table_truth,       logger=logger)
-    truth_array_26000  = tabletools.loadTable(table_name='truth_array_26000',  filepath = filepath_truth_26000,        dtype = dtype_table_truth,       logger=logger)
-    results_real_noisy = tabletools.loadTable(table_name='results_real_noisy', filepath = filepath_results_real_noisy, dtype = dtype_table_results2,    logger=logger)
-    results_bfit_noisy = tabletools.loadTable(table_name='results_bfit_noisy', filepath = filepath_results_bfit_noisy, dtype = dtype_table_results2,    logger=logger)
+    # results_real       = tabletools.loadTable(table_name='results_real',       filepath = filepath_results_real,       dtype = dtype_table_results,     logger=logger)
+    # stats_array        = tabletools.loadTable(table_name='stats_array',        filepath = filepath_stats,              logger=logger)
+    # ajs_array          = tabletools.loadTable(table_name='ajs_array',          filepath = filepath_acs_join_stats,     logger=logger)
+    # acs_array          = tabletools.loadTable(table_name='acs_array',          filepath = filepath_acs,                logger=logger)
+    # truth_array_25880  = tabletools.loadTable(table_name='truth_array_25880',  filepath = filepath_truth_25880,        dtype = dtype_table_truth,       logger=logger)
+    # truth_array_26000  = tabletools.loadTable(table_name='truth_array_26000',  filepath = filepath_truth_26000,        dtype = dtype_table_truth,       logger=logger)
+    # results_real_noisy = tabletools.loadTable(table_name='results_real_noisy', filepath = filepath_results_real_noisy, dtype = dtype_table_results2,    logger=logger)
+    # results_bfit_noisy = tabletools.loadTable(table_name='results_bfit_noisy', filepath = filepath_results_bfit_noisy, dtype = dtype_table_results2,    logger=logger)
    
-    # global results_bfit_noisy
-    if results_bfit_noisy['id_cosmos'][0] == 1000270:
-        logger.warning('fixing bugs with ID')
-        results_bfit_noisy_bug = tabletools.loadTable( filepath = filepath_results_bfit_noisy, dtype = dtype_table_results2,    logger=logger); 
-        results_bfit_noisy = results_bfit_noisy_bug.copy()
-        results_bfit_noisy['id_cosmos'] = results_bfit_noisy['id_cosmos'] / 10
-        tabletools.addTable(table_name='results_bfit_noisy',table=results_bfit_noisy)
+    # # global results_bfit_noisy
+    # if results_bfit_noisy['id_cosmos'][0] == 1000270:
+    #     logger.warning('fixing bugs with ID')
+    #     results_bfit_noisy_bug = tabletools.loadTable( filepath = filepath_results_bfit_noisy, dtype = dtype_table_results2,    logger=logger); 
+    #     results_bfit_noisy = results_bfit_noisy_bug.copy()
+    #     results_bfit_noisy['id_cosmos'] = results_bfit_noisy['id_cosmos'] / 10
+    #     tabletools.addTable(table_name='results_bfit_noisy',table=results_bfit_noisy)
 
     # cut_stats,cut_ajs = getCuts()
     # stats_array = cut_stats;

@@ -424,4 +424,8 @@ get stats
     zupcx32$ python $CODE/nmb/nmb_main/nmb_main_plots.py saveBiasForBins -v 3
 
     
+130717 generated a list of ids on which to run:
 
+precise$ python $CODE/nmb/nmb_main/nmb_main_plots.py getBinSupplement -v 3^C
+
+suppl.cat
