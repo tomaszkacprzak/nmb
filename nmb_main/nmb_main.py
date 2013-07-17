@@ -389,6 +389,11 @@ def saveResult(file_results,i3_result,idg,ido,idu,idc):
 
 def printResult(i3_result,id_global):
 
+    # get the FWHM only if the result is valid:
+    if i3_result.sersic_parameter_e1 < 1.:
+        fwhm = getFWHM(i3_result)
+    else:
+        fwhm = 666
 
     pixel_scale = config['image']['pixel_scale']
     n_pix = config['image']['size']
@@ -405,7 +410,7 @@ def printResult(i3_result,id_global):
                  i3_result.sersic_bulge_flux,
                  i3_result.sersic_disc_flux,
                  i3_result.stats_signal_to_noise,
-                 getFWHM(i3_result),
+                 fwhm,
                  )
     
     logger.debug(line)
