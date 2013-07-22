@@ -24,9 +24,9 @@ filepath_truth_26000        = 'truth.26000.pp'
 filepath_acs                = 'cosmos_acs_shera_may2011.fits.gz'
 filepath_results_real       = 'results.nmb_main.real.pp' 
 # filepath_results_real_noisy = 'results.nmb_main.real.noisy.fits'
-filepath_results_real_noisy = 'results.nmb_main.real.noisy.rep5.fits'
+filepath_results_real_noisy = 'results.nmb_main.real.noisy.rep6.fits'
 # filepath_results_bfit_noisy = 'results.nmb_main.bfit.noisy.fits'
-filepath_results_bfit_noisy = 'results.nmb_main.bfit.noisy.rep5.fits'
+filepath_results_bfit_noisy = 'results.nmb_main.bfit.noisy.rep6.fits'
 
 NO_RESULT_FLAG = 666
 
@@ -38,7 +38,7 @@ bins_modd     = [0 ,  9 , 16, 20, 32 ]
 bins_snr = numpy.logspace(2,4,20)
 bins_hlr = numpy.linspace(0,5,5)
 bins_model_bias = [-0.03,-0.02,-0.01,0.0,0.01,0.02,0.03]
-bins_model_bias_additive = [-0.003,-0.002,-0.001,0.0,0.001,0.002,0.003]
+bins_model_bias_additive = [-0.002,-0.001,0.0,0.001,0.002,0.003]
 # 1->8 Ell-S0, 9->15 Sa-Sc, 16->19 Sd-Sdm from Polletta et al., >=20 starburst from BC03
 
 req1_m = 0.02

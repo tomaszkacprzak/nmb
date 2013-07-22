@@ -429,3 +429,12 @@ get stats
 precise$ python $CODE/nmb/nmb_main/nmb_main_plots.py getBinSupplement -v 3^C
 
 suppl.cat
+
+130719 rsync new results -- ok
+
+    python ~/code/nmb/nmb_main/nmb_main_analyse.py mergeResults nmb_main.real.noisy.yaml --filepath_truth truth.25880.fits -v3 --n_reps 6
+    python ~/code/nmb/nmb_main/nmb_main_analyse.py mergeResults nmb_main.bfit.noisy.yaml --filepath_truth truth.25880.fits -v3 --n_reps 6
+
+    
+
+
