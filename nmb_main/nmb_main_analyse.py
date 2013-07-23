@@ -60,8 +60,16 @@ def getTotalBias():
     # get the results and truth
     results_array = tabletools.loadTable(table_name='results_array',filepath=args.filepath_results,dtype=dtype_table_results_use)
     truth_array   = tabletools.loadTable(table_name='truth_array'  ,filepath=args.filepath_truth  ,dtype=dtype_table_truth)    
+    results_real_noisy = tabletools.loadTable(table_name='results_real_noisy', filepath = filepath_results_real_noisy, dtype = dtype_table_results2,    logger=logger)
+    results_bfit_noisy = tabletools.loadTable(table_name='results_bfit_noisy', filepath = filepath_results_bfit_noisy, dtype = dtype_table_results2,    logger=logger)   
 
-    getBiasForResults(results_array,truth_array,logger)
+    mc_results_bfit  = getBiasForResults(results_real_noisy,truth_array,logger)
+    mc_results_real = getBiasForResults(results_bfit_noisy,truth_array,logger)
+    print 'real %2.6f %2.6f +/- %2.6f %2.6f' % (mc_results_real['m1'],mc_results_real['m2'],mc_results_real['m1_std'],mc_results_real['m2_std'])    
+    print 'bfit %2.6f %2.6f +/- %2.6f %2.6f' % (mc_results_bfit['m1'],mc_results_bfit['m2'],mc_results_bfit['m1_std'],mc_results_bfit['m2_std'])    
+    
+
+
 
 
 def getBiasForResults(results_array,truth_array,n_means=5,bin_param='test',bin_id=0,logger=default_logger):
