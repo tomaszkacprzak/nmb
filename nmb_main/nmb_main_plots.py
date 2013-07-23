@@ -99,6 +99,42 @@ fmt2_nmi =  'bx-'
 fmt1_i   =  'k--+'
 fmt2_i   =  'k:x'
 
+def checkBinSupplement():
+
+    truth_array_25880  = tabletools.loadTable(table_name='truth_array_25880',  filepath = filepath_truth_25880,        dtype = dtype_table_truth,       logger=logger)
+    # truth_array_26000  = tabletools.loadTable(table_name='truth_array_26000',  filepath = filepath_truth_26000,        dtype = dtype_table_truth,       logger=logger)
+    # # results_real_noisy = tabletools.loadTable(table_name='results_real_noisy', filepath = filepath_results_real_noisy, dtype = dtype_table_results2,    logger=logger)
+    # results_bfit_noisy = tabletools.loadTable(table_name='results_bfit_noisy', filepath = filepath_results_bfit_noisy, dtype = dtype_table_results2,    logger=logger)   
+    # results_real       = tabletools.loadTable(table_name='results_real',       filepath = filepath_results_real,       dtype = dtype_table_results,     logger=logger)
+    # stats_array        = tabletools.loadTable(table_name='stats_array',        filepath = filepath_stats,              logger=logger)
+    ajs_array          = tabletools.loadTable(table_name='ajs_array',          filepath = filepath_acs_join_stats,     logger=logger)
+    acs_array          = tabletools.loadTable(table_name='acs_array',          filepath = filepath_acs,                logger=logger)
+
+    
+    supl = numpy.loadtxt('suppl1.cat',dtype=numpy.int32)
+
+    modd = []
+    for idd in supl:
+        select = ajs_array['IDENT'] == idd
+        modd.extend(ajs_array['MODD'][select])
+        # print idd
+
+    zphot = []
+    for idd in supl:
+        select = ajs_array['IDENT'] == idd
+        zphot.extend(ajs_array['ZPHOT'][select])
+        # print idd
+
+    import pylab
+    pylab.scatter(modd,zphot)
+    pylab.show()
+
+    select = ajs_array['MODD'] < 20
+    print sum(select)
+    print len(supl)
+
+
+
 
 def getBinSupplement():
 
@@ -121,6 +157,37 @@ def getBinSupplement():
     print all_ids
 
     logger.info('saved %s' % filename_suppl)
+
+def getBinSupplement2():
+
+
+    all_ids = []
+
+    # last redshift bin
+    cut_stats,cut_ajs = getCuts()
+    stats_array = cut_stats;
+    ajs_array   = cut_ajs;
+
+    select = ajs_array['ZPHOT'] > 0.9
+    ids = ajs_array[select]['IDENT']
+    all_ids.extend(ids)
+
+    select = ajs_array['MODD'] <20
+    ids = ajs_array[select]['IDENT']
+    all_ids.extend(ids)
+
+    print len(all_ids)
+
+    unique_ids = list(set(all_ids))
+
+    print len(unique_ids)
+
+    filename_suppl = 'suppl2.cat'    
+    numpy.savetxt(filename_suppl,numpy.array(unique_ids),fmt='%d')
+
+    logger.info('saved %s' % filename_suppl)
+
+
 
 
 
@@ -2160,19 +2227,28 @@ def plotTime():
     # pylab.hist(results_real_noisy_valid['time_taken'][split:] ,1000,histtype='step',color='b')
     # pylab.show()
 
-    n_per_task = 640
+    n_per_task = 64
     n_tasks = len(results_bfit_noisy)/n_per_task
     time_mean = []
     time_total = []
     for i in range(0,len(results_bfit_noisy),n_per_task):
         i_start = i
         i_end   = i + n_per_task
-        time_mean.append(numpy.mean(results_bfit_noisy['time_taken'][i_start:i_end]))
-        time_total.append(numpy.sum(results_bfit_noisy['time_taken'][i_start:i_end]))
+        res_mean = numpy.mean(results_bfit_noisy['time_taken'][i_start:i_end])
+        res_sum = numpy.sum(results_bfit_noisy['time_taken'][i_start:i_end])
+        # if results_bfit_noisy[i_start]['time_taken'] > 0.9*NO_RESULT_FLAG and res_mean < 0.9*NO_RESULT_FLAG:
+            # print results_bfit_noisy[i_start]['time_taken'] , res_mean
+            # import pdb;pdb.set_trace()
+            # results_bfit_noisy['time_taken'][i_start:i_end]
+
+        time_mean.append(res_mean)
+        time_total.append(res_sum)
+
+    # import pdb;pdb.set_trace()
 
     time_mean  = numpy.array(time_mean)
     time_total = numpy.array(time_total)
-    time_mean_valid  = time_mean[time_mean < NO_RESULT_FLAG]  
+    time_mean_valid  = time_mean[time_mean <  NO_RESULT_FLAG]  
     time_total_valid = time_total[time_mean < NO_RESULT_FLAG]
 
     pylab.hist(time_mean_valid,100)
