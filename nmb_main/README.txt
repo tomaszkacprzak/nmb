@@ -436,5 +436,23 @@ suppl.cat
     python ~/code/nmb/nmb_main/nmb_main_analyse.py mergeResults nmb_main.bfit.noisy.yaml --filepath_truth truth.25880.fits -v3 --n_reps 6
 
     
+130723 created suppl2 set, with ~8700 galaxies, set up 4 noise realisations per galaxy, started suppl2 runs on legion.
+    getting total bias
+
+    python ~/code/nmb/nmb_main/nmb_main_analyse.py getTotalBias
+
+    checking if SNR of the noiseless is enough for the reconvolution to be happy.
+
+    changed cut on snr min to 1000
+
+    zupcx32$ python $CODE/nmb/nmb_main/nmb_main_plots.py saveBiasForBins -v 3    
 
 
+130805 merging suppl2
+
+    python ~/code/nmb/nmb_main/nmb_main_analyse.py mergeResults nmb_main.real.noisy.yaml --filepath_truth truth.25880.fits -v3 --n_reps 9    
+    python ~/code/nmb/nmb_main/nmb_main_analyse.py mergeResults nmb_main.bfit.noisy.yaml --filepath_truth truth.25880.fits -v3 --n_reps 9    
+
+    zupcx32$ python $CODE/nmb/nmb_main/nmb_main_plots.py saveBiasForBins -v 3        
+
+    zupcx32$ python $CODE/nmb/nmb_main/nmb_main_plots.py plotBiasForBins -v 2

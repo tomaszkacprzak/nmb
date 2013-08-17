@@ -24,9 +24,9 @@ filepath_truth_26000        = 'truth.26000.pp'
 filepath_acs                = 'cosmos_acs_shera_may2011.fits.gz'
 filepath_results_real       = 'results.nmb_main.real.pp' 
 # filepath_results_real_noisy = 'results.nmb_main.real.noisy.fits'
-filepath_results_real_noisy = 'results.nmb_main.real.noisy.rep6.fits'
+filepath_results_real_noisy = 'results.nmb_main.real.noisy.rep7.fits'
 # filepath_results_bfit_noisy = 'results.nmb_main.bfit.noisy.fits'
-filepath_results_bfit_noisy = 'results.nmb_main.bfit.noisy.rep6.fits'
+filepath_results_bfit_noisy = 'results.nmb_main.bfit.noisy.rep7.fits'
 
 NO_RESULT_FLAG = 666
 
@@ -35,7 +35,9 @@ bins_redshift = [0 , 0.3 , 0.6 , 0.9 , 1.2 , 2.0]
 bins_size     = [1.3 , 1.4 , 1.5 , 1.6 , 1.8 ,  2.0]
 bins_size_nocut= [1.0, 1.1 , 1.2, 1.3 , 1.4 , 1.5 , 1.6 , 1.7 , 1.8, 1.9 , 2.0]
 bins_modd     = [0 ,  9 , 16, 20, 32 ]
-bins_snr = numpy.logspace(2,4,20)
+# bins_snr = numpy.logspace(2,4,20)
+bins_snr = [0,300,1000,1500,2000,3000,10000]
+
 bins_hlr = numpy.linspace(0,5,5)
 bins_model_bias = [-0.03,-0.02,-0.01,0.0,0.01,0.02,0.03]
 bins_model_bias_additive = [-0.002,-0.001,0.0,0.001,0.002,0.003]
@@ -46,13 +48,20 @@ req2_m = 0.004
 req1_c = 0.001
 req2_c = 0.0006
 
-margin_left    = 0.14
+# margin_left    = 0.14
+# margin_right   = 0.97
+# margin_top     = 0.97
+# margin_bottom  = 0.1
+# fig_size      = (7.5,4)
+# fig_dpi       = 100
+
+margin_left    = 0.18
 margin_right   = 0.97
 margin_top     = 0.97
-margin_bottom  = 0.1
+margin_bottom  = 0.2
+fig_size      = (5,3)
+fig_dpi       = 200
 
-fig_size      = (7.5,4)
-fig_dpi       = 80
 fig_facecolor = 'w'
 fig_edgecolor = 'k'
 
@@ -98,6 +107,54 @@ fmt1_nmi =  'r+-'
 fmt2_nmi =  'bx-'
 fmt1_i   =  'k--+'
 fmt2_i   =  'k:x'
+
+def getTotalBias():
+
+    dtype_table_results_use = dtype_table_results2  
+
+    # get the results and truth
+    truth_array_25880  = tabletools.loadTable(table_name='truth_array_25880',  filepath = filepath_truth_25880,        dtype = dtype_table_truth,       logger=logger)
+    truth_array_26000  = tabletools.loadTable(table_name='truth_array_26000',  filepath = filepath_truth_26000,        dtype = dtype_table_truth,       logger=logger)
+    results_real_noisy = tabletools.loadTable(table_name='results_real_noisy', filepath = filepath_results_real_noisy, dtype = dtype_table_results2,    logger=logger)
+    results_bfit_noisy = tabletools.loadTable(table_name='results_bfit_noisy', filepath = filepath_results_bfit_noisy, dtype = dtype_table_results2,    logger=logger)   
+    results_real       = tabletools.loadTable(table_name='results_real',       filepath = filepath_results_real,       dtype = dtype_table_results,     logger=logger)
+    stats_array        = tabletools.loadTable(table_name='stats_array',        filepath = filepath_stats,              logger=logger)
+    ajs_array          = tabletools.loadTable(table_name='ajs_array',          filepath = filepath_acs_join_stats,     logger=logger)
+    acs_array          = tabletools.loadTable(table_name='acs_array',          filepath = filepath_acs,                logger=logger)
+
+    cut_stats,cut_ajs = getCuts()
+    stats_array = cut_stats;
+    ajs_array   = cut_ajs;
+
+    bin_column = stats_array['rgp']
+
+    # mc_results = getBiasForBins(results_real_noisy,truth_array_25880,bin_column=bin_column,bin_ids=stats_array['cosmos_id'],bin_values=bins_size_nocut,bin_column_name='size_nocut_real_noisy')
+
+    mc_results_real = getBiasForBins(results_real_noisy,truth_array_25880,bin_column=bin_column,bin_ids=stats_array['cosmos_id'],bin_values=[0,1000],bin_column_name='all_data')
+    mc_results_bfit = getBiasForBins(results_bfit_noisy,truth_array_25880,bin_column=bin_column,bin_ids=stats_array['cosmos_id'],bin_values=[0,1000],bin_column_name='all_data')
+
+    print 'real galaxy       & % 2.4f & % 2.4f & % 2.4f & % 2.4f & % 2.4f & % 2.4f & % 2.4f & % 2.4f \\\\' %  (mc_results_real['m1'],mc_results_real['m2'],mc_results_real['m1_std'],mc_results_real['m2_std'],mc_results_real['c1'],mc_results_real['c2'],mc_results_real['c1_std'],mc_results_real['c2_std'])    
+    print 'best - fit galaxy & % 2.4f & % 2.4f & % 2.4f & % 2.4f & % 2.4f & % 2.4f & % 2.4f & % 2.4f \\\\' %  (mc_results_bfit['m1'],mc_results_bfit['m2'],mc_results_bfit['m1_std'],mc_results_bfit['m2_std'],mc_results_bfit['c2'],mc_results_bfit['c2'],mc_results_bfit['c1_std'],mc_results_bfit['c2_std'])    
+
+    # print 'c real %2.6f %2.6f +/- %2.6f %2.6f' % (mc_results_real['c1'],mc_results_real['c2'],mc_results_real['c1_std'],mc_results_real['c2_std'])    
+    # print 'c bfit %2.6f %2.6f +/- %2.6f %2.6f' % (mc_results_bfit['c2'],mc_results_bfit['c2'],mc_results_bfit['c1_std'],mc_results_bfit['c2_std'])    
+
+    m1_diff = mc_results_real['m1'] - mc_results_bfit['m1']   
+    m2_diff = mc_results_real['m2'] - mc_results_bfit['m2']   
+    m1_diff_std = numpy.sqrt(mc_results_real['m1_std']**2 + mc_results_bfit['m1_std']**2)
+    m2_diff_std = numpy.sqrt(mc_results_real['m2_std']**2 + mc_results_bfit['m2_std']**2)
+
+    c1_diff = mc_results_real['c1'] - mc_results_bfit['c1']   
+    c2_diff = mc_results_real['c2'] - mc_results_bfit['c2']   
+    c1_diff_std = numpy.sqrt(mc_results_real['c1_std']**2 + mc_results_bfit['c1_std']**2)
+    c2_diff_std = numpy.sqrt(mc_results_real['c2_std']**2 + mc_results_bfit['c2_std']**2)
+
+    print 'difference & % 2.4f & % 2.4f & % 2.4f & % 2.4f & % 2.4f & % 2.4f & % 2.4f & % 2.4f ' % (m1_diff,m2_diff,m1_diff_std,m2_diff_std,c1_diff,c2_diff,c1_diff_std,c2_diff_std)    
+   
+    print 'm diff %2.6f %2.6f +/- %2.6f %2.6f' % (m1_diff,m2_diff,m1_diff_std,m2_diff_std)    
+    print 'c diff %2.6f %2.6f +/- %2.6f %2.6f' % (c1_diff,c2_diff,c1_diff_std,c2_diff_std)    
+    
+
 
 def checkBinSupplement():
 
@@ -216,11 +273,13 @@ def plotAddReqToAxis(axis):
 
 def saveCurrentFig(filename_noext):
 
-    filename_fig_png = filename_noext + '.eps'
+    filename_fig_eps = filename_noext + '.eps'
+    pylab.savefig(filename_fig_eps)
+    filename_fig_png = filename_noext + '.png'
     pylab.savefig(filename_fig_png)
-    filename_fig_pdf = filename_noext + '.png'
-    pylab.savefig(filename_fig_pdf)
-    logger.info('saved %s %s' % (filename_fig_pdf,filename_fig_png))
+    filename_fig_eps_size = '%s.%dx%d.eps' % (filename_noext , int(fig_size[0]) , int(fig_size[1]) )
+    pylab.savefig(filename_fig_eps_size)
+    logger.info('saved %s %s %s' % (filename_fig_eps,filename_fig_png,filename_fig_eps_size))
 
 def getColorMap(n_colors):
     import colorsys
@@ -324,11 +383,13 @@ def plotBiasForBins(combine12=False):
     pylab.xlabel('galaxy redshift    z-phot')
     pylab.ylabel('multiplicative bias    m')
 
+
+
     yticks = [-0.1,-0.05,-req2_m,-0.01,-req1_m,0.,req1_m,0.01,req2_m,0.05]
     pylab.yticks(yticks,[str(x) for x in  yticks ])
     pylab.ylim([-0.02,0.05])
 
-    pylab.grid()
+    # pylab.grid()
     # pylab.legend(loc='lower left',ncol=2,mode='expand')
 
     plotAddReq()
@@ -405,21 +466,21 @@ def plotBiasForBins(combine12=False):
     # pylab.xlim(binstats_real_noisy['bin_value'].min()-xadd,binstats_real_noisy['bin_value'].max()+xadd)
     # print pylab.xlim()
 
-    pylab.yscale('symlog',linthreshy=0.05)
+    # pylab.yscale('symlog',linthreshy=0.05)
     pylab.xlabel('galaxy size    Rgp/Rp')
     pylab.ylabel('multiplicative bias    m')
 
-    yticks = [-0.9,-0.1,-0.05,-req1_m,0.,req1_m,0.05,0.1]
-    pylab.yticks(yticks,[str(x) for x in  yticks ])
+    # yticks = [-0.9,-0.1,-0.05,-req1_m,0.,req1_m,0.05,0.1]
+    # pylab.yticks(yticks,[str(x) for x in  yticks ])
 
     pylab.grid()
-    # pylab.legend(loc='lower right')
-
-
-    pylab.xlim([1.,2.])
-    # pylab.ylim([-1., 1.])
+    pylab.legend(loc='lower right')
 
     plotAddReq()
+
+    pylab.xlim([1.,2.])
+    # pylab.ylim([-1., 0.1])
+
 
     pylab.subplots_adjust(left=margin_left, right=margin_right, top=margin_top, bottom=margin_bottom)
 
@@ -502,7 +563,7 @@ def plotBiasForBins(combine12=False):
     pylab.xlim([1.3,1.95])
     pylab.ylim([-0.01, 0.05])
 
-    pylab.grid()
+    # pylab.grid()
     # pylab.legend(loc='lower right',ncol=2,mode='expand')
     # pylab.legend(loc='upper center', bbox_to_anchor=(0.5,1.5),ncol=2)
 
@@ -586,7 +647,7 @@ def plotBiasForBins(combine12=False):
     pylab.yticks(yticks,[str(x) for x in  yticks ])
     pylab.ylim([-0.01,0.03])
 
-    pylab.grid()
+    # pylab.grid()
     # pylab.legend(loc='lower right',ncol=2,mode='expand')
 
     plotAddReq()
@@ -675,7 +736,7 @@ def plotBiasForBins(combine12=False):
     pylab.xticks(xticks,[str(x) for x in  xticks ])
     pylab.xlim([-0.03,0.03])
 
-    pylab.grid()
+    # pylab.grid()
     # pylab.legend(loc='lower right',ncol=2,mode='expand')
 
     plotAddReq()
@@ -783,7 +844,7 @@ def plotBiasForBinsAdditive(combine12=False):
     pylab.ylim([-0.0031,req2_c])
     pylab.xlim([0,1.5])
 
-    pylab.grid()
+    # pylab.grid()
     # pylab.legend(loc='lower left',ncol=2,mode='expand')
 
     plotAddReqAdditive()
@@ -866,7 +927,7 @@ def plotBiasForBinsAdditive(combine12=False):
     # yticks = [-0.9,-0.1,-0.05,-req1_c,0.,req1_c,0.05,0.1]
     # pylab.yticks(yticks,[str(x) for x in  yticks ])
 
-    pylab.grid()
+    # pylab.grid()
     # pylab.legend(loc='lower right')
 
 
@@ -955,7 +1016,7 @@ def plotBiasForBinsAdditive(combine12=False):
     pylab.xlim([1.3,1.95])
     pylab.ylim([-0.0031, req2_c])
 
-    pylab.grid()
+    # pylab.grid()
     # pylab.legend(loc='lower right',ncol=2,mode='expand')
 
     plotAddReqAdditive()
@@ -1037,7 +1098,7 @@ def plotBiasForBinsAdditive(combine12=False):
     pylab.ylim([-0.0031,req2_c])
     pylab.xlim([3.,23])
 
-    pylab.grid()
+    # pylab.grid()
     # pylab.legend(loc='lower right',ncol=2,mode='expand')
 
     plotAddReqAdditive()
@@ -1125,7 +1186,7 @@ def plotBiasForBinsAdditive(combine12=False):
     # pylab.xticks(xticks,[str(x) for x in  xticks ])
     # pylab.xlim([-0.003,0.003])
 
-    pylab.grid()
+    # pylab.grid()
     # pylab.legend(loc='lower right',ncol=2,mode='expand')
 
     plotAddReqAdditive()
@@ -1161,8 +1222,8 @@ def getCuts():
 
     cut_rgprp_min = 1.3
     cut_rgprp_max = 1000
-    cut_snr_min = 100
-    cut_snr_max = 100000
+    cut_snr_min = 200
+    cut_snr_max = 10000000
 
     stats_array        = tabletools.loadTable(table_name='stats_array',        filepath = filepath_stats,              logger=logger)
     ajs_array          = tabletools.loadTable(table_name='ajs_array',          filepath = filepath_acs_join_stats,     logger=logger)
@@ -1320,7 +1381,7 @@ def testSaveBiasForBins():
     # pylab.yticks(yticks,[str(x) for x in  yticks ])
     # pylab.ylim([-0.03,0.04])
 
-    # pylab.grid()
+    pylab.grid()
     # pylab.legend(loc='lower right',ncol=2)
 
 
@@ -1339,6 +1400,11 @@ def saveBiasForBins():
     stats_array        = tabletools.loadTable(table_name='stats_array',        filepath = filepath_stats,              logger=logger)
     ajs_array          = tabletools.loadTable(table_name='ajs_array',          filepath = filepath_acs_join_stats,     logger=logger)
     acs_array          = tabletools.loadTable(table_name='acs_array',          filepath = filepath_acs,                logger=logger)
+
+    results_real_noisy_suppl = results_real_noisy
+    results_real_noisy = results_real_noisy_suppl[0:8281600]
+    results_bfit_noisy_suppl = results_bfit_noisy
+    results_bfit_noisy = results_bfit_noisy_suppl[0:8281600]
 
     if results_bfit_noisy['id_cosmos'][0] == 1000270:
         logger.warning('fixing bugs with ID')
@@ -1398,13 +1464,13 @@ def saveBiasForBins():
 
         # do the real noisy case
         logging.info('--------------------------- getting results for real noisy galaxies ---------------------------')
-        mc_results_real_noisy = getBiasForBins(results_real_noisy,truth_array_25880,bin_column=ajs_array['ZPHOT'], bin_ids=ajs_array['IDENT'],bin_values=bins_redshift,bin_column_name='zphot_real_noisy')
+        mc_results_real_noisy = getBiasForBins(results_real_noisy_suppl,truth_array_25880,bin_column=ajs_array['ZPHOT'], bin_ids=ajs_array['IDENT'],bin_values=bins_redshift,bin_column_name='zphot_real_noisy')
         filename_results = 'bins.redshift.real.noisy.cat'
         tabletools.saveTable(filename_results,mc_results_real_noisy)
 
         # do the bfit noisy case
         logging.info('--------------------------- getting results for bfit noisy galaxies ---------------------------')
-        mc_results_bfit_noisy = getBiasForBins(results_bfit_noisy,truth_array_25880,bin_column=ajs_array['ZPHOT'], bin_ids=ajs_array['IDENT'],bin_values=bins_redshift,bin_column_name='zphot_bfit_noisy')
+        mc_results_bfit_noisy = getBiasForBins(results_bfit_noisy_suppl,truth_array_25880,bin_column=ajs_array['ZPHOT'], bin_ids=ajs_array['IDENT'],bin_values=bins_redshift,bin_column_name='zphot_bfit_noisy')
         filename_results = 'bins.redshift.bfit.noisy.cat'
         tabletools.saveTable(filename_results,mc_results_bfit_noisy)
 
@@ -1459,13 +1525,13 @@ def saveBiasForBins():
             # do the real noisy case
 
         logging.info('--------------------------- getting results for %d real noisy galaxies ---------------------------' % len(bin_ids))
-        mc_results = getBiasForBins(results_real_noisy,truth_array_25880,bin_column=bin_column,bin_ids=bin_ids,bin_values=bins_modd,bin_column_name='modd_real_noisy')
+        mc_results = getBiasForBins(results_real_noisy_suppl,truth_array_25880,bin_column=bin_column,bin_ids=bin_ids,bin_values=bins_modd,bin_column_name='modd_real_noisy')
         filename_results = 'bins.modd.real.noisy.cat'
         tabletools.saveTable(filename_results,mc_results)
 
         # do the bfit noisy case
         logging.info('--------------------------- getting results for %d bfit noisy galaxies ---------------------------'  % len(bin_ids))
-        mc_results = getBiasForBins(results_bfit_noisy,truth_array_25880,bin_column=bin_column, bin_ids=bin_ids,bin_values=bins_modd,bin_column_name='modd_bfit_noisy')
+        mc_results = getBiasForBins(results_bfit_noisy_suppl,truth_array_25880,bin_column=bin_column, bin_ids=bin_ids,bin_values=bins_modd,bin_column_name='modd_bfit_noisy')
         filename_results = 'bins.modd.bfit.noisy.cat'
         tabletools.saveTable(filename_results,mc_results)
 
@@ -1577,6 +1643,7 @@ def plotModelBias():
     results_c2 = results_stats[select]['c2']
     results_rgp = results_stats[select]['rgp']
     results_snr = results_stats[select]['snr']
+    # results_snr = ajs_array[select]['SN']
     results_zphot = results_stats[select]['zphot']
     results_modd = results_modd[select]
 
@@ -1596,7 +1663,7 @@ def plotModelBias():
     pylab.axvline(x=results_m2.mean(),linewidth=1, color='b')
 
     pylab.xlabel('multiplicative bias')
-    pylab.grid()
+    # pylab.grid()
     pylab.legend()
     print "mean" , numpy.mean(results_m1)
     print "mean" , numpy.mean(results_m2)
@@ -1624,7 +1691,7 @@ def plotModelBias():
     pylab.axvline(x=results_c2.mean(),linewidth=1, color='b')
 
     pylab.xlabel('multiplicative bias')
-    pylab.grid()
+    # pylab.grid()
     pylab.legend()
     print "mean" , numpy.mean(results_c1)
     print "mean" , numpy.mean(results_c2)
@@ -1653,7 +1720,7 @@ def plotModelBias():
 
     pylab.xlabel('m')
     pylab.ylabel('c')
-    pylab.grid()
+    # pylab.grid()
     # pylab.legend()
 
     filename_fig = 'figures/figure.scatter.MvsC.real'
@@ -1663,10 +1730,13 @@ def plotModelBias():
 
     # snr distribution -----------------------------------------------------------------------------
 
+    bins_snr_use = numpy.logspace(2,4,20)
+
     pylab.figure()
-    h,b,p = pylab.hist(results_snr,bins=bins_snr)
+    h,b,p = pylab.hist(results_snr,bins=bins_snr_use)
     pylab.xlabel('snr')
-    pylab.xscale('log')    
+    # pylab.xscale('log')    
+    # pylab.xticks(bins_snr_use)
 
     filename_fig = 'figures/figure.hist.snr.real'
     saveCurrentFig(filename_fig)
@@ -1736,9 +1806,38 @@ def plotModelBias():
     pylab.xscale('log')
     pylab.xlabel('snr')
     pylab.ylabel('m1')
+    # pylab.xticks(bins_snr)
     filename_fig = 'figures/figure.hist.M1M2vsSNR.real'
     saveCurrentFig(filename_fig)
     pylab.close()
+
+    pylab.figure(figsize=(20,20))
+
+    n_bins_use = 32
+
+    bins_snr_use = [0,300,1000,1500,2000,3000,10000]
+
+    colors_snr = getColorMap(len(bins_snr_use))
+
+    digitized = numpy.digitize(results_snr, bins_snr_use)
+
+    for i in range(1, len(bins_snr_use)):
+        m1= results_m1[digitized == i]
+        m2= results_m2[digitized == i]
+        weights = numpy.ones_like(m1)/len(m1)
+        h,b,p = pylab.hist(m1,weights=weights,bins=n_bins_use,histtype='step',label='m1 SNR %d-%d' % (bins_snr_use[i-1],bins_snr_use[i]),color=colors_snr[i-1])
+        h,b,p = pylab.hist(m2,weights=weights,bins=n_bins_use,histtype='step',label='m2 SNR %d-%d' % (bins_snr_use[i-1],bins_snr_use[i]),color=colors_snr[i-1])
+        pylab.axvline(linewidth=2, color='k')
+        # pylab.axvline(x=m1.mean(),linewidth=1, color=colors_snr[i-1])
+        # pylab.axvline(x=m2.mean(),linewidth=1, color=colors_snr[i-1])
+
+    pylab.legend()
+
+
+    filename_fig = 'figures/figure.hist.M1M2forSNR.real'
+    saveCurrentFig(filename_fig)
+    pylab.close()
+
 
     # m1 vs size -----------------------------------------------------------------------------------
 
@@ -1762,7 +1861,7 @@ def plotModelBias():
     pylab.xlabel('size    Rgp/Rp')
     pylab.ylabel('m')
     pylab.legend()
-    pylab.grid()
+    # pylab.grid()
 
     plotAddReq()
 
@@ -1860,7 +1959,7 @@ def plotModelBias():
         pylab.axvline(x=m1.mean(),linewidth=1, color=colors_modd_m1[i-1])
         pylab.axvline(x=m2.mean(),linewidth=1, color=colors_modd_m2[i-1])
 
-    pylab.grid()
+    # pylab.grid()
     pylab.legend(ncol=2,loc='upper center',mode='expand')
     pylab.xlabel('m')
     pylab.xticks([-0.1 , -0.05 , -0.01 ,   0.01 , 0.05 , 0.1])
@@ -1917,7 +2016,7 @@ def plotModelBias():
         pylab.axvline(x=c1.mean(),linewidth=1, color=colors_modd_c1[i-1])
         pylab.axvline(x=c2.mean(),linewidth=1, color=colors_modd_c2[i-1])
 
-    pylab.grid()
+    # pylab.grid()
     pylab.legend(ncol=2,loc='upper center',mode='expand')
     pylab.xlabel('c')
     # pylab.xticks([-0.1 , -0.05 , -0.01 ,   0.01 , 0.05 , 0.1])
@@ -1947,7 +2046,7 @@ def plotModelBias():
     pylab.xlabel('redshift   z-phot')
     pylab.ylabel('m')
 
-    pylab.grid()
+    # pylab.grid()
     pylab.legend(loc='upper left')
 
     plotAddReq()
@@ -1975,7 +2074,7 @@ def plotModelBias():
         pylab.axvline(x=m1.mean(),linewidth=1, color=redshift_color_tuples[i-1])
         pylab.axvline(x=m2.mean(),linewidth=1, color=redshift_color_tuples[i-1])        
 
-    pylab.grid()
+    # pylab.grid()
     pylab.legend()
     pylab.xlabel('m1m2')
     pylab.xticks([-0.1 , -0.05 , -0.01 ,   0.01 , 0.05 , 0.1])
@@ -1995,7 +2094,7 @@ def plotModelBias():
         pylab.plot(_binCenters(b),h,'-x',label='Hubble Seq=%d-%d' % (bins_modd[i-1],bins_modd[i]))
 
         
-    pylab.grid()
+    # pylab.grid()
     pylab.legend()
     pylab.xlabel('redshift')
     pylab.ylabel('normalised hist')
@@ -2016,7 +2115,7 @@ def plotModelBias():
         h,b = pylab.histogram(results_size[digitized == i],bins=bins_size_extra,normed=True)
         pylab.plot(_binCenters(b),h,'-x',label='Hubble Seq=%d-%d' % (bins_modd[i-1],bins_modd[i]))
         
-    pylab.grid()
+    # pylab.grid()
     pylab.legend()
     pylab.xlabel('size Rgp/Rp')
     pylab.ylabel('normalised hist')
@@ -2045,7 +2144,7 @@ def plotModelBias():
         pylab.axvline(x=m1.mean(),linewidth=1, color=size_color_tuples[i-1])
         # pylab.axvline(x=m2.mean(),linewidth=1, color=size_color_tuples[i-1])        
 
-    pylab.grid()
+    # pylab.grid()
     pylab.legend()
     pylab.xlabel('m')
     pylab.xticks([-0.1 , -0.05 , -0.01 ,   0.01 , 0.05 , 0.1])
@@ -2073,7 +2172,7 @@ def plotModelBias():
     pylab.xlabel('redshift   z-phot')
     pylab.ylabel('c')
 
-    pylab.grid()
+    # pylab.grid()
     pylab.legend(loc='upper left')
 
     plotAddReqAdditive()
@@ -2102,7 +2201,7 @@ def plotModelBias():
         pylab.axvline(x=c1.mean(),linewidth=1, color=redshift_color_tuples[i-1])
         pylab.axvline(x=c2.mean(),linewidth=1, color=redshift_color_tuples[i-1])        
 
-    pylab.grid()
+    # pylab.grid()
     pylab.legend()
     pylab.xlabel('c1c2')
     pylab.xticks([-0.1 , -0.05 , -0.01 ,   0.01 , 0.05 , 0.1])
@@ -2132,7 +2231,7 @@ def plotModelBias():
     pylab.xlabel('redshift   z-phot')
     pylab.ylabel('m')
 
-    pylab.grid()
+    # pylab.grid()
     pylab.legend(loc='upper left')
 
     plotAddReq()
@@ -2160,7 +2259,7 @@ def plotModelBias():
         pylab.axvline(x=m1.mean(),linewidth=1, color=redshift_color_tuples[i-1])
         pylab.axvline(x=m2.mean(),linewidth=1, color=redshift_color_tuples[i-1])        
 
-    pylab.grid()
+    # pylab.grid()
     pylab.legend()
     pylab.xlabel('m1m2')
     pylab.xticks([-0.1 , -0.05 , -0.01 ,   0.01 , 0.05 , 0.1])
@@ -2181,7 +2280,7 @@ def plotModelBias():
         pylab.plot(_binCenters(b),h,'-x',label='Hubble Seq=%d-%d' % (bins_modd[i-1],bins_modd[i]))
 
         
-    pylab.grid()
+    # pylab.grid()
     pylab.legend()
     pylab.xlabel('redshift')
     pylab.ylabel('normalised hist')
